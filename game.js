@@ -16,6 +16,30 @@ const enemies = [
   { name: "Nano Swarm", hp: 30, attack: 8, defense: 1 }
 ];
 
+// Quests data
+const quests = {
+  "quest_001": {
+    id: "quest_001",
+    title: "First Contact",
+    description: "Defeat 3 Xenobots to secure the landing zone.",
+    type: "kill",
+    target: "Xenobot",
+    amount: 3,
+    rewards: { xp: 50, items: ["Energy Cell"] },
+    isMainStory: true
+  },
+  "quest_002": {
+    id: "quest_002",
+    title: "Scrap Collector",
+    description: "Collect 2 Scrap Metal pieces for repairs.",
+    type: "collect",
+    target: "Scrap Metal",
+    amount: 2,
+    rewards: { xp: 30, items: ["Scanner"] },
+    isMainStory: false
+  }
+};
+
 // Elements
 const screens = {
   start: document.getElementById("startScreen"),
@@ -115,7 +139,7 @@ function startGame() {
 // Create character
 function createCharacter(event) {
   event.preventDefault();
-  
+
   const name = document.getElementById("nameInput").value.trim();
   const race = document.getElementById("raceSelect").value;
   const role = document.getElementById("roleSelect").value;
@@ -134,16 +158,22 @@ function createCharacter(event) {
     level: 1,
     xpToNextLevel: 100,
     energy: 100,
-    maxEnergy: 100
+    energy: 100,
+    maxEnergy: 100,
+    activeQuests: {},
+    completedQuests: []
   };
-  
+
+  // Auto-accept first quest
+  acceptQuest("quest_001");
+
   inventory = ["Energy Cell", "Scanner"];
   playerStatusEffects = [];
   enemyStatusEffects = [];
   gameState = "exploring";
   showScreen("exploring");
   updateUI();
-  
+
   // Simulate exploration events
   simulateExploration();
 }
@@ -154,7 +184,7 @@ function processStatusEffects() {
     ...effect,
     duration: effect.duration - 1
   })).filter(effect => effect.duration > 0);
-  
+
   enemyStatusEffects = enemyStatusEffects.map(effect => ({
     ...effect,
     duration: effect.duration - 1
@@ -165,12 +195,12 @@ function processStatusEffects() {
 function addLog(message) {
   const timestamp = new Date().toLocaleTimeString();
   log.push(`[${timestamp}] ${message}`);
-  
+
   // Keep only the last 50 entries
   if (log.length > 50) {
     log.shift();
   }
-  
+
   // Update both logs
   updateMissionLog();
   updateCombatLog();
@@ -218,20 +248,20 @@ function updateUI() {
     if (playerStatsElements.xpToNext) playerStatsElements.xpToNext.textContent = character.xpToNextLevel || character.level * 100;
     if (playerStatsElements.energy) playerStatsElements.energy.textContent = character.energy || character.maxEnergy || 100;
     if (playerStatsElements.maxEnergy) playerStatsElements.maxEnergy.textContent = character.maxEnergy || 100;
-    
+
     // HP bar percentage
     if (playerStatsElements.hpBar) {
       const hpPercentage = (character.hp / character.maxHp) * 100;
       playerStatsElements.hpBar.style.width = `${hpPercentage}%`;
     }
-    
+
     // XP bar percentage
     if (playerStatsElements.xpBar) {
       const xpNeeded = character.xpToNextLevel || (character.level * 100);
       const xpPercentage = Math.min(100, (character.xp / xpNeeded) * 100);
       playerStatsElements.xpBar.style.width = `${xpPercentage}%`;
     }
-    
+
     // Energy bar percentage
     if (playerStatsElements.energyBar) {
       const maxEnergy = character.maxEnergy || 100;
@@ -239,7 +269,7 @@ function updateUI() {
       const energyPercentage = (currentEnergy / maxEnergy) * 100;
       playerStatsElements.energyBar.style.width = `${energyPercentage}%`;
     }
-    
+
     // Character avatar and info
     if (playerStatsElements.avatar) {
       playerStatsElements.avatar.textContent = getCharacterAvatar(character.race, character.role);
@@ -270,7 +300,7 @@ function updateUI() {
     healButton.disabled = !hasHeal;
     healButton.className = `heal-button ${hasHeal ? "" : "disabled-button"}`;
   }
-  
+
   // Update logs
   updateMissionLog();
 }
@@ -281,18 +311,83 @@ function simulateExploration() {
 
   setTimeout(() => {
     const eventChance = Math.random();
-    
+
     if (eventChance < 0.4) {
       encounterEnemy();
     } else if (eventChance < 0.7) {
       addLog("You found some scrap metal.");
       inventory.push("Scrap Metal");
+      checkQuestProgress("collect", "Scrap Metal", 1);
     } else {
       addLog("The landscape is quiet... for now.");
     }
-    
+
     updateUI();
   }, 2000);
+}
+
+// Quest System Functions
+
+function acceptQuest(questId) {
+  if (!character || character.activeQuests[questId] || character.completedQuests.includes(questId)) return;
+
+  const quest = quests[questId];
+  if (!quest) return;
+
+  character.activeQuests[questId] = { progress: 0 };
+  addLog(`📜 Quest Accepted: ${quest.title}`);
+  showSaveMessage(`Quest Accepted: ${quest.title}`); // Reuse save message for notification
+}
+
+function checkQuestProgress(type, target, amount) {
+  if (!character) return;
+
+  Object.keys(character.activeQuests).forEach(questId => {
+    const quest = quests[questId];
+    if (quest.type === type && quest.target === target) {
+      const currentProgress = character.activeQuests[questId].progress;
+      if (currentProgress < quest.amount) {
+        character.activeQuests[questId].progress += amount;
+        // Notify progress
+        if (character.activeQuests[questId].progress < quest.amount) {
+          // Optional: addLog(`Quest Progress: ${quest.title} (${character.activeQuests[questId].progress}/${quest.amount})`);
+        }
+
+        if (character.activeQuests[questId].progress >= quest.amount) {
+          completeQuest(questId);
+        }
+      }
+    }
+  });
+}
+
+function completeQuest(questId) {
+  if (!character || !character.activeQuests[questId]) return;
+
+  const quest = quests[questId];
+
+  // Grant Rewards
+  if (quest.rewards.xp) {
+    character.xp += quest.rewards.xp;
+    addLog(`Quest Reward: +${quest.rewards.xp} XP`);
+    // Check level up logic here if needed, or rely on next combat/action
+  }
+
+  if (quest.rewards.items) {
+    quest.rewards.items.forEach(item => {
+      inventory.push(item);
+      addLog(`Quest Reward: +1 ${item}`);
+    });
+  }
+
+  // Move to completed
+  delete character.activeQuests[questId];
+  character.completedQuests.push(questId);
+
+  addLog(`✅ Quest Completed: ${quest.title}!`);
+  showVictoryMessage(`Quest Completed: ${quest.title}`); // Reuse victory message
+
+  updateUI();
 }
 
 // Encounter an enemy
@@ -300,7 +395,7 @@ function encounterEnemy() {
   const randomEnemy = { ...enemies[Math.floor(Math.random() * enemies.length)] };
   randomEnemy.hp = Math.floor(randomEnemy.hp * (0.8 + Math.random() * 0.4));
   randomEnemy.maxHp = randomEnemy.hp;
-  
+
   enemy = randomEnemy;
   playerStatusEffects = [];
   enemyStatusEffects = [];
@@ -328,13 +423,13 @@ function updateCombatUI() {
   if (combatElements.playerEnergy) combatElements.playerEnergy.textContent = currentEnergy;
   if (combatElements.playerMaxEnergy) combatElements.playerMaxEnergy.textContent = maxEnergy;
   if (combatElements.playerAvatar) combatElements.playerAvatar.textContent = getCharacterAvatar(character.race, character.role);
-  
+
   const combatHpPercentage = (character.hp / character.maxHp) * 100;
   if (combatElements.playerHpBar) combatElements.playerHpBar.style.width = `${combatHpPercentage}%`;
-  
+
   const energyPercentage = (currentEnergy / maxEnergy) * 100;
   if (combatElements.playerEnergyBar) combatElements.playerEnergyBar.style.width = `${energyPercentage}%`;
-  
+
   // Status effects
   if (combatElements.playerStatusEffects) {
     combatElements.playerStatusEffects.innerHTML = "";
@@ -353,10 +448,10 @@ function updateCombatUI() {
   if (combatElements.enemyMaxHp) combatElements.enemyMaxHp.textContent = enemy.maxHp || enemy.hp;
   if (combatElements.enemyAtk) combatElements.enemyAtk.textContent = enemy.attack;
   if (combatElements.enemyDef) combatElements.enemyDef.textContent = enemy.defense;
-  
+
   const enemyHpPercentage = ((enemy.maxHp || enemy.hp) > 0 ? enemy.hp / (enemy.maxHp || enemy.hp) : 0) * 100;
   if (combatElements.enemyHpBar) combatElements.enemyHpBar.style.width = `${enemyHpPercentage}%`;
-  
+
   // Update special ability button
   const specialButton = document.getElementById("specialAbilityButton");
   if (specialButton) {
@@ -382,13 +477,13 @@ function playerAttack() {
   const critChance = character.role === "Rogue" ? 0.25 : 0.15;
   const isCritical = Math.random() < critChance;
   const critMultiplier = isCritical ? 2 : 1;
-  
+
   // Check for attack buffs
   const attackBuff = playerStatusEffects.find(e => e.type === "attackBoost")?.value || 0;
   const baseDamage = Math.max(0, (character.attack + attackBuff) - enemy.defense);
   const damage = Math.floor(baseDamage * critMultiplier);
   enemy.hp -= damage;
-  
+
   if (isCritical) {
     addLog(`💥 CRITICAL HIT! You hit the ${enemy.name} for ${damage} damage!`);
   } else {
@@ -401,7 +496,7 @@ function playerAttack() {
   } else {
     enemyTurn();
   }
-  
+
   updateCombatUI();
 }
 
@@ -409,12 +504,12 @@ function playerAttack() {
 function playerBlock() {
   if (!character || !enemy) return;
   processStatusEffects();
-  
+
   playerStatusEffects = [
     ...playerStatusEffects.filter(e => e.type !== "blocking"),
     { type: "blocking", duration: 1 }
   ];
-  
+
   addLog("🛡️ You raise your guard, ready to block the next attack!");
   updateCombatLog();
   updateCombatUI();
@@ -425,12 +520,12 @@ function playerBlock() {
 function playerDodge() {
   if (!character || !enemy) return;
   processStatusEffects();
-  
+
   playerStatusEffects = [
     ...playerStatusEffects.filter(e => e.type !== "dodging"),
     { type: "dodging", duration: 1 }
   ];
-  
+
   addLog("💨 You prepare to dodge the next attack!");
   updateCombatLog();
   updateCombatUI();
@@ -440,7 +535,7 @@ function playerDodge() {
 // Special abilities per role
 function useSpecialAbility() {
   if (!character || !enemy) return;
-  
+
   const energyCost = 30;
   const currentEnergy = character.energy ?? character.maxEnergy ?? 100;
   if (currentEnergy < energyCost) {
@@ -448,20 +543,20 @@ function useSpecialAbility() {
     updateCombatLog();
     return;
   }
-  
+
   processStatusEffects();
-  
+
   character.energy = Math.max(0, currentEnergy - energyCost);
-  
+
   if (character.role === "Warrior") {
     // Power Strike - 1.5x damage
     const baseDamage = Math.max(0, character.attack - enemy.defense);
     const damage = Math.floor(baseDamage * 1.5);
     enemy.hp -= damage;
-    
+
     addLog(`⚔️ POWER STRIKE! You unleash a devastating blow for ${damage} damage!`);
     updateCombatLog();
-    
+
     if (enemy.hp <= 0) {
       winCombat();
     } else {
@@ -472,10 +567,10 @@ function useSpecialAbility() {
     const baseDamage = Math.max(0, character.attack - enemy.defense);
     const damage = Math.floor(baseDamage * 2.5);
     enemy.hp -= damage;
-    
+
     addLog(`🗡️ ASSASSINATE! You strike a critical weak point for ${damage} damage!`);
     updateCombatLog();
-    
+
     if (enemy.hp <= 0) {
       winCombat();
     } else {
@@ -491,7 +586,7 @@ function useSpecialAbility() {
     updateCombatLog();
     enemyTurn();
   }
-  
+
   updateCombatUI();
 }
 
@@ -519,17 +614,17 @@ function enemyTurn() {
   // Check if player is blocking
   const isBlocking = playerStatusEffects.some(e => e.type === "blocking");
   let damage = Math.max(0, enemy.attack - character.defense);
-  
+
   // Apply defense boost if active
   const defenseBoost = playerStatusEffects.find(e => e.type === "defenseBoost")?.value || 0;
   damage = Math.max(0, enemy.attack - (character.defense + defenseBoost));
-  
+
   if (isBlocking) {
     damage = Math.floor(damage * 0.5); // 50% damage reduction
     addLog(`🛡️ You blocked ${enemy.name}'s attack, reducing damage!`);
     updateCombatLog();
   }
-  
+
   character.hp -= damage;
 
   addLog(`${enemy.name} hits you for ${damage} damage.`);
@@ -543,7 +638,7 @@ function enemyTurn() {
     gameState = "defeat";
     showScreen("defeat");
   }
-  
+
   updateCombatUI();
   updateUI();
 }
@@ -559,24 +654,24 @@ function winCombat() {
   const newXp = character.xp + xpGained;
   const oldLevel = character.level;
   const xpNeeded = character.xpToNextLevel || (character.level * 100);
-  
+
   // Check for level up
   if (newXp >= xpNeeded) {
     const newLevel = oldLevel + 1;
     const newXpToNextLevel = newLevel * 100;
-    
+
     // Stat increases on level up
     const hpIncrease = 20;
     const attackIncrease = character.role === "Warrior" ? 3 : character.role === "Rogue" ? 2 : 1;
     const defenseIncrease = character.role === "Warrior" ? 2 : character.role === "Rogue" ? 1 : 1;
-    
+
     // Show level up notification
     showLevelUpNotification(newLevel, {
       maxHp: hpIncrease,
       attack: attackIncrease,
       defense: defenseIncrease
     });
-    
+
     character.hp = Math.min(character.maxHp + hpIncrease, character.hp + 20 + hpIncrease);
     character.maxHp += hpIncrease;
     character.attack += attackIncrease;
@@ -593,12 +688,16 @@ function winCombat() {
 
   // Add loot
   inventory.push(loot);
-  
+
   addLog(`You defeated the ${enemy.name}!`);
   addLog(`You gained ${xpGained} XP and found a ${loot}.`);
-  
+
+  // Show victory message
   // Show victory message
   showVictoryMessage(`Victory! ${enemy.name} defeated!`);
+
+  // Check Quest Progress
+  checkQuestProgress("kill", enemy.name, 1);
 
   enemy = null;
   gameState = "exploring";
@@ -617,7 +716,7 @@ function showLevelUpNotification(level, statIncreases) {
     document.getElementById("levelUpHp").textContent = `+${statIncreases.maxHp} Max HP`;
     document.getElementById("levelUpAttack").textContent = `+${statIncreases.attack} Attack`;
     document.getElementById("levelUpDefense").textContent = `+${statIncreases.defense} Defense`;
-    
+
     // Auto-dismiss after 5 seconds
     setTimeout(() => {
       hideLevelUpNotification();
@@ -652,18 +751,18 @@ function showVictoryMessage(message) {
 // Heal using item
 function useHealItem() {
   if (!character || character.hp >= character.maxHp) return;
-  
+
   const healAmount = 30;
   const newHp = Math.min(character.maxHp, character.hp + healAmount);
-  
+
   character.hp = newHp;
-  
+
   // Remove one Energy Cell from inventory
   const index = inventory.indexOf("Energy Cell");
   if (index > -1) {
     inventory.splice(index, 1);
   }
-  
+
   addLog("You used an Energy Cell to heal 30 HP.");
   updateUI();
 }
@@ -678,3 +777,330 @@ function travelDeeper() {
 function restartGame() {
   location.reload();
 }
+
+// ============================================
+// SAVE/LOAD SYSTEM
+// ============================================
+
+const SAVE_VERSION = "1.0";
+const STORAGE_KEY = "galacticOdyssey_save";
+
+// Get current game state as serializable object
+function getGameState() {
+  return {
+    version: SAVE_VERSION,
+    timestamp: new Date().toISOString(),
+    gameState: gameState,
+    character: character,
+    inventory: inventory,
+    enemy: enemy,
+    log: log,
+    playerStatusEffects: playerStatusEffects,
+    enemyStatusEffects: enemyStatusEffects
+  };
+}
+
+// Save game to localStorage
+function saveGame() {
+  if (!character) {
+    alert("No game to save! Please create a character first.");
+    return false;
+  }
+
+  try {
+    const saveData = getGameState();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
+    addLog("💾 Game saved successfully!");
+    showSaveMessage("Game Saved!");
+    return true;
+  } catch (error) {
+    console.error("Error saving game:", error);
+    alert("Failed to save game. Please try again.");
+    return false;
+  }
+}
+
+// Load game from localStorage
+function loadGame() {
+  try {
+    const saveDataStr = localStorage.getItem(STORAGE_KEY);
+    if (!saveDataStr) {
+      alert("No saved game found!");
+      return false;
+    }
+
+    const saveData = JSON.parse(saveDataStr);
+
+    // Validate save data
+    if (!saveData.character) {
+      alert("Invalid save file!");
+      return false;
+    }
+
+    // Restore game state
+    gameState = saveData.gameState || "exploring";
+    character = saveData.character;
+    inventory = saveData.inventory || [];
+    enemy = saveData.enemy || null;
+    log = saveData.log || [];
+    playerStatusEffects = saveData.playerStatusEffects || [];
+    enemyStatusEffects = saveData.enemyStatusEffects || [];
+
+    // Clear notifications
+    levelUpNotification = null;
+    victoryMessage = null;
+
+    // Update UI
+    showScreen(gameState);
+    updateUI();
+    if (gameState === "combat" && enemy) {
+      updateCombatUI();
+    }
+
+    addLog("📂 Game loaded successfully!");
+    showSaveMessage("Game Loaded!");
+    return true;
+  } catch (error) {
+    console.error("Error loading game:", error);
+    alert("Failed to load game. The save file may be corrupted.");
+    return false;
+  }
+}
+
+// Export game state as JSON file
+// Export game state as JSON file
+function exportGame() {
+  if (!character) {
+    alert("No game to export! Please create a character first.");
+    return;
+  }
+
+  try {
+    const saveData = getGameState();
+    const jsonStr = JSON.stringify(saveData, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `galactic-odyssey-save-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    addLog("📤 Game exported successfully!");
+    showSaveMessage("Game Exported!");
+  } catch (error) {
+    console.error("Error exporting game:", error);
+    alert("Failed to export game. Please try again.");
+  }
+}
+
+// Import game state from JSON file
+function importGame() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json";
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const saveDataStr = event.target.result;
+        localStorage.setItem(STORAGE_KEY, saveDataStr);
+        loadGame();
+        addLog("📥 Game imported successfully!");
+      } catch (error) {
+        console.error("Error importing game:", error);
+        alert("Failed to import game. Invalid file.");
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ============================================
+// QUEST UI SYSTEM
+// ============================================
+
+let currentQuestTab = "active";
+
+function toggleQuestLog() {
+  const modal = document.getElementById("questLogModal");
+  if (!modal) return;
+
+  if (modal.classList.contains("hidden")) {
+    modal.classList.remove("hidden");
+    modal.style.display = "flex";
+    renderQuestList();
+  } else {
+    modal.classList.add("hidden");
+    modal.style.display = "none";
+  }
+}
+
+function switchQuestTab(tab) {
+  currentQuestTab = tab;
+
+  // Update tab styles
+  const activeBtn = document.getElementById("activeQuestsTab");
+  const completedBtn = document.getElementById("completedQuestsTab");
+
+  if (tab === "active") {
+    activeBtn.className = "flex-1 py-2 px-4 bg-yellow-600 text-white rounded font-bold";
+    completedBtn.className = "flex-1 py-2 px-4 bg-gray-700 text-gray-300 rounded font-bold hover:bg-gray-600";
+  } else {
+    activeBtn.className = "flex-1 py-2 px-4 bg-gray-700 text-gray-300 rounded font-bold hover:bg-gray-600";
+    completedBtn.className = "flex-1 py-2 px-4 bg-yellow-600 text-white rounded font-bold";
+  }
+
+  renderQuestList();
+}
+
+function renderQuestList() {
+  const list = document.getElementById("questList");
+  if (!list || !character) return;
+
+  list.innerHTML = "";
+
+  const questIds = currentQuestTab === "active"
+    ? Object.keys(character.activeQuests)
+    : character.completedQuests;
+
+  if (questIds.length === 0) {
+    list.innerHTML = `<div class="text-gray-400 text-center italic p-4">No ${currentQuestTab} quests.</div>`;
+    return;
+  }
+
+  questIds.forEach(questId => {
+    const quest = quests[questId];
+    if (!quest) return;
+
+    const div = document.createElement("div");
+    div.className = "bg-gray-700 p-4 rounded border border-gray-600";
+
+    let progressText = "";
+    if (currentQuestTab === "active") {
+      const progress = character.activeQuests[questId].progress;
+      const percentage = Math.min(100, (progress / quest.amount) * 100);
+      progressText = `
+        <div class="mt-2">
+          <div class="flex justify-between text-sm text-gray-300 mb-1">
+            <span>Progress: ${progress}/${quest.amount} ${quest.target}s</span>
+            <span>${Math.round(percentage)}%</span>
+          </div>
+          <div class="w-full bg-gray-800 rounded-full h-2">
+            <div class="bg-yellow-500 h-2 rounded-full" style="width: ${percentage}%"></div>
+          </div>
+        </div>
+      `;
+    } else {
+      progressText = `<div class="mt-2 text-green-400 text-sm font-bold">✅ Completed</div>`;
+    }
+
+    div.innerHTML = `
+      <h3 class="text-lg font-bold text-yellow-400">${quest.title}</h3>
+      <p class="text-gray-300 text-sm mt-1">${quest.description}</p>
+      <div class="mt-2 text-xs text-gray-400">
+        Rewards: ${quest.rewards.xp ? `${quest.rewards.xp} XP` : ""} ${quest.rewards.items ? `+ ${quest.rewards.items.join(", ")}` : ""}
+      </div>
+      ${progressText}
+    `;
+
+    list.appendChild(div);
+  });
+}
+
+// Check if save exists
+function hasSaveGame() {
+  return localStorage.getItem(STORAGE_KEY) !== null;
+}
+
+// Delete save game
+function deleteSaveGame() {
+  if (!hasSaveGame()) {
+    alert("No saved game to delete!");
+    return;
+  }
+
+  if (confirm("Are you sure you want to delete your saved game? This cannot be undone.")) {
+    localStorage.removeItem(STORAGE_KEY);
+    addLog("🗑️ Saved game deleted.");
+    showSaveMessage("Save Deleted!");
+  }
+}
+
+// Auto-save function (called at key moments)
+function autoSave() {
+  if (character && gameState !== "start" && gameState !== "characterCreation" && gameState !== "defeat") {
+    try {
+      const saveData = getGameState();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
+      console.log("Auto-saved game");
+    } catch (error) {
+      console.error("Auto-save failed:", error);
+    }
+  }
+}
+
+// Show save message notification
+function showSaveMessage(message) {
+  const saveMsg = document.getElementById("saveMessage");
+  if (saveMsg) {
+    saveMsg.textContent = message;
+    saveMsg.style.display = "block";
+    setTimeout(() => {
+      saveMsg.style.display = "none";
+    }, 2000);
+  }
+}
+
+// Initialize: Check for existing save on page load
+function initializeSaveSystem() {
+  // Check if there's a saved game and show option to load
+  const loadButton = document.getElementById("loadGameButton");
+  if (hasSaveGame()) {
+    const saveInfo = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (saveInfo && saveInfo.timestamp) {
+      const saveDate = new Date(saveInfo.timestamp);
+      const saveDateStr = saveDate.toLocaleString();
+      console.log(`Save game found from ${saveDateStr}`);
+      if (loadButton) {
+        loadButton.style.display = "block";
+        loadButton.title = `Last saved: ${saveDateStr}`;
+      }
+    }
+  } else {
+    if (loadButton) {
+      loadButton.style.display = "none";
+    }
+  }
+}
+
+// Call auto-save at key moments
+// Auto-save after combat victory
+const originalWinCombat = winCombat;
+winCombat = function () {
+  originalWinCombat();
+  setTimeout(autoSave, 500); // Auto-save after UI updates
+};
+
+// Auto-save after level up
+const originalShowLevelUpNotification = showLevelUpNotification;
+showLevelUpNotification = function (level, statIncreases) {
+  originalShowLevelUpNotification(level, statIncreases);
+  setTimeout(autoSave, 500);
+};
+
+// Auto-save when character is created
+const originalCreateCharacter = createCharacter;
+createCharacter = function (event) {
+  originalCreateCharacter(event);
+  setTimeout(autoSave, 500);
+};
+
+// Initialize save system on page load
+window.addEventListener("DOMContentLoaded", initializeSaveSystem);

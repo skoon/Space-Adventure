@@ -9,9 +9,25 @@
 </head>
 <body>
   <header class="bg-gray-800 p-4 border-b border-gray-700">
-    <h1 class="text-2xl font-bold text-center bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-      Galactic Odyssey
-    </h1>
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+        Galactic Odyssey
+      </h1>
+      <div class="flex gap-2">
+        <button onclick="saveGame()" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold transition-colors" title="Save Game">
+          💾 Save
+        </button>
+        <button onclick="loadGame()" class="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold transition-colors" title="Load Game">
+          📂 Load
+        </button>
+        <button onclick="exportGame()" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold transition-colors" title="Export Save">
+          📤 Export
+        </button>
+        <button onclick="importGame()" class="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-bold transition-colors" title="Import Save">
+          📥 Import
+        </button>
+      </div>
+    </div>
   </header>
 
   <main>
@@ -20,7 +36,12 @@
       <div id="startScreen" class="screen active-screen start-screen">
         <div class="flex flex-col items-center justify-center h-full text-white p-4">
           <h2 class="text-4xl md:text-6xl font-bold mb-8 text-center bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">Galactic Odyssey</h2>
-          <button class="start-button" onclick="startGame()">Begin Your Journey</button>
+          <div class="flex flex-col gap-4 items-center">
+            <button class="start-button" onclick="startGame()">Begin Your Journey</button>
+            <button onclick="loadGame()" class="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg text-lg font-bold transition-colors" id="loadGameButton" style="display: none;">
+              📂 Continue Saved Game
+            </button>
+          </div>
         </div>
       </div>
 
@@ -170,29 +191,26 @@
 
             <div class="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700">
               <h2 class="text-xl font-bold text-blue-400 mb-2">Combat Log</h2>
-              <div id="combatLog" class="max-h-60 overflow-y-auto pr-2"></div>
+              <div id="combatLog" class="max-h-40 overflow-y-auto space-y-1 text-sm text-gray-300"></div>
             </div>
           </div>
 
           <div class="bg-gray-900 p-4 border-t border-gray-700">
-            <div class="space-y-2">
-              <div class="grid grid-cols-2 gap-2">
-                <button onclick="playerAttack()" class="py-3 px-4 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition-colors text-white shadow-md hover:shadow-lg">
-                  ⚔️ Attack
-                </button>
-                <button onclick="playerBlock()" class="py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold transition-colors text-white shadow-md hover:shadow-lg">
-                  🛡️ Block
-                </button>
-                <button onclick="playerDodge()" class="py-3 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold transition-colors text-white shadow-md hover:shadow-lg">
-                  💨 Dodge
-                </button>
-                <button onclick="useSpecialAbility()" id="specialAbilityButton" class="py-3 px-4 rounded-lg font-bold transition-colors text-white shadow-md hover:shadow-lg special-button">
-                  ⭐ Special
-                </button>
-              </div>
-              <div class="text-xs text-gray-400 text-center pt-1 border-t border-gray-700">
-                Special Ability: 30 Energy | Regenerates 5 per turn
-              </div>
+            <div class="grid grid-cols-2 gap-4 mb-2">
+              <button onclick="playerAttack()" class="py-3 px-4 bg-red-600 hover:bg-red-700 rounded font-bold transition-colors flex items-center justify-center gap-2">
+                <span>⚔️</span> Attack
+              </button>
+              <button onclick="playerBlock()" class="py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded font-bold transition-colors flex items-center justify-center gap-2">
+                <span>🛡️</span> Block
+              </button>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <button onclick="playerDodge()" class="py-3 px-4 bg-green-600 hover:bg-green-700 rounded font-bold transition-colors flex items-center justify-center gap-2">
+                <span>💨</span> Dodge
+              </button>
+              <button id="specialAbilityButton" onclick="useSpecialAbility()" class="py-3 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors flex items-center justify-center gap-2">
+                <span>⭐</span> Special
+              </button>
             </div>
           </div>
         </div>
@@ -233,6 +251,9 @@
 
   <!-- Victory Message -->
   <div id="victoryMessage" class="victory-message" style="display: none;"></div>
+
+  <!-- Save Message -->
+  <div id="saveMessage" class="save-message" style="display: none;"></div>
 
   <footer class="bg-gray-800 p-3 text-center text-sm text-gray-400 border-t border-gray-700">
     &copy; <span id="currentYear"></span> Sci-Fi Adventure Game. All rights reserved.
