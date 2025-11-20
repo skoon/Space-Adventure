@@ -247,6 +247,16 @@ main {
   z-index: 50;
 }
 
+.quest-log-modal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
 .level-up-content {
   background-color: var(--card-background);
   border: 2px solid #f59e0b;
@@ -255,6 +265,15 @@ main {
   max-width: 28rem;
   margin: 1rem;
   animation: pulse 2s infinite;
+}
+
+.quest-log-content {
+  background-color: var(--card-background);
+  border: 2px solid #f59e0b;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  max-width: 28rem;
+  margin: 1rem;
 }
 
 @keyframes pulse {

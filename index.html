@@ -93,6 +93,13 @@
                 <div>
                   <h2 id="characterName" class="text-xl font-bold text-blue-400"></h2>
                   <div id="characterRaceRole" class="text-sm text-gray-400"></div>
+                  <div id="characterStats" class="flex gap-2">
+                    <div>HP: <span id="playerHp"></span>/<span id="playerMaxHp"></span></div>
+                    <div>Energy: <span id="playerEnergy"></span>/<span id="playerMaxEnergy"></span></div>
+                    <div>ATK: <span id="playerAtk"></span></div>
+                    <div>DEF: <span id="playerDef"></span></div>
+                  </div>
+                  <button onclick="toggleQuestLog()" class="quest-log-button">Quest Log</button>
                 </div>
               </div>
               <div class="space-y-2">
@@ -248,6 +255,19 @@
       </div>
     </div>
   </div>
+
+<div id="questLogModal" class="quest-log-modal" style="display: none;">
+  <div class="quest-log-content">
+    <div class="text-center">
+      <div class="text-6xl mb-4">📜</div>
+      <h2 class="text-3xl font-bold text-yellow-400 mb-2">Quest Log</h2>
+      <div id="questLog" class="max-h-60 overflow-y-auto pr-2"></div>
+      <button onclick="toggleQuestLog()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded font-bold">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
 
   <!-- Victory Message -->
   <div id="victoryMessage" class="victory-message" style="display: none;"></div>
