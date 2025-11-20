@@ -63,7 +63,7 @@
 ### Quest System
 - [ ] **Main Story Quests** - Primary narrative objectives
 - [ ] **Side Quests** - Optional objectives with rewards
-- [ ] **Quest Log UI** - Track active and completed quests
+- [x] **Quest Log UI** - Track active and completed quests
 - [ ] **Quest Rewards** - XP, items, and story progression
 
 ### Random Events
