@@ -69,7 +69,7 @@
 ### Random Events
 - [ ] **NPC Encounters** - Merchants, allies, mysterious strangers
 - [ ] **Environmental Hazards** - Radiation storms, asteroid fields
-- [ ] **Treasure Discoveries** - Hidden caches and rare finds
+- [x] **Treasure Discoveries** - Hidden caches and rare finds (Abandoned Outposts, Ancient Ruins)
 - [ ] **Dialogue System** - Interactive conversations with NPCs
 
 ## 💰 Items & Economy

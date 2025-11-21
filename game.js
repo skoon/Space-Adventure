@@ -345,26 +345,7 @@ function updateUI() {
   updateMissionLog();
 }
 
-// Simulate exploration events
-function simulateExploration() {
-  if (gameState !== "exploring") return;
 
-  setTimeout(() => {
-    const eventChance = Math.random();
-
-    if (eventChance < 0.4) {
-      encounterEnemy();
-    } else if (eventChance < 0.7) {
-      addLog("You found some scrap metal.");
-      inventory.push("Scrap Metal");
-      checkQuestProgress("collect", "Scrap Metal", 1);
-    } else {
-      addLog("The landscape is quiet... for now.");
-    }
-
-    updateUI();
-  }, 2000);
-}
 
 // Quest System Functions
 
@@ -689,40 +670,11 @@ function winCombat() {
   // Restore energy on victory
   character.energy = character.maxEnergy;
 
-  const newXp = character.xp + xpGained;
-  const oldLevel = character.level;
-  const xpNeeded = character.xpToNextLevel || (character.level * 100);
+  // Gain XP
+  gainXp(xpGained);
 
-  // Check for level up
-  if (newXp >= xpNeeded) {
-    const newLevel = oldLevel + 1;
-    const newXpToNextLevel = newLevel * 100;
-
-    // Stat increases on level up
-    const hpIncrease = 20;
-    const attackIncrease = character.role === "Warrior" ? 3 : character.role === "Rogue" ? 2 : 1;
-    const defenseIncrease = character.role === "Warrior" ? 2 : character.role === "Rogue" ? 1 : 1;
-
-    // Show level up notification
-    showLevelUpNotification(newLevel, {
-      maxHp: hpIncrease,
-      attack: attackIncrease,
-      defense: defenseIncrease
-    });
-
-    character.hp = Math.min(character.maxHp + hpIncrease, character.hp + 20 + hpIncrease);
-    character.maxHp += hpIncrease;
-    character.attack += attackIncrease;
-    character.defense += defenseIncrease;
-    character.xp = newXp - xpNeeded; // Carry over excess XP
-    character.level = newLevel;
-    character.xpToNextLevel = newXpToNextLevel;
-    character.maxEnergy += 10; // Increase max energy on level up
-    character.energy = character.maxEnergy; // Restore to new max
-  } else {
-    character.hp = Math.min(character.maxHp, character.hp + 20);
-    character.xp = newXp;
-  }
+  // Check Quest Progress
+  checkQuestProgress("kill", enemy.name, 1);
 
   // Add loot
   inventory.push(loot);
@@ -733,14 +685,49 @@ function winCombat() {
   // Show victory message
   showVictoryMessage(`Victory! ${enemy.name} defeated!`);
 
-  // Check Quest Progress
-  checkQuestProgress("kill", enemy.name, 1);
-
   enemy = null;
   gameState = "exploring";
   showScreen("exploring");
   updateUI();
   simulateExploration();
+}
+
+// Simulate exploration events
+function simulateExploration() {
+  if (gameState !== "exploring") return;
+
+  setTimeout(() => {
+    const eventChance = Math.random();
+
+    if (eventChance < 0.25) {
+      // 25% Chance: Enemy
+      encounterEnemy();
+    } else if (eventChance < 0.40) {
+      // 15% Chance: Abandoned Outpost
+      const outpostLoot = ["Energy Cell", "Data Chip", "Rusty Pipe"][Math.floor(Math.random() * 3)];
+      addLog(`You discovered an Abandoned Outpost and found a ${outpostLoot}.`);
+      inventory.push(outpostLoot);
+    } else if (eventChance < 0.55) {
+      // 15% Chance: Ancient Ruins
+      const xpGain = 15;
+      addLog(`You explored Ancient Ruins and deciphered glyphs, gaining ${xpGain} XP.`);
+      gainXp(xpGain);
+    } else if (eventChance < 0.65) {
+      // 10% Chance: Strange Anomaly
+      addLog("You encountered a Strange Anomaly. Your energy is restored.");
+      character.energy = character.maxEnergy;
+    } else if (eventChance < 0.80) {
+      // 15% Chance: Scrap Metal
+      addLog("You found some scrap metal.");
+      inventory.push("Scrap Metal");
+      checkQuestProgress("collect", "Scrap Metal", 1);
+    } else {
+      // 20% Chance: Quiet
+      addLog("The landscape is quiet... for now.");
+    }
+
+    updateUI();
+  }, 2000);
 }
 
 // Equipment System
