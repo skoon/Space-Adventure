@@ -40,6 +40,30 @@ const quests = {
   }
 };
 
+// Items data (Equipment)
+const items = {
+  "Energy Cell": { type: "consumable", effect: "heal", value: 30, description: "Restores 30 HP" },
+  "Scanner": { type: "tool", description: "Used for analyzing objects" },
+  "Scrap Metal": { type: "material", description: "Used for repairs and crafting" },
+  "Alien Crystal": { type: "material", description: "A glowing crystal with strange energy" },
+  "Data Chip": { type: "material", description: "Contains encrypted data" },
+
+  // Weapons
+  "Rusty Pipe": { type: "weapon", attack: 2, description: "Better than nothing." },
+  "Laser Pistol": { type: "weapon", attack: 5, description: "Standard issue sidearm." },
+  "Plasma Rifle": { type: "weapon", attack: 8, description: "High-energy assault weapon." },
+  "Void Blade": { type: "weapon", attack: 12, description: "A sword made of pure void energy." },
+
+  // Armor
+  "Flight Suit": { type: "armor", defense: 2, description: "Basic protection." },
+  "Plasteel Armor": { type: "armor", defense: 5, description: "Durable synthetic armor." },
+  "Exoskeleton": { type: "armor", defense: 8, description: "Powered armor that enhances strength." },
+
+  // Accessories
+  "Shield Generator": { type: "accessory", defense: 3, description: "Generates a personal forcefield." },
+  "Targeting HUD": { type: "accessory", attack: 3, description: "Improves accuracy and damage." }
+};
+
 // Elements
 const screens = {
   start: document.getElementById("startScreen"),
@@ -158,10 +182,14 @@ function createCharacter(event) {
     level: 1,
     xpToNextLevel: 100,
     energy: 100,
-    energy: 100,
     maxEnergy: 100,
     activeQuests: {},
-    completedQuests: []
+    completedQuests: [],
+    equipment: {
+      weapon: null,
+      armor: null,
+      accessory: null
+    }
   };
 
   // Auto-accept first quest
@@ -287,8 +315,9 @@ function updateUI() {
       const sortedInv = [...inventory].sort();
       sortedInv.forEach(item => {
         const span = document.createElement("span");
-        span.className = "inventory-item";
+        span.className = "inventory-item cursor-pointer hover:text-yellow-400";
         span.textContent = item;
+        span.onclick = () => equipItem(item);
         inventoryElement.appendChild(span);
       });
     }
@@ -299,6 +328,17 @@ function updateUI() {
     const hasHeal = inventory.includes("Energy Cell") && character?.hp < character?.maxHp;
     healButton.disabled = !hasHeal;
     healButton.className = `heal-button ${hasHeal ? "" : "disabled-button"}`;
+  }
+
+  // Equipment Slots
+  if (character.equipment) {
+    const weaponEl = document.getElementById("equipWeapon");
+    const armorEl = document.getElementById("equipArmor");
+    const accessoryEl = document.getElementById("equipAccessory");
+
+    if (weaponEl) weaponEl.textContent = character.equipment.weapon || "Empty";
+    if (armorEl) armorEl.textContent = character.equipment.armor || "Empty";
+    if (accessoryEl) accessoryEl.textContent = character.equipment.accessory || "Empty";
   }
 
   // Update logs
@@ -418,8 +458,9 @@ function updateCombatUI() {
   if (combatElements.playerName) combatElements.playerName.textContent = character.name;
   if (combatElements.playerHp) combatElements.playerHp.textContent = character.hp;
   if (combatElements.playerMaxHp) combatElements.playerMaxHp.textContent = character.maxHp;
-  if (combatElements.playerAtk) combatElements.playerAtk.textContent = character.attack;
-  if (combatElements.playerDef) combatElements.playerDef.textContent = effectiveDefense;
+  const stats = getEffectiveStats();
+  if (combatElements.playerAtk) combatElements.playerAtk.textContent = stats.attack;
+  if (combatElements.playerDef) combatElements.playerDef.textContent = stats.defense;
   if (combatElements.playerEnergy) combatElements.playerEnergy.textContent = currentEnergy;
   if (combatElements.playerMaxEnergy) combatElements.playerMaxEnergy.textContent = maxEnergy;
   if (combatElements.playerAvatar) combatElements.playerAvatar.textContent = getCharacterAvatar(character.race, character.role);
@@ -479,8 +520,8 @@ function playerAttack() {
   const critMultiplier = isCritical ? 2 : 1;
 
   // Check for attack buffs
-  const attackBuff = playerStatusEffects.find(e => e.type === "attackBoost")?.value || 0;
-  const baseDamage = Math.max(0, (character.attack + attackBuff) - enemy.defense);
+  const stats = getEffectiveStats();
+  const baseDamage = Math.max(0, stats.attack - enemy.defense);
   const damage = Math.floor(baseDamage * critMultiplier);
   enemy.hp -= damage;
 
@@ -613,11 +654,8 @@ function enemyTurn() {
 
   // Check if player is blocking
   const isBlocking = playerStatusEffects.some(e => e.type === "blocking");
-  let damage = Math.max(0, enemy.attack - character.defense);
-
-  // Apply defense boost if active
-  const defenseBoost = playerStatusEffects.find(e => e.type === "defenseBoost")?.value || 0;
-  damage = Math.max(0, enemy.attack - (character.defense + defenseBoost));
+  const stats = getEffectiveStats();
+  let damage = Math.max(0, enemy.attack - stats.defense);
 
   if (isBlocking) {
     damage = Math.floor(damage * 0.5); // 50% damage reduction
@@ -693,7 +731,6 @@ function winCombat() {
   addLog(`You gained ${xpGained} XP and found a ${loot}.`);
 
   // Show victory message
-  // Show victory message
   showVictoryMessage(`Victory! ${enemy.name} defeated!`);
 
   // Check Quest Progress
@@ -704,6 +741,81 @@ function winCombat() {
   showScreen("exploring");
   updateUI();
   simulateExploration();
+}
+
+// Equipment System
+
+function getEffectiveStats() {
+  if (!character) return { attack: 0, defense: 0 };
+
+  let attack = character.attack;
+  let defense = character.defense;
+
+  // Add equipment stats
+  if (character.equipment.weapon) {
+    const weapon = items[character.equipment.weapon];
+    if (weapon && weapon.stats && weapon.stats.attack) {
+      attack += weapon.stats.attack;
+    }
+  }
+
+  if (character.equipment.armor) {
+    const armor = items[character.equipment.armor];
+    if (armor && armor.stats && armor.stats.defense) {
+      defense += armor.stats.defense;
+    }
+  }
+
+  if (character.equipment.accessory) {
+    const accessory = items[character.equipment.accessory];
+    if (accessory && accessory.stats) {
+      if (accessory.stats.attack) attack += accessory.stats.attack;
+      if (accessory.stats.defense) defense += accessory.stats.defense;
+    }
+  }
+
+  // Add status effects
+  const attackBuff = playerStatusEffects.find(e => e.type === "attackBoost")?.value || 0;
+  const defenseBuff = playerStatusEffects.find(e => e.type === "defenseBoost")?.value || 0;
+
+  attack += attackBuff;
+  defense += defenseBuff;
+
+  return { attack, defense };
+}
+
+function equipItem(itemName) {
+  const item = items[itemName];
+  if (!item || !["weapon", "armor", "accessory"].includes(item.type)) {
+    addLog("Cannot equip this item.");
+    return;
+  }
+
+  // Remove from inventory
+  const index = inventory.indexOf(itemName);
+  if (index === -1) return;
+  inventory.splice(index, 1);
+
+  // Unequip current item in slot if any
+  const slot = item.type;
+  if (character.equipment[slot]) {
+    unequipItem(slot);
+  }
+
+  // Equip new item
+  character.equipment[slot] = itemName;
+  addLog(`Equipped ${itemName}.`);
+  updateUI();
+}
+
+function unequipItem(slot) {
+  const itemName = character.equipment[slot];
+  if (!itemName) return;
+
+  character.equipment[slot] = null;
+  inventory.push(itemName);
+  addLog(`Unequipped ${itemName}.`);
+  updateUI();
 }
 
 // Show level up notification

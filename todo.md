@@ -40,11 +40,11 @@
 - [ ] **Passive Bonuses** - Unlock passive abilities (e.g., +10% crit chance)
 
 ### Equipment System
-- [ ] **Weapons** - Equip weapons that modify attack stats
-- [ ] **Armor** - Equip armor that modifies defense stats
-- [ ] **Accessories** - Rings, amulets with special bonuses
+- [x] **Weapons** - Equip weapons that modify attack stats
+- [x] **Armor** - Equip armor that modifies defense stats
+- [x] **Accessories** - Rings, amulets with special bonuses
 - [ ] **Item Rarity System** - Common, Rare, Epic, Legendary tiers
-- [ ] **Equipment UI** - Visual equipment slots and management
+- [x] **Equipment UI** - Visual equipment slots and management
 
 ### Stat Points on Level Up
 - [ ] **Manual Stat Allocation** - Players choose where to allocate points
@@ -61,10 +61,10 @@
 - [ ] **Travel System** - UI for selecting destinations
 
 ### Quest System
-- [ ] **Main Story Quests** - Primary narrative objectives
-- [ ] **Side Quests** - Optional objectives with rewards
+- [x] **Main Story Quests** - Primary narrative objectives
+- [x] **Side Quests** - Optional objectives with rewards
 - [x] **Quest Log UI** - Track active and completed quests
-- [ ] **Quest Rewards** - XP, items, and story progression
+- [x] **Quest Rewards** - XP, items, and story progression
 
 ### Random Events
 - [ ] **NPC Encounters** - Merchants, allies, mysterious strangers

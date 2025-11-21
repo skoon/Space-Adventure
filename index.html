@@ -100,6 +100,26 @@
                     <div>DEF: <span id="playerDef"></span></div>
                   </div>
                   <button onclick="toggleQuestLog()" class="quest-log-button">Quest Log</button>
+                  <div class="mt-3 border-t border-gray-700 pt-2">
+                    <h3 class="text-sm font-bold text-gray-400 mb-1">Equipment</h3>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                      <div class="bg-gray-900 p-2 rounded text-center" title="Weapon">
+                        <span class="block text-gray-500">⚔️ Weapon</span>
+                        <span id="equipWeapon" class="text-yellow-400 font-bold">Empty</span>
+                        <button onclick="unequipItem('weapon')" class="text-red-400 hover:text-red-300 ml-1" title="Unequip">×</button>
+                      </div>
+                      <div class="bg-gray-900 p-2 rounded text-center" title="Armor">
+                        <span class="block text-gray-500">🛡️ Armor</span>
+                        <span id="equipArmor" class="text-yellow-400 font-bold">Empty</span>
+                        <button onclick="unequipItem('armor')" class="text-red-400 hover:text-red-300 ml-1" title="Unequip">×</button>
+                      </div>
+                      <div class="bg-gray-900 p-2 rounded text-center" title="Accessory">
+                        <span class="block text-gray-500">💍 Accessory</span>
+                        <span id="equipAccessory" class="text-yellow-400 font-bold">Empty</span>
+                        <button onclick="unequipItem('accessory')" class="text-red-400 hover:text-red-300 ml-1" title="Unequip">×</button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="space-y-2">
