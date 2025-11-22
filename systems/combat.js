@@ -3,9 +3,10 @@
  * Handles all combat-related functionality including player actions, enemy AI, and combat flow
  */
 
-// Import dependencies (will be provided by main game)
-let gameState, character, enemy, inventory;
-let playerStatusEffects, enemyStatusEffects;
+// State object that holds getters/setters
+let state;
+
+// Data and DOM references
 let enemies, combatElements;
 
 // Import functions from other modules
@@ -17,13 +18,8 @@ let gainXp, checkQuestProgress, showVictoryMessage, simulateExploration;
  * Initialize the combat module with required dependencies
  */
 export function initCombat(deps) {
-    // State references
-    gameState = deps.state.gameState;
-    character = deps.state.character;
-    enemy = deps.state.enemy;
-    inventory = deps.state.inventory;
-    playerStatusEffects = deps.state.playerStatusEffects;
-    enemyStatusEffects = deps.state.enemyStatusEffects;
+    // Store state object reference (with getters/setters)
+    state = deps.state;
 
     // Data
     enemies = deps.data.enemies;
@@ -44,36 +40,16 @@ export function initCombat(deps) {
 }
 
 /**
- * Get current state references (for mutations)
- */
-export function getStateRefs() {
-    return {
-        get gameState() { return gameState; },
-        set gameState(val) { gameState = val; },
-        get character() { return character; },
-        set character(val) { character = val; },
-        get enemy() { return enemy; },
-        set enemy(val) { enemy = val; },
-        get inventory() { return inventory; },
-        set inventory(val) { inventory = val; },
-        get playerStatusEffects() { return playerStatusEffects; },
-        set playerStatusEffects(val) { playerStatusEffects = val; },
-        get enemyStatusEffects() { return enemyStatusEffects; },
-        set enemyStatusEffects(val) { enemyStatusEffects = val; }
-    };
-}
-
-/**
  * Process status effects at start of turn
  * Decrements duration and removes expired effects
  */
 export function processStatusEffects() {
-    playerStatusEffects = playerStatusEffects.map(effect => ({
+    state.playerStatusEffects = state.playerStatusEffects.map(effect => ({
         ...effect,
         duration: effect.duration - 1
     })).filter(effect => effect.duration > 0);
 
-    enemyStatusEffects = enemyStatusEffects.map(effect => ({
+    state.enemyStatusEffects = state.enemyStatusEffects.map(effect => ({
         ...effect,
         duration: effect.duration - 1
     })).filter(effect => effect.duration > 0);
@@ -87,38 +63,38 @@ export function encounterEnemy() {
     randomEnemy.hp = Math.floor(randomEnemy.hp * (0.8 + Math.random() * 0.4));
     randomEnemy.maxHp = randomEnemy.hp;
 
-    enemy = randomEnemy;
-    playerStatusEffects = [];
-    enemyStatusEffects = [];
-    gameState = "combat";
+    state.enemy = randomEnemy;
+    state.playerStatusEffects = [];
+    state.enemyStatusEffects = [];
+    state.gameState = "combat";
     showScreen("combat");
     updateCombatUI();
-    addLog(`You encountered a ${enemy.name}!`);
+    addLog(`You encountered a ${state.enemy.name}!`);
 }
 
 /**
  * Update the combat UI with current stats
  */
 export function updateCombatUI() {
-    if (!character || !enemy) return;
+    if (!state.character || !state.enemy) return;
 
-    const activeDefenseBoost = playerStatusEffects.find(e => e.type === "defenseBoost");
-    const effectiveDefense = character.defense + (activeDefenseBoost?.value || 0);
-    const currentEnergy = character.energy ?? character.maxEnergy ?? 100;
-    const maxEnergy = character.maxEnergy || 100;
+    const activeDefenseBoost = state.playerStatusEffects.find(e => e.type === "defenseBoost");
+    const effectiveDefense = state.character.defense + (activeDefenseBoost?.value || 0);
+    const currentEnergy = state.character.energy ?? state.character.maxEnergy ?? 100;
+    const maxEnergy = state.character.maxEnergy || 100;
 
     // Player stats
-    if (combatElements.playerName) combatElements.playerName.textContent = character.name;
-    if (combatElements.playerHp) combatElements.playerHp.textContent = character.hp;
-    if (combatElements.playerMaxHp) combatElements.playerMaxHp.textContent = character.maxHp;
+    if (combatElements.playerName) combatElements.playerName.textContent = state.character.name;
+    if (combatElements.playerHp) combatElements.playerHp.textContent = state.character.hp;
+    if (combatElements.playerMaxHp) combatElements.playerMaxHp.textContent = state.character.maxHp;
     const stats = getEffectiveStats();
     if (combatElements.playerAtk) combatElements.playerAtk.textContent = stats.attack;
     if (combatElements.playerDef) combatElements.playerDef.textContent = stats.defense;
     if (combatElements.playerEnergy) combatElements.playerEnergy.textContent = currentEnergy;
     if (combatElements.playerMaxEnergy) combatElements.playerMaxEnergy.textContent = maxEnergy;
-    if (combatElements.playerAvatar) combatElements.playerAvatar.textContent = getCharacterAvatar(character.race, character.role);
+    if (combatElements.playerAvatar) combatElements.playerAvatar.textContent = getCharacterAvatar(state.character.race, state.character.role);
 
-    const combatHpPercentage = (character.hp / character.maxHp) * 100;
+    const combatHpPercentage = (state.character.hp / state.character.maxHp) * 100;
     if (combatElements.playerHpBar) combatElements.playerHpBar.style.width = `${combatHpPercentage}%`;
 
     const energyPercentage = (currentEnergy / maxEnergy) * 100;
@@ -127,7 +103,7 @@ export function updateCombatUI() {
     // Status effects
     if (combatElements.playerStatusEffects) {
         combatElements.playerStatusEffects.innerHTML = "";
-        playerStatusEffects.forEach((effect, i) => {
+        state.playerStatusEffects.forEach((effect, i) => {
             const span = document.createElement("span");
             span.className = "status-effect-icon";
             span.textContent = getStatusEffectIcon(effect.type);
@@ -137,13 +113,13 @@ export function updateCombatUI() {
     }
 
     // Enemy stats
-    if (combatElements.enemyName) combatElements.enemyName.textContent = enemy.name;
-    if (combatElements.enemyHp) combatElements.enemyHp.textContent = enemy.hp;
-    if (combatElements.enemyMaxHp) combatElements.enemyMaxHp.textContent = enemy.maxHp || enemy.hp;
-    if (combatElements.enemyAtk) combatElements.enemyAtk.textContent = enemy.attack;
-    if (combatElements.enemyDef) combatElements.enemyDef.textContent = enemy.defense;
+    if (combatElements.enemyName) combatElements.enemyName.textContent = state.enemy.name;
+    if (combatElements.enemyHp) combatElements.enemyHp.textContent = state.enemy.hp;
+    if (combatElements.enemyMaxHp) combatElements.enemyMaxHp.textContent = state.enemy.maxHp || state.enemy.hp;
+    if (combatElements.enemyAtk) combatElements.enemyAtk.textContent = state.enemy.attack;
+    if (combatElements.enemyDef) combatElements.enemyDef.textContent = state.enemy.defense;
 
-    const enemyHpPercentage = ((enemy.maxHp || enemy.hp) > 0 ? enemy.hp / (enemy.maxHp || enemy.hp) : 0) * 100;
+    const enemyHpPercentage = ((state.enemy.maxHp || state.enemy.hp) > 0 ? state.enemy.hp / (state.enemy.maxHp || state.enemy.hp) : 0) * 100;
     if (combatElements.enemyHpBar) combatElements.enemyHpBar.style.width = `${enemyHpPercentage}%`;
 
     // Update special ability button
@@ -152,11 +128,11 @@ export function updateCombatUI() {
         specialButton.disabled = currentEnergy < 30;
         specialButton.className = `special-button ${currentEnergy >= 30 ? "" : "disabled-button"}`;
         // Update button text based on role
-        if (character.role === "Warrior") {
+        if (state.character.role === "Warrior") {
             specialButton.textContent = "⭐ Power Strike";
-        } else if (character.role === "Rogue") {
+        } else if (state.character.role === "Rogue") {
             specialButton.textContent = "⭐ Assassinate";
-        } else if (character.role === "Scientist") {
+        } else if (state.character.role === "Scientist") {
             specialButton.textContent = "⭐ Shield Boost";
         }
     }
@@ -166,28 +142,28 @@ export function updateCombatUI() {
  * Player performs a basic attack
  */
 export function playerAttack() {
-    if (!character || !enemy) return;
+    if (!state.character || !state.enemy) return;
     processStatusEffects();
 
     // Critical hit chance (15% base, higher for Rogues)
-    const critChance = character.role === "Rogue" ? 0.25 : 0.15;
+    const critChance = state.character.role === "Rogue" ? 0.25 : 0.15;
     const isCritical = Math.random() < critChance;
     const critMultiplier = isCritical ? 2 : 1;
 
     // Check for attack buffs
     const stats = getEffectiveStats();
-    const baseDamage = Math.max(0, stats.attack - enemy.defense);
+    const baseDamage = Math.max(0, stats.attack - state.enemy.defense);
     const damage = Math.floor(baseDamage * critMultiplier);
-    enemy.hp -= damage;
+    state.enemy.hp -= damage;
 
     if (isCritical) {
-        addLog(`💥 CRITICAL HIT! You hit the ${enemy.name} for ${damage} damage!`);
+        addLog(`💥 CRITICAL HIT! You hit the ${state.enemy.name} for ${damage} damage!`);
     } else {
-        addLog(`You hit the ${enemy.name} for ${damage} damage.`);
+        addLog(`You hit the ${state.enemy.name} for ${damage} damage.`);
     }
     updateCombatLog();
 
-    if (enemy.hp <= 0) {
+    if (state.enemy.hp <= 0) {
         winCombat();
     } else {
         enemyTurn();
@@ -200,11 +176,11 @@ export function playerAttack() {
  * Player blocks, reducing incoming damage by 50%
  */
 export function playerBlock() {
-    if (!character || !enemy) return;
+    if (!state.character || !state.enemy) return;
     processStatusEffects();
 
-    playerStatusEffects = [
-        ...playerStatusEffects.filter(e => e.type !== "blocking"),
+    state.playerStatusEffects = [
+        ...state.playerStatusEffects.filter(e => e.type !== "blocking"),
         { type: "blocking", duration: 1 }
     ];
 
@@ -218,11 +194,11 @@ export function playerBlock() {
  * Player dodges, 30% chance to avoid attack
  */
 export function playerDodge() {
-    if (!character || !enemy) return;
+    if (!state.character || !state.enemy) return;
     processStatusEffects();
 
-    playerStatusEffects = [
-        ...playerStatusEffects.filter(e => e.type !== "dodging"),
+    state.playerStatusEffects = [
+        ...state.playerStatusEffects.filter(e => e.type !== "dodging"),
         { type: "dodging", duration: 1 }
     ];
 
@@ -236,10 +212,10 @@ export function playerDodge() {
  * Player uses role-specific special ability
  */
 export function useSpecialAbility() {
-    if (!character || !enemy) return;
+    if (!state.character || !state.enemy) return;
 
     const energyCost = 30;
-    const currentEnergy = character.energy ?? character.maxEnergy ?? 100;
+    const currentEnergy = state.character.energy ?? state.character.maxEnergy ?? 100;
     if (currentEnergy < energyCost) {
         addLog("⚠️ Not enough energy to use special ability!");
         updateCombatLog();
@@ -248,40 +224,40 @@ export function useSpecialAbility() {
 
     processStatusEffects();
 
-    character.energy = Math.max(0, currentEnergy - energyCost);
+    state.character.energy = Math.max(0, currentEnergy - energyCost);
 
-    if (character.role === "Warrior") {
+    if (state.character.role === "Warrior") {
         // Power Strike - 1.5x damage
-        const baseDamage = Math.max(0, character.attack - enemy.defense);
+        const baseDamage = Math.max(0, state.character.attack - state.enemy.defense);
         const damage = Math.floor(baseDamage * 1.5);
-        enemy.hp -= damage;
+        state.enemy.hp -= damage;
 
         addLog(`⚔️ POWER STRIKE! You unleash a devastating blow for ${damage} damage!`);
         updateCombatLog();
 
-        if (enemy.hp <= 0) {
+        if (state.enemy.hp <= 0) {
             winCombat();
         } else {
             enemyTurn();
         }
-    } else if (character.role === "Rogue") {
+    } else if (state.character.role === "Rogue") {
         // Guaranteed Critical Hit - 2.5x damage
-        const baseDamage = Math.max(0, character.attack - enemy.defense);
+        const baseDamage = Math.max(0, state.character.attack - state.enemy.defense);
         const damage = Math.floor(baseDamage * 2.5);
-        enemy.hp -= damage;
+        state.enemy.hp -= damage;
 
         addLog(`🗡️ ASSASSINATE! You strike a critical weak point for ${damage} damage!`);
         updateCombatLog();
 
-        if (enemy.hp <= 0) {
+        if (state.enemy.hp <= 0) {
             winCombat();
         } else {
             enemyTurn();
         }
-    } else if (character.role === "Scientist") {
+    } else if (state.character.role === "Scientist") {
         // Shield Boost - temporary defense increase
-        playerStatusEffects = [
-            ...playerStatusEffects.filter(e => e.type !== "defenseBoost"),
+        state.playerStatusEffects = [
+            ...state.playerStatusEffects.filter(e => e.type !== "defenseBoost"),
             { type: "defenseBoost", value: 5, duration: 3 }
         ];
         addLog("🔬 You activate a defensive shield! Defense increased for 3 turns.");
@@ -296,47 +272,47 @@ export function useSpecialAbility() {
  * Enemy's turn to attack
  */
 export function enemyTurn() {
-    if (!character || !enemy) return;
+    if (!state.character || !state.enemy) return;
 
     // Check if player is dodging
-    const isDodging = playerStatusEffects.some(e => e.type === "dodging");
+    const isDodging = state.playerStatusEffects.some(e => e.type === "dodging");
     if (isDodging) {
         const dodgeSuccess = Math.random() < 0.3; // 30% chance
         if (dodgeSuccess) {
-            addLog(`💨 You successfully dodged ${enemy.name}'s attack!`);
+            addLog(`💨 You successfully dodged ${state.enemy.name}'s attack!`);
             updateCombatLog();
             // Regenerate energy
-            character.energy = Math.min(character.maxEnergy, (character.energy || character.maxEnergy) + 5);
+            state.character.energy = Math.min(state.character.maxEnergy, (state.character.energy || state.character.maxEnergy) + 5);
             updateCombatUI();
             return;
         } else {
-            addLog(`💨 You tried to dodge but ${enemy.name} still hit you!`);
+            addLog(`💨 You tried to dodge but ${state.enemy.name} still hit you!`);
             updateCombatLog();
         }
     }
 
     // Check if player is blocking
-    const isBlocking = playerStatusEffects.some(e => e.type === "blocking");
+    const isBlocking = state.playerStatusEffects.some(e => e.type === "blocking");
     const stats = getEffectiveStats();
-    let damage = Math.max(0, enemy.attack - stats.defense);
+    let damage = Math.max(0, state.enemy.attack - stats.defense);
 
     if (isBlocking) {
         damage = Math.floor(damage * 0.5); // 50% damage reduction
-        addLog(`🛡️ You blocked ${enemy.name}'s attack, reducing damage!`);
+        addLog(`🛡️ You blocked ${state.enemy.name}'s attack, reducing damage!`);
         updateCombatLog();
     }
 
-    character.hp -= damage;
+    state.character.hp -= damage;
 
-    addLog(`${enemy.name} hits you for ${damage} damage.`);
+    addLog(`${state.enemy.name} hits you for ${damage} damage.`);
     updateCombatLog();
 
     // Regenerate energy (5 per turn)
-    character.energy = Math.min(character.maxEnergy, (character.energy || character.maxEnergy) + 5);
+    state.character.energy = Math.min(state.character.maxEnergy, (state.character.energy || state.character.maxEnergy) + 5);
 
-    if (character.hp <= 0) {
+    if (state.character.hp <= 0) {
         addLog("You have been defeated...");
-        gameState = "defeat";
+        state.gameState = "defeat";
         showScreen("defeat");
     }
 
@@ -348,17 +324,17 @@ export function enemyTurn() {
  * Handle combat victory
  */
 export function winCombat() {
-    if (!enemy) return; // Safety check
+    if (!state.enemy) return; // Safety check
 
-    const enemyName = enemy.name;
-    const xpGained = Math.floor(enemy.attack * 2 + enemy.defense * 3);
+    const enemyName = state.enemy.name;
+    const xpGained = Math.floor(state.enemy.attack * 2 + state.enemy.defense * 3);
     const loot = ["Energy Cell", "Alien Crystal", "Data Chip"][Math.floor(Math.random() * 3)];
 
     // Clear enemy immediately to prevent further interactions
-    enemy = null;
+    state.enemy = null;
 
     // Restore energy on victory
-    character.energy = character.maxEnergy;
+    state.character.energy = state.character.maxEnergy;
 
     // Gain XP
     gainXp(xpGained);
@@ -367,7 +343,7 @@ export function winCombat() {
     checkQuestProgress("kill", enemyName, 1);
 
     // Add loot
-    inventory.push(loot);
+    state.inventory.push(loot);
 
     addLog(`You defeated the ${enemyName}!`);
     addLog(`You gained ${xpGained} XP and found a ${loot}.`);
@@ -375,7 +351,7 @@ export function winCombat() {
     // Show victory message
     showVictoryMessage(`Victory! ${enemyName} defeated!`);
 
-    gameState = "exploring";
+    state.gameState = "exploring";
     showScreen("exploring");
     updateUI();
     simulateExploration();

@@ -1067,13 +1067,6 @@ function initializeSaveSystem() {
   }
 }
 
-// Call auto-save at key moments
-// Auto-save after combat victory
-const originalWinCombat = winCombat;
-winCombat = function () {
-  originalWinCombat();
-  setTimeout(autoSave, 500); // Auto-save after UI updates
-};
 
 // Auto-save after level up
 const originalShowLevelUpNotification = showLevelUpNotification;
