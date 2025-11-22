@@ -231,12 +231,15 @@
                 <span>🛡️</span> Block
               </button>
             </div>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-3 gap-4">
               <button onclick="playerDodge()" class="py-3 px-4 bg-green-600 hover:bg-green-700 rounded font-bold transition-colors flex items-center justify-center gap-2">
                 <span>💨</span> Dodge
               </button>
               <button id="specialAbilityButton" onclick="useSpecialAbility()" class="py-3 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors flex items-center justify-center gap-2">
                 <span>⭐</span> Special
+              </button>
+              <button onclick="openCombatItemMenu()" class="py-3 px-4 bg-yellow-600 hover:bg-yellow-700 rounded font-bold transition-colors flex items-center justify-center gap-2">
+                <span>🎒</span> Item
               </button>
             </div>
           </div>
@@ -285,6 +288,39 @@
       <button onclick="toggleQuestLog()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded font-bold">
         Close
       </button>
+    </div>
+  </div>
+</div>
+
+<div id="combatItemModal" class="quest-log-modal" style="display: none;">
+  <div class="quest-log-content">
+    <div class="text-center">
+      <div class="text-6xl mb-4">🎒</div>
+      <h2 class="text-3xl font-bold text-yellow-400 mb-2">Combat Items</h2>
+      <div id="combatItemList" class="max-h-60 overflow-y-auto pr-2 flex flex-col gap-2"></div>
+      <button onclick="closeCombatItemMenu()" class="mt-4 px-6 py-2 bg-red-600 hover:bg-red-700 rounded font-bold">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic Event Modal -->
+<div id="eventModal" class="quest-log-modal" style="display: none;">
+  <div class="quest-log-content">
+    <div class="text-center">
+      <div class="text-6xl mb-4" id="eventIcon">👤</div>
+      <h2 class="text-3xl font-bold text-yellow-400 mb-2" id="eventTitle">Event Title</h2>
+      <p class="text-xl text-white mb-6" id="eventDescription">Event description goes here.</p>
+      
+      <div class="flex justify-center gap-4">
+        <button id="eventAcceptBtn" class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded font-bold">
+          Accept
+        </button>
+        <button id="eventDeclineBtn" onclick="closeEventModal()" class="px-6 py-2 bg-red-600 hover:bg-red-700 rounded font-bold">
+          Decline
+        </button>
+      </div>
     </div>
   </div>
 </div>

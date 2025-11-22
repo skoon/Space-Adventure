@@ -18,7 +18,7 @@
   - [x] Warrior: Power Strike (deals 1.5x damage, costs energy)
   - [x] Rogue: Assassinate (guaranteed crit, 2.5x damage)
   - [x] Scientist: Shield Boost (temporary defense increase)
-- [ ] **Item Usage in Combat** - Use grenades, stims, and other consumables during battle
+- [x] **Item Usage in Combat** - Use grenades, stims, and other consumables during battle
 
 ### Status Effects System
 - [x] **Buffs/Debuffs** - Defense boost, blocking, dodging effects implemented

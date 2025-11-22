@@ -37,12 +37,44 @@ const quests = {
     amount: 2,
     rewards: { xp: 30, items: ["Scanner"] },
     isMainStory: false
+  },
+  "quest_003": {
+    id: "quest_003",
+    title: "Bounty Hunt",
+    description: "Eliminate a rogue Plasmavore threatening the area.",
+    type: "kill",
+    target: "Plasmavore",
+    amount: 1,
+    rewards: { xp: 40, items: ["Energy Drink"] },
+    isMainStory: false
+  },
+  "quest_004": {
+    id: "quest_004",
+    title: "Artifact Retrieval",
+    description: "Find an Alien Crystal in the ruins.",
+    type: "collect",
+    target: "Alien Crystal",
+    amount: 1,
+    rewards: { xp: 60, items: ["Data Chip"] },
+    isMainStory: false
+  },
+  "quest_005": {
+    id: "quest_005",
+    title: "Lost Cargo",
+    description: "Recover a lost Data Chip.",
+    type: "collect",
+    target: "Data Chip",
+    amount: 1,
+    rewards: { xp: 45, items: ["Energy Cell"] },
+    isMainStory: false
   }
 };
 
 // Items data (Equipment)
 const items = {
   "Energy Cell": { type: "consumable", effect: "heal", value: 30, description: "Restores 30 HP" },
+  "Nano Stimpack": { type: "consumable", effect: "heal", value: 50, description: "Restores 50 HP" },
+  "Energy Drink": { type: "consumable", effect: "energy", value: 40, description: "Restores 40 Energy" },
   "Scanner": { type: "tool", description: "Used for analyzing objects" },
   "Scrap Metal": { type: "material", description: "Used for repairs and crafting" },
   "Alien Crystal": { type: "material", description: "A glowing crystal with strange energy" },
@@ -697,6 +729,12 @@ function simulateExploration() {
   if (gameState !== "exploring") return;
 
   setTimeout(() => {
+    // Check for NPC Quest Encounter (10% chance if quests < 2)
+    if (Object.keys(character.activeQuests).length < 2 && Math.random() < 0.10) {
+      triggerNPCEvent();
+      return;
+    }
+
     const eventChance = Math.random();
 
     if (eventChance < 0.25) {
@@ -728,6 +766,50 @@ function simulateExploration() {
 
     updateUI();
   }, 2000);
+}
+
+// NPC Event Logic
+function triggerNPCEvent() {
+  const availableQuests = Object.values(quests).filter(q =>
+    !character.activeQuests[q.id] && !character.completedQuests.includes(q.id)
+  );
+
+  if (availableQuests.length === 0) {
+    // Fallback if no quests available
+    addLog("You met a traveler, but they had nothing for you.");
+    updateUI();
+    return;
+  }
+
+  const randomQuest = availableQuests[Math.floor(Math.random() * availableQuests.length)];
+
+  const modal = document.getElementById("eventModal");
+  const title = document.getElementById("eventTitle");
+  const desc = document.getElementById("eventDescription");
+  const acceptBtn = document.getElementById("eventAcceptBtn");
+
+  if (modal && title && desc && acceptBtn) {
+    title.textContent = "NPC Encounter";
+    desc.innerHTML = `A mysterious figure approaches you.<br><br>"Greetings, traveler. I have a job for you if you're interested."<br><br><strong>Quest: ${randomQuest.title}</strong><br>${randomQuest.description}`;
+
+    acceptBtn.onclick = () => {
+      acceptQuest(randomQuest.id);
+      closeEventModal();
+      addLog(`You accepted the quest: ${randomQuest.title}`);
+      updateUI();
+    };
+
+    modal.style.display = "flex";
+  }
+}
+
+function closeEventModal() {
+  const modal = document.getElementById("eventModal");
+  if (modal) {
+    modal.style.display = "none";
+    addLog("You parted ways with the stranger.");
+    updateUI();
+  }
 }
 
 // Equipment System
@@ -802,6 +884,39 @@ function unequipItem(slot) {
   character.equipment[slot] = null;
   inventory.push(itemName);
   addLog(`Unequipped ${itemName}.`);
+  updateUI();
+}
+
+// Gain XP and check for level up
+function gainXp(amount) {
+  if (!character) return;
+
+  character.xp += amount;
+
+  // Check for level up
+  const xpToNext = character.level * 100;
+  if (character.xp >= xpToNext) {
+    character.level++;
+    character.xp -= xpToNext;
+
+    // Stat increases
+    const statIncreases = {
+      maxHp: 10,
+      attack: 2,
+      defense: 1
+    };
+
+    character.maxHp += statIncreases.maxHp;
+    character.hp = character.maxHp; // Full heal on level up
+    character.attack += statIncreases.attack;
+    character.defense += statIncreases.defense;
+    character.maxEnergy += 10;
+    character.energy = character.maxEnergy;
+
+    showLevelUpNotification(character.level, statIncreases);
+    addLog(`🎉 LEVEL UP! You reached Level ${character.level}!`);
+  }
+
   updateUI();
 }
 
@@ -1203,3 +1318,92 @@ createCharacter = function (event) {
 
 // Initialize save system on page load
 window.addEventListener("DOMContentLoaded", initializeSaveSystem);
+
+// Combat Item System
+
+function openCombatItemMenu() {
+  const modal = document.getElementById("combatItemModal");
+  const list = document.getElementById("combatItemList");
+  if (!modal || !list) return;
+
+  list.innerHTML = "";
+
+  // Filter for consumable items in inventory
+  const consumables = inventory.filter(itemName => {
+    const item = items[itemName];
+    return item && item.type === "consumable";
+  });
+
+  // Get unique items and counts
+  const itemCounts = {};
+  consumables.forEach(item => {
+    itemCounts[item] = (itemCounts[item] || 0) + 1;
+  });
+
+  if (Object.keys(itemCounts).length === 0) {
+    const div = document.createElement("div");
+    div.className = "text-gray-400 italic text-center p-4";
+    div.textContent = "No usable items.";
+    list.appendChild(div);
+  } else {
+    Object.entries(itemCounts).forEach(([itemName, count]) => {
+      const item = items[itemName];
+      const button = document.createElement("button");
+      button.className = "w-full text-left p-3 bg-gray-700 hover:bg-gray-600 rounded border border-gray-600 flex justify-between items-center group transition-colors";
+      button.onclick = () => useCombatItem(itemName);
+
+      const content = `
+        <div>
+          <div class="font-bold text-white group-hover:text-yellow-400 transition-colors">${itemName} x${count}</div>
+          <div class="text-xs text-gray-400">${item.description}</div>
+        </div>
+        <div class="text-green-400 font-bold bg-gray-800 px-3 py-1 rounded group-hover:bg-green-600 group-hover:text-white transition-colors">Use</div>
+      `;
+      button.innerHTML = content;
+      list.appendChild(button);
+    });
+  }
+
+  modal.style.display = "flex";
+}
+
+function closeCombatItemMenu() {
+  const modal = document.getElementById("combatItemModal");
+  if (modal) {
+    modal.style.display = "none";
+  }
+}
+
+function useCombatItem(itemName) {
+  if (!character || !enemy) return;
+
+  const item = items[itemName];
+  if (!item || item.type !== "consumable") return;
+
+  // Remove 1 from inventory
+  const index = inventory.indexOf(itemName);
+  if (index === -1) return;
+  inventory.splice(index, 1);
+
+  // Apply effect
+  if (item.effect === "heal") {
+    const healAmount = item.value || 0;
+    const oldHp = character.hp;
+    character.hp = Math.min(character.maxHp, character.hp + healAmount);
+    const healed = character.hp - oldHp;
+    addLog(`💊 You used ${itemName} and recovered ${healed} HP.`);
+  } else if (item.effect === "energy") {
+    const energyAmount = item.value || 0;
+    character.energy = Math.min(character.maxEnergy, (character.energy || 0) + energyAmount);
+    addLog(`⚡ You used ${itemName} and restored ${energyAmount} Energy.`);
+  } else {
+    addLog(`You used ${itemName} but nothing happened.`);
+  }
+
+  updateCombatLog();
+  updateCombatUI();
+  closeCombatItemMenu();
+
+  // Enemy turn
+  setTimeout(enemyTurn, 500);
+}
