@@ -52,6 +52,9 @@ export function simulateExploration() {
             const outpostLoot = ["Energy Cell", "Data Chip", "Rusty Pipe"][Math.floor(Math.random() * 3)];
             addLog(`You discovered an Abandoned Outpost and found a ${outpostLoot}.`);
             state.inventory.push(outpostLoot);
+            if (outpostLoot == "Data Chip") {
+                checkQuestProgress("collect", "Data Chip", 1);
+            };
         } else if (eventChance < 0.55) {
             // 15% Chance: Ancient Ruins
             const xpGain = 15;
