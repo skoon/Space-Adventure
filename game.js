@@ -397,6 +397,8 @@ function checkQuestProgress(type, target, amount) {
 
   Object.keys(character.activeQuests).forEach(questId => {
     const quest = quests[questId];
+    if (!quest) return;
+
     if (quest.type === type && quest.target === target) {
       const currentProgress = character.activeQuests[questId].progress;
       if (currentProgress < quest.amount) {
@@ -695,9 +697,16 @@ function enemyTurn() {
 }
 
 // Win combat
+// Win combat
 function winCombat() {
+  if (!enemy) return; // Safety check
+
+  const enemyName = enemy.name;
   const xpGained = Math.floor(enemy.attack * 2 + enemy.defense * 3);
   const loot = ["Energy Cell", "Alien Crystal", "Data Chip"][Math.floor(Math.random() * 3)];
+
+  // Clear enemy immediately to prevent further interactions
+  enemy = null;
 
   // Restore energy on victory
   character.energy = character.maxEnergy;
@@ -706,18 +715,17 @@ function winCombat() {
   gainXp(xpGained);
 
   // Check Quest Progress
-  checkQuestProgress("kill", enemy.name, 1);
+  checkQuestProgress("kill", enemyName, 1);
 
   // Add loot
   inventory.push(loot);
 
-  addLog(`You defeated the ${enemy.name}!`);
+  addLog(`You defeated the ${enemyName}!`);
   addLog(`You gained ${xpGained} XP and found a ${loot}.`);
 
   // Show victory message
-  showVictoryMessage(`Victory! ${enemy.name} defeated!`);
+  showVictoryMessage(`Victory! ${enemyName} defeated!`);
 
-  enemy = null;
   gameState = "exploring";
   showScreen("exploring");
   updateUI();
