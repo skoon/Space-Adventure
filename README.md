@@ -25,6 +25,7 @@ Simply open `index.html` in your web browser. No build process or dependencies r
 
 ```
 ├── index.html      # Main HTML file
+├── /systems        # subdirectory of the game systems files
 ├── game.js         # Game logic and functionality
 ├── style.css       # Styling and animations
 └── todo.md         # Feature roadmap
