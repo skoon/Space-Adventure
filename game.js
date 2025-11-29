@@ -5,25 +5,13 @@
 
 // Import all system modules
 import { initCombat, processStatusEffects, encounterEnemy, updateCombatUI, playerAttack, playerBlock, playerDodge, useSpecialAbility, enemyTurn, winCombat } from './systems/combat.js';
-import { initQuests, acceptQuest, checkQuestProgress } from './systems/quests.js';
+import { initQuests, acceptQuest, checkQuestProgress, applyQuestItem } from './systems/quests.js';
 import { initEquipment, getEffectiveStats, equipItem, unequipItem } from './systems/equipment.js';
 import { initCharacter, createCharacter, gainXp, getCharacterAvatar, useHealItem, restartGame } from './systems/character.js';
 import { initExploration, simulateExploration, travelDeeper, closeEventModal } from './systems/exploration.js';
 import { initSaveLoad, saveGame, loadGame, exportGame, importGame, autoSave, initializeSaveSystem } from './systems/saveload.js';
 import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog } from './systems/ui.js';
 import { initInventory, openCombatItemMenu, closeCombatItemMenu, useCombatItem } from './systems/inventory.js';
-
-// ============================================
-// GAME STATE
-// ============================================
-
-let gameState = "start";
-let character = null;
-let inventory = [];
-let enemy = null;
-let log = [];
-let playerStatusEffects = [];
-let enemyStatusEffects = [];
 
 // ============================================
 // GAME DATA
@@ -302,7 +290,8 @@ function initializeGame() {
   initUI({
     ...deps,
     equipment: { getEffectiveStats },
-    character: { getCharacterAvatar }
+    character: { getCharacterAvatar },
+    quests: { applyQuestItem }
   });
 }
 
@@ -342,6 +331,7 @@ window.exportGame = exportGame;
 window.importGame = importGame;
 window.toggleQuestLog = toggleQuestLog;
 window.acceptQuest = acceptQuest;
+window.applyQuestItem = applyQuestItem;
 window.unequipItem = unequipItem;
 window.switchQuestTab = switchQuestTab;
 window.closeEventModal = closeEventModal;

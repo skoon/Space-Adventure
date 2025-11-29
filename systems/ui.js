@@ -7,7 +7,7 @@
 let state;
 
 // Dependencies
-let getEffectiveStats, getCharacterAvatar;
+let getEffectiveStats, getCharacterAvatar, applyQuestItem;
 let items, quests;
 let screens, elements, inventoryElement, missionLogElement, combatElements;
 
@@ -37,6 +37,9 @@ export function initUI(deps) {
     // Functions
     getEffectiveStats = deps.equipment.getEffectiveStats;
     getCharacterAvatar = deps.character.getCharacterAvatar;
+    if (deps.quests && deps.quests.applyQuestItem) {
+        applyQuestItem = deps.quests.applyQuestItem;
+    }
 }
 
 /**
@@ -167,6 +170,18 @@ export function updateUI() {
                     import('./equipment.js').then(equipModule => {
                         equipModule.equipItem(itemName);
                     });
+                } else if (applyQuestItem) {
+                    console.log("Attempting to apply quest item:", itemName);
+                    // Try to apply to quest
+                    const applied = applyQuestItem(itemName);
+                    console.log("Result:", applied);
+                    if (!applied) {
+                        addLog(`Cannot use ${itemName} right now.`);
+                    } else {
+                        updateUI();
+                    }
+                } else {
+                    console.log("applyQuestItem function not found");
                 }
             };
             inventoryElement.appendChild(button);
@@ -266,7 +281,7 @@ export function toggleQuestLog() {
     const modal = document.getElementById("questLogModal");
     if (!modal) return;
 
-    if (modal.classList.contains("hidden")) {
+    if (modal.style.display === "none" || modal.classList.contains("hidden")) {
         modal.classList.remove("hidden");
         modal.style.display = "flex";
         renderQuestList();

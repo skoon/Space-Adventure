@@ -161,6 +161,8 @@ export function completeQuest(questId) {
     showVictoryMessage(`Quest Completed: ${quest.title}`);
 
     updateUI();
+
+    return applied;
 }
 
 /**
