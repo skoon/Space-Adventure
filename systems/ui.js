@@ -117,6 +117,8 @@ export function updateUI() {
     if (elements.characterLevel) elements.characterLevel.textContent = state.character.level;
     if (elements.characterHp) elements.characterHp.textContent = state.character.hp;
     if (elements.characterMaxHp) elements.characterMaxHp.textContent = state.character.maxHp;
+    if (elements.characterEnergy) elements.characterEnergy.textContent = state.character.energy;
+    if (elements.characterMaxEnergy) elements.characterMaxEnergy.textContent = state.character.maxEnergy;
 
     const stats = getEffectiveStats();
     if (elements.characterAtk) elements.characterAtk.textContent = stats.attack;
