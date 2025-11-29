@@ -10,7 +10,7 @@ import { initEquipment, getEffectiveStats, equipItem, unequipItem } from './syst
 import { initCharacter, createCharacter, gainXp, getCharacterAvatar, useHealItem, restartGame } from './systems/character.js';
 import { initExploration, simulateExploration, travelDeeper, closeEventModal } from './systems/exploration.js';
 import { initSaveLoad, saveGame, loadGame, exportGame, importGame, autoSave, initializeSaveSystem } from './systems/saveload.js';
-import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame } from './systems/ui.js';
+import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog } from './systems/ui.js';
 import { initInventory, openCombatItemMenu, closeCombatItemMenu, useCombatItem } from './systems/inventory.js';
 
 // ============================================
@@ -77,6 +77,38 @@ const quests = {
     amount: 1,
     rewards: { xp: 45, items: ["Energy Cell"] },
     isMainStory: false
+  },
+  "story_01": {
+    id: "story_01",
+    title: "The Awakening",
+    description: "Investigate the strange signal.",
+    type: "kill", // Initial type for display, though steps override
+    target: "Xenobot",
+    amount: 1,
+    rewards: { xp: 100 },
+    isMainStory: true,
+    steps: [
+      {
+        type: "kill",
+        target: "Xenobot",
+        amount: 1,
+        rewards: { xp: 20 },
+        dialog: {
+          title: "Target Eliminated",
+          text: "You've defeated the scout. But where did it come from? You notice a strange device on its chassis."
+        }
+      },
+      {
+        type: "collect",
+        target: "Scrap Metal",
+        amount: 1,
+        rewards: { items: ["Energy Cell"] },
+        dialog: {
+          title: "Repairs Needed",
+          text: "This scrap will help fix the comms array. Maybe we can decode the signal."
+        }
+      }
+    ]
   }
 };
 
@@ -213,7 +245,7 @@ function initializeGame() {
   // Initialize Quests
   initQuests({
     ...deps,
-    ui: { addLog, updateUI, showVictoryMessage, showSaveMessage }
+    ui: { addLog, updateUI, showVictoryMessage, showSaveMessage, showDialog }
   });
 
   // Initialize Combat
@@ -322,3 +354,4 @@ window.useSpecialAbility = useSpecialAbility;
 window.openCombatItemMenu = openCombatItemMenu;
 window.closeCombatItemMenu = closeCombatItemMenu;
 window.useCombatItem = useCombatItem;
+window.hideLevelUpNotification = hideLevelUpNotification;

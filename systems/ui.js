@@ -320,14 +320,35 @@ export function renderQuestList() {
         const div = document.createElement("div");
         div.className = "bg-gray-700 p-4 rounded border border-gray-600";
 
+        let description = quest.description;
+        let targetAmount = quest.amount;
+        let targetTarget = quest.target;
+        let progress = 0;
         let progressText = "";
+
         if (currentQuestTab === "active") {
-            const progress = state.character.activeQuests[questId].progress;
-            const percentage = Math.min(100, (progress / quest.amount) * 100);
+            const activeQuest = state.character.activeQuests[questId];
+            progress = activeQuest.progress;
+
+            // Handle multi-step quests
+            if (quest.steps && quest.steps.length > 0) {
+                const currentStepIndex = activeQuest.currentStep || 0;
+                if (currentStepIndex < quest.steps.length) {
+                    const step = quest.steps[currentStepIndex];
+                    if (step.description) description = step.description; // Use step description if available
+                    // If step doesn't have description, maybe construct one? "Step X: [Target] [Amount]"
+                    // For now, let's assume main description is generic enough or step has one.
+
+                    targetAmount = step.amount;
+                    targetTarget = step.target;
+                }
+            }
+
+            const percentage = Math.min(100, (progress / targetAmount) * 100);
             progressText = `
                 <div class="mt-2">
                     <div class="flex justify-between text-sm text-gray-300 mb-1">
-                        <span>Progress: ${progress}/${quest.amount} ${quest.target}s</span>
+                        <span>Progress: ${progress}/${targetAmount} ${targetTarget}s</span>
                         <span>${Math.round(percentage)}%</span>
                     </div>
                     <div class="w-full bg-gray-800 rounded-full h-2">
@@ -341,7 +362,7 @@ export function renderQuestList() {
 
         div.innerHTML = `
             <h3 class="text-lg font-bold text-yellow-400">${quest.title}</h3>
-            <p class="text-gray-300 text-sm mt-1">${quest.description}</p>
+            <p class="text-gray-300 text-sm mt-1">${description}</p>
             <div class="mt-2 text-xs text-gray-400">
                 Rewards: ${quest.rewards.xp ? `${quest.rewards.xp} XP` : ""} ${quest.rewards.items ? `+ ${quest.rewards.items.join(", ")}` : ""}
             </div>
@@ -350,6 +371,51 @@ export function renderQuestList() {
 
         list.appendChild(div);
     });
+}
+
+/**
+ * Show dialog modal
+ */
+export function showDialog(title, text, options = []) {
+    const modal = document.getElementById("dialogModal");
+    if (!modal) return;
+
+    document.getElementById("dialogTitle").textContent = title;
+    document.getElementById("dialogText").textContent = text;
+
+    const optionsContainer = document.getElementById("dialogOptions");
+    optionsContainer.innerHTML = "";
+
+    if (options.length === 0) {
+        // Default "Continue" option
+        options = [{ text: "Continue", action: hideDialog }];
+    }
+
+    options.forEach(option => {
+        const button = document.createElement("button");
+        button.className = "px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded font-bold text-white transition-colors";
+        button.textContent = option.text;
+        button.onclick = () => {
+            if (option.action) option.action();
+            // If the action didn't close the dialog (and it's not the default hideDialog), we might want to close it?
+            // For now, let the action decide, but usually buttons close the dialog.
+            // If the action is just a function, we should probably close the dialog after.
+            if (option.action !== hideDialog) hideDialog();
+        };
+        optionsContainer.appendChild(button);
+    });
+
+    modal.style.display = "flex";
+}
+
+/**
+ * Hide dialog modal
+ */
+export function hideDialog() {
+    const modal = document.getElementById("dialogModal");
+    if (modal) {
+        modal.style.display = "none";
+    }
 }
 
 /**

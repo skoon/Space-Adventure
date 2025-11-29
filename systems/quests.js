@@ -7,7 +7,7 @@
 let state;
 
 // Dependencies
-let addLog, updateUI, showVictoryMessage, showSaveMessage;
+let addLog, updateUI, showVictoryMessage, showSaveMessage, showDialog;
 let quests;
 
 /**
@@ -25,6 +25,7 @@ export function initQuests(deps) {
     updateUI = deps.ui.updateUI;
     showVictoryMessage = deps.ui.showVictoryMessage;
     showSaveMessage = deps.ui.showSaveMessage;
+    showDialog = deps.ui.showDialog;
 }
 
 /**
@@ -36,7 +37,7 @@ export function acceptQuest(questId) {
     const quest = quests[questId];
     if (!quest) return;
 
-    state.character.activeQuests[questId] = { progress: 0 };
+    state.character.activeQuests[questId] = { progress: 0, currentStep: 0 };
     addLog(`📜 Quest Accepted: ${quest.title}`);
     showSaveMessage(`Quest Accepted: ${quest.title}`);
 }
@@ -51,17 +52,84 @@ export function checkQuestProgress(type, target, amount) {
         const quest = quests[questId];
         if (!quest) return;
 
-        if (quest.type === type && quest.target === target) {
-            const currentProgress = state.character.activeQuests[questId].progress;
-            if (currentProgress < quest.amount) {
+        let targetType = quest.type;
+        let targetTarget = quest.target;
+        let targetAmount = quest.amount;
+
+        // Handle multi-step quests
+        const activeQuest = state.character.activeQuests[questId];
+        if (quest.steps && quest.steps.length > 0) {
+            const currentStepIndex = activeQuest.currentStep || 0;
+            if (currentStepIndex < quest.steps.length) {
+                const step = quest.steps[currentStepIndex];
+                targetType = step.type;
+                targetTarget = step.target;
+                targetAmount = step.amount;
+            } else {
+                // Should be completed already
+                return;
+            }
+        }
+
+        if (targetType === type && targetTarget === target) {
+            const currentProgress = activeQuest.progress;
+            if (currentProgress < targetAmount) {
                 state.character.activeQuests[questId].progress += amount;
 
-                if (state.character.activeQuests[questId].progress >= quest.amount) {
-                    completeQuest(questId);
+                if (state.character.activeQuests[questId].progress >= targetAmount) {
+                    if (quest.steps && quest.steps.length > 0) {
+                        completeStep(questId);
+                    } else {
+                        completeQuest(questId);
+                    }
                 }
             }
         }
     });
+}
+
+/**
+ * Complete a quest step
+ */
+export function completeStep(questId) {
+    if (!state.character || !state.character.activeQuests[questId]) return;
+
+    const quest = quests[questId];
+    const activeQuest = state.character.activeQuests[questId];
+    const currentStepIndex = activeQuest.currentStep || 0;
+    const step = quest.steps[currentStepIndex];
+
+    // Grant Step Rewards
+    if (step.rewards) {
+        if (step.rewards.xp) {
+            state.character.xp += step.rewards.xp;
+            addLog(`Step Reward: +${step.rewards.xp} XP`);
+        }
+        if (step.rewards.items) {
+            step.rewards.items.forEach(item => {
+                state.inventory.push(item);
+                addLog(`Step Reward: +1 ${item}`);
+            });
+        }
+    }
+
+    // Show Dialog
+    if (step.dialog && showDialog) {
+        showDialog(step.dialog.title, step.dialog.text);
+    }
+
+    // Advance Step
+    activeQuest.progress = 0;
+    activeQuest.currentStep = currentStepIndex + 1;
+
+    addLog(`✅ Quest Step Completed!`);
+
+    // Check if all steps are done
+    if (activeQuest.currentStep >= quest.steps.length) {
+        completeQuest(questId);
+    } else {
+        updateUI();
+    }
 }
 
 /**

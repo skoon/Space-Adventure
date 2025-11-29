@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Galactic Odyssey - Sci-Fi Adventure Game</title>
   <link rel="stylesheet" href="style.css" type="text/css" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
@@ -284,6 +285,10 @@
     <div class="text-center">
       <div class="text-6xl mb-4">📜</div>
       <h2 class="text-3xl font-bold text-yellow-400 mb-2">Quest Log</h2>
+      <div class="flex gap-2 mb-4">
+        <button id="activeQuestsTab" onclick="switchQuestTab('active')" class="flex-1 py-2 px-4 bg-yellow-600 text-white rounded font-bold">Active</button>
+        <button id="completedQuestsTab" onclick="switchQuestTab('completed')" class="flex-1 py-2 px-4 bg-gray-700 text-gray-300 rounded font-bold hover:bg-gray-600">Completed</button>
+      </div>
       <div id="questList" class="max-h-60 overflow-y-auto pr-2"></div>
       <button onclick="toggleQuestLog()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded font-bold">
         Close
@@ -320,6 +325,20 @@
         <button id="eventDeclineBtn" onclick="closeEventModal()" class="px-6 py-2 bg-red-600 hover:bg-red-700 rounded font-bold">
           Decline
         </button>
+      </div>
+    </div>
+</div>
+</div>
+
+<!-- Dialog Modal -->
+<div id="dialogModal" class="quest-log-modal" style="display: none;">
+  <div class="quest-log-content">
+    <div class="text-center">
+      <h2 class="text-3xl font-bold text-yellow-400 mb-4" id="dialogTitle">Dialog Title</h2>
+      <p class="text-lg text-white mb-6" id="dialogText">Dialog text goes here.</p>
+      
+      <div id="dialogOptions" class="flex flex-col gap-2 justify-center">
+        <!-- Options will be injected here -->
       </div>
     </div>
   </div>
