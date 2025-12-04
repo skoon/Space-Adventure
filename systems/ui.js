@@ -398,7 +398,7 @@ export function showDialog(title, text, options = []) {
     if (!modal) return;
 
     document.getElementById("dialogTitle").textContent = title;
-    document.getElementById("dialogText").textContent = text;
+    document.getElementById("dialogText").innerHTML = text;
 
     const optionsContainer = document.getElementById("dialogOptions");
     optionsContainer.innerHTML = "";

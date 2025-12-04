@@ -67,10 +67,10 @@
 - [x] **Quest Rewards** - XP, items, and story progression
 
 ### Random Events
-- [ ] **NPC Encounters** - Merchants, allies, mysterious strangers
-- [ ] **Environmental Hazards** - Radiation storms, asteroid fields
+- [x] **NPC Encounters** - Merchants, allies, mysterious strangers
+- [x] **Environmental Hazards** - Radiation storms, asteroid fields
 - [x] **Treasure Discoveries** - Hidden caches and rare finds (Abandoned Outposts, Ancient Ruins)
-- [ ] **Dialogue System** - Interactive conversations with NPCs
+- [x] **Dialogue System** - Interactive conversations with NPCs
 
 ## 💰 Items & Economy
 

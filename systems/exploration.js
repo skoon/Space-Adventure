@@ -8,8 +8,7 @@ let state;
 
 // Dependencies
 let addLog, updateUI;
-let encounterEnemy, gainXp, checkQuestProgress;
-let quests;
+let events;
 
 /**
  * Initialize the exploration module with required dependencies
@@ -18,15 +17,12 @@ export function initExploration(deps) {
     // Store state object reference
     state = deps.state;
 
-    // Data
-    quests = deps.data.quests;
-
     // Functions
     addLog = deps.ui.addLog;
     updateUI = deps.ui.updateUI;
-    encounterEnemy = deps.combat.encounterEnemy;
-    gainXp = deps.character.gainXp;
-    checkQuestProgress = deps.quests.checkQuestProgress;
+
+    // New Events Module
+    events = deps.events;
 }
 
 /**
@@ -36,98 +32,12 @@ export function simulateExploration() {
     if (state.gameState !== "exploring") return;
 
     setTimeout(() => {
-        // Check for NPC Quest Encounter (10% chance if quests < 2)
-        if (Object.keys(state.character.activeQuests).length < 2 && Math.random() < 0.10) {
-            triggerNPCEvent();
-            return;
-        }
-
-        const eventChance = Math.random();
-
-        if (eventChance < 0.25) {
-            // 25% Chance: Enemy
-            encounterEnemy();
-        } else if (eventChance < 0.40) {
-            // 15% Chance: Abandoned Outpost
-            const outpostLoot = ["Energy Cell", "Data Chip", "Rusty Pipe"][Math.floor(Math.random() * 3)];
-            addLog(`You discovered an Abandoned Outpost and found a ${outpostLoot}.`);
-            state.inventory.push(outpostLoot);
-            if (outpostLoot == "Data Chip") {
-                checkQuestProgress("collect", "Data Chip", 1);
-            };
-        } else if (eventChance < 0.55) {
-            // 15% Chance: Ancient Ruins
-            const xpGain = 15;
-            addLog(`You explored Ancient Ruins and deciphered glyphs, gaining ${xpGain} XP.`);
-            gainXp(xpGain);
-        } else if (eventChance < 0.65) {
-            // 10% Chance: Strange Anomaly
-            addLog("You encountered a Strange Anomaly. Your energy is restored.");
-            state.character.energy = state.character.maxEnergy;
-        } else if (eventChance < 0.80) {
-            // 15% Chance: Scrap Metal
-            addLog("You found some scrap metal.");
-            state.inventory.push("Scrap Metal");
-            checkQuestProgress("collect", "Scrap Metal", 1);
-        } else {
-            // 20% Chance: Quiet
-            addLog("The landscape is quiet... for now.");
-        }
+        // Use the new events system
+        const event = events.generateRandomEvent();
+        events.handleEvent(event);
 
         updateUI();
     }, 2000);
-}
-
-/**
- * Trigger an NPC event with quest offer
- */
-export function triggerNPCEvent() {
-    const availableQuests = Object.values(quests).filter(q =>
-        !state.character.activeQuests[q.id] && !state.character.completedQuests.includes(q.id)
-    );
-
-    if (availableQuests.length === 0) {
-        // Fallback if no quests available
-        addLog("You met a traveler, but they had nothing for you.");
-        updateUI();
-        return;
-    }
-
-    const randomQuest = availableQuests[Math.floor(Math.random() * availableQuests.length)];
-
-    const modal = document.getElementById("eventModal");
-    const title = document.getElementById("eventTitle");
-    const desc = document.getElementById("eventDescription");
-    const acceptBtn = document.getElementById("eventAcceptBtn");
-
-    if (modal && title && desc && acceptBtn) {
-        title.textContent = "NPC Encounter";
-        desc.innerHTML = `A mysterious figure approaches you.<br><br>"Greetings, traveler. I have a job for you if you're interested."<br><br><strong>Quest: ${randomQuest.title}</strong><br>${randomQuest.description}`;
-
-        acceptBtn.onclick = () => {
-            // Import acceptQuest dynamically to avoid circular dependency
-            import('./quests.js').then(questModule => {
-                questModule.acceptQuest(randomQuest.id);
-                closeEventModal();
-                addLog(`You accepted the quest: ${randomQuest.title}`);
-                updateUI();
-            });
-        };
-
-        modal.style.display = "flex";
-    }
-}
-
-/**
- * Close the event modal
- */
-export function closeEventModal() {
-    const modal = document.getElementById("eventModal");
-    if (modal) {
-        modal.style.display = "none";
-        addLog("You parted ways with the stranger.");
-        updateUI();
-    }
 }
 
 /**
@@ -137,3 +47,11 @@ export function travelDeeper() {
     addLog("Venturing deeper into the unknown...");
     simulateExploration();
 }
+
+// Export closeEventModal for backward compatibility if needed,
+// but it seems it was used by the old HTML.
+// The new system uses showDialog from ui.js which has its own modal.
+// We should check if index.html still has the old eventModal.
+// If so, we might want to keep it or remove it.
+// For now, let's keep it if it's exported, but it's not used by the new system.
+

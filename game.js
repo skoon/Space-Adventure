@@ -8,7 +8,8 @@ import { initCombat, processStatusEffects, encounterEnemy, updateCombatUI, playe
 import { initQuests, acceptQuest, checkQuestProgress, applyQuestItem } from './systems/quests.js';
 import { initEquipment, getEffectiveStats, equipItem, unequipItem } from './systems/equipment.js';
 import { initCharacter, createCharacter, gainXp, getCharacterAvatar, useHealItem, restartGame } from './systems/character.js';
-import { initExploration, simulateExploration, travelDeeper, closeEventModal } from './systems/exploration.js';
+import { initExploration, simulateExploration, travelDeeper } from './systems/exploration.js';
+import { initEvents, generateRandomEvent, handleEvent } from './systems/events.js';
 import { initSaveLoad, saveGame, loadGame, exportGame, importGame, autoSave, initializeSaveSystem } from './systems/saveload.js';
 import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog } from './systems/ui.js';
 import { initInventory, openCombatItemMenu, closeCombatItemMenu, useCombatItem } from './systems/inventory.js';
@@ -246,13 +247,20 @@ function initializeGame() {
     exploration: { simulateExploration: () => { } } // Placeholder
   });
 
+  // Initialize Events
+  initEvents({
+    ...deps,
+    ui: { addLog, updateUI, showDialog },
+    combat: { encounterEnemy },
+    character: { gainXp },
+    quests: { checkQuestProgress }
+  });
+
   // Initialize Exploration
   initExploration({
     ...deps,
     ui: { addLog, updateUI },
-    combat: { encounterEnemy },
-    character: { gainXp },
-    quests: { checkQuestProgress }
+    events: { generateRandomEvent, handleEvent }
   });
 
   // Re-initialize Character with real simulateExploration
@@ -334,7 +342,7 @@ window.acceptQuest = acceptQuest;
 window.applyQuestItem = applyQuestItem;
 window.unequipItem = unequipItem;
 window.switchQuestTab = switchQuestTab;
-window.closeEventModal = closeEventModal;
+
 
 // Combat functions
 window.playerAttack = playerAttack;
