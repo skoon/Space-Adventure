@@ -8,6 +8,7 @@ let state;
 
 // Dependencies
 let getEffectiveStats, getCharacterAvatar, applyQuestItem;
+let getUnlockedLocations, travelTo;
 let items, quests;
 let screens, elements, inventoryElement, missionLogElement, combatElements;
 
@@ -39,6 +40,12 @@ export function initUI(deps) {
     getCharacterAvatar = deps.character.getCharacterAvatar;
     if (deps.quests && deps.quests.applyQuestItem) {
         applyQuestItem = deps.quests.applyQuestItem;
+    }
+
+    // Location functions (optional check if not available yet)
+    if (deps.locations) {
+        getUnlockedLocations = deps.locations.getUnlockedLocations;
+        travelTo = deps.locations.travelTo;
     }
 }
 
@@ -433,6 +440,46 @@ export function hideDialog() {
     if (modal) {
         modal.style.display = "none";
     }
+}
+
+/**
+ * Show travel screen with available destinations
+ */
+export function showTravelScreen() {
+    const modal = document.getElementById("travelScreen");
+    const container = document.getElementById("travelDestinations");
+
+    if (!modal || !container || !getUnlockedLocations) return;
+
+    container.innerHTML = "";
+    const locations = getUnlockedLocations();
+
+    locations.forEach(loc => {
+        const isCurrent = state.currentLocation === loc.id;
+        const card = document.createElement("div");
+        card.className = `p-4 rounded border transition-all ${isCurrent ? 'bg-blue-900 border-blue-400' : 'bg-gray-700 border-gray-600 hover:border-white cursor-pointer'}`;
+
+        card.innerHTML = `
+            <div class="text-xl font-bold mb-2 ${isCurrent ? 'text-blue-300' : 'text-gray-200'}">${loc.name}</div>
+            <div class="text-sm text-gray-400 mb-3 h-12">${loc.description}</div>
+            <div class="flex justify-between items-center text-xs">
+                <span class="text-yellow-500">Hazard Lv.${loc.hazardLevel}</span>
+                ${isCurrent ? '<span class="text-blue-400 font-bold">CURRENT</span>' : ''}
+            </div>
+        `;
+
+        if (!isCurrent) {
+            card.onclick = () => {
+                if (travelTo(loc.id)) {
+                    modal.classList.add("hidden");
+                }
+            };
+        }
+
+        container.appendChild(card);
+    });
+
+    modal.classList.remove("hidden");
 }
 
 /**

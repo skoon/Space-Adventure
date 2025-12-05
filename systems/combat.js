@@ -59,7 +59,16 @@ export function processStatusEffects() {
  * Encounter a random enemy and start combat
  */
 export function encounterEnemy() {
-    const randomEnemy = { ...enemies[Math.floor(Math.random() * enemies.length)] };
+    // Filter enemies by current location if property exists
+    let availableEnemies = enemies;
+    if (state.currentLocation) {
+        availableEnemies = enemies.filter(e => !e.locations || e.locations.includes(state.currentLocation));
+    }
+
+    // Fallback if no specific enemies found (shouldn't happen with good data)
+    if (availableEnemies.length === 0) availableEnemies = enemies;
+
+    const randomEnemy = { ...availableEnemies[Math.floor(Math.random() * availableEnemies.length)] };
     randomEnemy.hp = Math.floor(randomEnemy.hp * (0.8 + Math.random() * 0.4));
     randomEnemy.maxHp = randomEnemy.hp;
 

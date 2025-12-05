@@ -10,6 +10,7 @@ let state;
 let addLog, updateUI, showDialog;
 let encounterEnemy, gainXp, checkQuestProgress;
 let quests;
+let ui; // Store full UI object to access showTravelScreen dynamically
 
 // Event Types
 const EVENT_TYPES = {
@@ -18,7 +19,8 @@ const EVENT_TYPES = {
     FLAVOR: 'flavor',
     RESTORE: 'restore',
     HAZARD: 'hazard',
-    NPC: 'npc'
+    NPC: 'npc',
+    TRAVEL: 'travel'
 };
 
 /**
@@ -27,6 +29,7 @@ const EVENT_TYPES = {
 export function initEvents(deps) {
     state = deps.state;
     quests = deps.data.quests;
+    ui = deps.ui; // Capture full UI object
 
     addLog = deps.ui.addLog;
     updateUI = deps.ui.updateUI;
@@ -43,13 +46,18 @@ export function initEvents(deps) {
 export function generateRandomEvent() {
     const roll = Math.random();
 
-    // 25% Combat
-    if (roll < 0.25) {
+    // 5% Travel Event (Transport Device)
+    if (roll < 0.05) {
+        return { type: EVENT_TYPES.TRAVEL };
+    }
+
+    // 25% Combat (0.05 - 0.30)
+    if (roll < 0.30) {
         return { type: EVENT_TYPES.COMBAT };
     }
 
-    // 15% Loot (Abandoned Outpost)
-    if (roll < 0.40) {
+    // 15% Loot (0.30 - 0.45)
+    if (roll < 0.45) {
         const lootTable = ["Energy Cell", "Data Chip", "Rusty Pipe", "Scrap Metal"];
         const item = lootTable[Math.floor(Math.random() * lootTable.length)];
         return {
@@ -59,8 +67,8 @@ export function generateRandomEvent() {
         };
     }
 
-    // 15% Ancient Ruins (XP)
-    if (roll < 0.55) {
+    // 15% Ancient Ruins (0.45 - 0.60)
+    if (roll < 0.60) {
         return {
             type: EVENT_TYPES.FLAVOR,
             text: "You explored Ancient Ruins and deciphered glyphs.",
@@ -68,18 +76,18 @@ export function generateRandomEvent() {
         };
     }
 
-    // 10% Restore (Anomaly)
-    if (roll < 0.65) {
+    // 10% Restore (0.60 - 0.70)
+    if (roll < 0.70) {
         return {
             type: EVENT_TYPES.RESTORE,
             text: "You encountered a Strange Anomaly. Your energy is restored.",
             stat: "energy",
-            amount: 100 // Full restore logic handled in handler
+            amount: 100
         };
     }
 
-    // 10% Hazard (Radiation/Asteroids)
-    if (roll < 0.75) {
+    // 10% Hazard (0.70 - 0.80)
+    if (roll < 0.80) {
         const hazards = [
             { text: "A sudden radiation storm burns you!", damage: 10 },
             { text: "Debris from an asteroid field hits you.", damage: 5 }
@@ -92,12 +100,12 @@ export function generateRandomEvent() {
         };
     }
 
-    // 10% NPC Encounter
-    if (roll < 0.85) {
+    // 10% NPC Encounter (0.80 - 0.90)
+    if (roll < 0.90) {
         return { type: EVENT_TYPES.NPC };
     }
 
-    // 15% Quiet
+    // 10% Quiet (0.90 - 1.00)
     return {
         type: EVENT_TYPES.FLAVOR,
         text: "The landscape is quiet... for now."
@@ -153,6 +161,33 @@ export function handleEvent(event) {
 
         case EVENT_TYPES.NPC:
             triggerNPCEvent();
+            break;
+
+        case EVENT_TYPES.TRAVEL:
+            showDialog(
+                "Working Transport Device",
+                "You stumble upon an ancient but functional transport device. It seems capable of taking you to another world. Do you want to use it?",
+                [
+                    {
+                        text: "Travel",
+                        action: () => {
+                            // Close dialog first
+                            if (typeof hideDialog === 'function') hideDialog(); // Accessing hidden global or import? No, showDialog handles closing usually.
+
+                            // We need to verify if showTravelScreen exists on the ui object we captured
+                            if (ui && ui.showTravelScreen) {
+                                ui.showTravelScreen();
+                            } else {
+                                addLog("Travel system error: UI not ready.");
+                            }
+                        }
+                    },
+                    {
+                        text: "Leave it",
+                        action: () => addLog("You decided not to risk using the device.")
+                    }
+                ]
+            );
             break;
     }
 }

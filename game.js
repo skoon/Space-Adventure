@@ -4,6 +4,7 @@
  */
 
 // Import all system modules
+// Import all system modules
 import { initCombat, processStatusEffects, encounterEnemy, updateCombatUI, playerAttack, playerBlock, playerDodge, useSpecialAbility, enemyTurn, winCombat } from './systems/combat.js';
 import { initQuests, acceptQuest, checkQuestProgress, applyQuestItem } from './systems/quests.js';
 import { initEquipment, getEffectiveStats, equipItem, unequipItem } from './systems/equipment.js';
@@ -13,16 +14,44 @@ import { initEvents, generateRandomEvent, handleEvent } from './systems/events.j
 import { initSaveLoad, saveGame, loadGame, exportGame, importGame, autoSave, initializeSaveSystem } from './systems/saveload.js';
 import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog } from './systems/ui.js';
 import { initInventory, openCombatItemMenu, closeCombatItemMenu, useCombatItem } from './systems/inventory.js';
+import { initLocations, travelTo, getLocationDetails, getUnlockedLocations } from './systems/locations.js';
 
 // ============================================
 // GAME DATA
 // ============================================
 
+// Locations Data
+const locations = {
+  "terra_prime": {
+    id: "terra_prime",
+    name: "Terra Prime",
+    description: "A lush, earth-like planet with basic resources.",
+    hazardLevel: 1,
+    unlocked: true
+  },
+  "xylo_delta": {
+    id: "xylo_delta",
+    name: "Xylo Delta",
+    description: "A desert world filled with dangerous scavengers.",
+    hazardLevel: 2,
+    unlocked: true
+  },
+  "nebula_outpost": {
+    id: "nebula_outpost",
+    name: "Nebula Outpost",
+    description: "An abandoned space station drifting in the void.",
+    hazardLevel: 3,
+    unlocked: true
+  }
+};
+
 // Enemies data
 const enemies = [
-  { name: "Xenobot", hp: 50, attack: 10, defense: 3 },
-  { name: "Plasmavore", hp: 40, attack: 12, defense: 2 },
-  { name: "Nano Swarm", hp: 30, attack: 8, defense: 1 }
+  { name: "Xenobot", hp: 50, attack: 10, defense: 3, locations: ["terra_prime", "nebula_outpost"] },
+  { name: "Plasmavore", hp: 40, attack: 12, defense: 2, locations: ["terra_prime", "xylo_delta"] },
+  { name: "Nano Swarm", hp: 30, attack: 8, defense: 1, locations: ["nebula_outpost"] },
+  { name: "Sand Worm", hp: 120, attack: 15, defense: 5, locations: ["xylo_delta"] },
+  { name: "Void Stalker", hp: 80, attack: 18, defense: 2, locations: ["nebula_outpost"] }
 ];
 
 // Quests data
@@ -186,6 +215,16 @@ document.getElementById("currentYear").textContent = new Date().getFullYear();
 document.addEventListener('DOMContentLoaded', initializeGame);
 
 function initializeGame() {
+  // Game State Variables
+  let gameState = "start";
+  let character = null;
+  let enemy = null;
+  let inventory = [];
+  let playerStatusEffects = [];
+  let enemyStatusEffects = [];
+  let log = [];
+  let currentLocation = "terra_prime";
+
   // Create state object with getters/setters
   const state = {
     get gameState() { return gameState; },
@@ -201,14 +240,17 @@ function initializeGame() {
     get enemyStatusEffects() { return enemyStatusEffects; },
     set enemyStatusEffects(val) { enemyStatusEffects = val; },
     get log() { return log; },
-    set log(val) { log = val; }
+    set log(val) { log = val; },
+    get currentLocation() { return currentLocation; },
+    set currentLocation(val) { currentLocation = val; }
   };
 
   // Initialize all modules
   const deps = {
     state,
-    data: { enemies, quests, items },
-    dom: { screens, elements, inventoryElement, missionLogElement, combatElements }
+    data: { enemies, quests, items, locations },
+    dom: { screens, elements, inventoryElement, missionLogElement, combatElements },
+    locations: { getUnlockedLocations, travelTo }
   };
 
   // Initialize UI first (needed by other modules)
@@ -254,6 +296,12 @@ function initializeGame() {
     combat: { encounterEnemy },
     character: { gainXp },
     quests: { checkQuestProgress }
+  });
+
+  // Initialize Locations
+  initLocations({
+    ...deps,
+    ui: { addLog, updateUI }
   });
 
   // Initialize Exploration
