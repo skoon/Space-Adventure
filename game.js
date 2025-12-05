@@ -186,6 +186,15 @@ document.getElementById("currentYear").textContent = new Date().getFullYear();
 document.addEventListener('DOMContentLoaded', initializeGame);
 
 function initializeGame() {
+  // Game State Variables
+  let gameState = "start";
+  let character = null;
+  let enemy = null;
+  let inventory = [];
+  let playerStatusEffects = [];
+  let enemyStatusEffects = [];
+  let log = [];
+
   // Create state object with getters/setters
   const state = {
     get gameState() { return gameState; },
