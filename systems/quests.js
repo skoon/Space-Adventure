@@ -182,3 +182,56 @@ export function getAvailableQuests() {
         !state.character.activeQuests[q.id] && !state.character.completedQuests.includes(q.id)
     );
 }
+
+/**
+ * Apply a quest item to progress a quest
+ */
+export function applyQuestItem(itemName) {
+    if (!state.character) return false;
+
+    let itemUsed = false;
+
+    Object.keys(state.character.activeQuests).forEach(questId => {
+        if (itemUsed) return; // Only use for one quest at a time
+
+        const quest = quests[questId];
+        if (!quest) return;
+
+        let targetType = quest.type;
+        let targetTarget = quest.target;
+        let targetAmount = quest.amount;
+
+        // Handle multi-step
+        const activeQuest = state.character.activeQuests[questId];
+        if (quest.steps && quest.steps.length > 0) {
+            const currentStepIndex = activeQuest.currentStep || 0;
+            if (currentStepIndex < quest.steps.length) {
+                const step = quest.steps[currentStepIndex];
+                targetType = step.type;
+                targetTarget = step.target;
+                targetAmount = step.amount;
+            }
+        }
+
+        // Check if item matches quest target
+        if (targetTarget === itemName) {
+            const currentProgress = activeQuest.progress;
+
+            if (currentProgress < targetAmount) {
+                // Use item
+                checkQuestProgress(targetType, itemName, 1);
+
+                // Remove from inventory
+                const idx = state.inventory.indexOf(itemName);
+                if (idx > -1) {
+                    state.inventory.splice(idx, 1);
+                }
+
+                itemUsed = true;
+                addLog(`Used ${itemName} for quest: ${quest.title}`);
+            }
+        }
+    });
+
+    return itemUsed;
+}
