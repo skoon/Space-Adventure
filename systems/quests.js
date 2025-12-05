@@ -162,7 +162,7 @@ export function completeQuest(questId) {
 
     updateUI();
 
-    return applied;
+
 }
 
 /**
