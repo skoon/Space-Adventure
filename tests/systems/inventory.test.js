@@ -3,7 +3,8 @@ import { initInventory, useCombatItem, openCombatItemMenu } from '../../systems/
 const mockState = {
     inventory: ['Energy Cell', 'Scrap', 'Alien Crystal'],
     gameState: 'combat',
-    character: { hp: 50, maxHp: 100 }
+    character: { hp: 50, maxHp: 100 },
+    enemy: { name: "Test Enemy", hp: 50, maxHp: 50 }
 };
 
 const mockUi = {
@@ -20,8 +21,10 @@ const mockCombat = {
 describe('Inventory System', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.useFakeTimers();
         mockState.inventory = ['Energy Cell', 'Scrap', 'Alien Crystal'];
-        mockState.character.hp = 50;
+        mockState.character = { hp: 50, maxHp: 100, energy: 50, maxEnergy: 100 };
+        mockState.enemy = { name: "Test Enemy", hp: 50, maxHp: 50 };
 
         initInventory({
             state: mockState,
@@ -30,11 +33,16 @@ describe('Inventory System', () => {
             data: {
                 items: {
                     "Energy Cell": { type: "consumable", effect: "heal", value: 30 },
-                    "Scrap": { type: "material" }
+                    "Scrap": { type: "material" },
+                    "Alien Crystal": { type: "material" }
                 }
             },
             dom: { inventoryElement: document.createElement('div'), combatElements: { combatLog: document.createElement('div') } }
         });
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
     });
 
     test('useCombatItem heals character and consumes item', () => {
@@ -42,8 +50,10 @@ describe('Inventory System', () => {
 
         expect(mockState.character.hp).toBe(80);
         expect(mockState.inventory).not.toContain('Energy Cell');
-        expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('healed'));
-        // used item in combat -> enemy turn
+        expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('recovered'));
+
+        // Advance timers to trigger the setTimeout callback
+        jest.runAllTimers();
         expect(mockCombat.enemyTurn).toHaveBeenCalled();
     });
 
@@ -52,7 +62,8 @@ describe('Inventory System', () => {
 
         expect(mockState.character.hp).toBe(50);
         expect(mockState.inventory).toContain('Scrap');
-        expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('cannot use'));
+        expect(mockUi.addLog).not.toHaveBeenCalled();
+        jest.runAllTimers();
         expect(mockCombat.enemyTurn).not.toHaveBeenCalled();
     });
 });

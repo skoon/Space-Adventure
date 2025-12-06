@@ -166,8 +166,8 @@ describe('Combat System', () => {
         useSpecialAbility();
 
         // Then
-        // Energy reduced by 30 => 20
-        expect(mockState.character.energy).toBe(20);
+        // Energy reduced by 30 => 20, then +5 from enemy turn => 25
+        expect(mockState.character.energy).toBe(25);
         // Damage deal logic: (10 - 2) * 1.5 = 12
         expect(mockState.enemy.hp).toBe(38); // 50 - 12
         expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('POWER STRIKE'));

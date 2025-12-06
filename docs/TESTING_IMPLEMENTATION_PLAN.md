@@ -31,4 +31,4 @@
 - [ ] **Save/Load**
 
 ## 4. Execution
-- [ ] Run `npm test` to verify all tests pass. (Waiting for installation)
+- [x] Run `npm test` to verify all tests pass. (All 12 tests passed)
