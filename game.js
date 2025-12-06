@@ -292,7 +292,7 @@ function initializeGame() {
   // Initialize Events
   initEvents({
     ...deps,
-    ui: { addLog, updateUI, showDialog },
+    ui: { addLog, updateUI, showDialog, showTravelScreen },
     combat: { encounterEnemy },
     character: { gainXp },
     quests: { checkQuestProgress }
