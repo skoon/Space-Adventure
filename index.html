@@ -98,6 +98,7 @@
                   <div id="characterStats" class="flex gap-2">
                     <div>HP: <span id="characterHp"></span>/<span id="characterMaxHp"></span></div>
                     <div>Energy: <span id="characterEnergy"></span>/<span id="characterMaxEnergy"></span></div>
+                    <div>Credits: <span id="characterCredits" class="text-yellow-400">0</span></div>
                     <div>ATK: <span id="characterAtk"></span></div>
                     <div>DEF: <span id="characterDef"></span></div>
                   </div>
@@ -160,6 +161,9 @@
               </button>
               <button onclick="useHealItem()" id="healButton" class="heal-button disabled-button" disabled>
                 Use Heal Item
+              </button>
+              <button onclick="import('./systems/ui.js').then(m => m.showShop())" class="col-span-2 py-2 px-4 bg-yellow-600 hover:bg-yellow-700 rounded font-bold transition-colors">
+                 🛒 Trade / Shop
               </button>
             </div>
           </div>
@@ -354,6 +358,37 @@
       <div class="mt-8 text-center">
         <button onclick="document.getElementById('travelScreen').classList.add('hidden')" 
                 class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shop Modal -->
+  <div id="shopScreen" class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-800 border-2 border-yellow-500 rounded-lg max-w-4xl w-full p-6 relative shadow-[0_0_20px_rgba(234,179,8,0.5)]">
+      <button onclick="document.getElementById('shopScreen').classList.add('hidden')" 
+              class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold">&times;</button>
+      
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold text-yellow-400">Galactic Market</h2>
+        <div class="text-xl text-green-400 font-mono">Credits: <span id="shopCreditsDisplay">0</span></div>
+      </div>
+      
+      <div class="flex border-b border-gray-600 mb-4">
+        <button onclick="switchShopTab('buy')" id="shopTabBuy" class="px-6 py-2 text-yellow-500 border-b-2 border-yellow-500 font-bold bg-gray-700 rounded-t">Buy</button>
+        <button onclick="switchShopTab('sell')" id="shopTabSell" class="px-6 py-2 text-gray-400 font-bold hover:text-white">Sell</button>
+      </div>
+
+      <div id="shopBuyContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 h-96 overflow-y-auto pr-2">
+        <!-- Buy Items injected here -->
+      </div>
+
+      <div id="shopSellContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 h-96 overflow-y-auto pr-2 hidden">
+        <!-- Sell Items injected here -->
+      </div>
+      
+      <div class="mt-6 text-center">
+        <button onclick="document.getElementById('shopScreen').classList.add('hidden')" 
+                class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300">Close</button>
       </div>
     </div>
   </div>

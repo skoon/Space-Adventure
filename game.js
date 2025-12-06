@@ -4,7 +4,6 @@
  */
 
 // Import all system modules
-// Import all system modules
 import { initCombat, processStatusEffects, encounterEnemy, updateCombatUI, playerAttack, playerBlock, playerDodge, useSpecialAbility, enemyTurn, winCombat } from './systems/combat.js';
 import { initQuests, acceptQuest, checkQuestProgress, applyQuestItem } from './systems/quests.js';
 import { initEquipment, getEffectiveStats, equipItem, unequipItem } from './systems/equipment.js';
@@ -15,6 +14,7 @@ import { initSaveLoad, saveGame, loadGame, exportGame, importGame, autoSave, ini
 import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog } from './systems/ui.js';
 import { initInventory, openCombatItemMenu, closeCombatItemMenu, useCombatItem } from './systems/inventory.js';
 import { initLocations, travelTo, getLocationDetails, getUnlockedLocations } from './systems/locations.js';
+import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice } from './systems/shop.js';
 
 // ============================================
 // GAME DATA
@@ -132,26 +132,26 @@ const quests = {
 
 // Items data (Equipment)
 const items = {
-  "Energy Cell": { type: "consumable", effect: "heal", value: 30, description: "Restores 30 HP" },
-  "Nano Stimpack": { type: "consumable", effect: "heal", value: 50, description: "Restores 50 HP" },
-  "Alien Crystal": { type: "material", description: "A mysterious glowing crystal." },
-  "Data Chip": { type: "material", description: "Contains encrypted data." },
-  "Scrap Metal": { type: "material", description: "Useful for crafting." },
-  "Rusty Pipe": { type: "material", description: "An old metal pipe." },
+  "Energy Cell": { type: "consumable", effect: "heal", value: 30, description: "Restores 30 HP", price: 50 },
+  "Nano Stimpack": { type: "consumable", effect: "heal", value: 50, description: "Restores 50 HP", price: 100 },
+  "Alien Crystal": { type: "material", description: "A mysterious glowing crystal.", price: 200 },
+  "Data Chip": { type: "material", description: "Contains encrypted data.", price: 150 },
+  "Scrap Metal": { type: "material", description: "Useful for crafting.", price: 20 },
+  "Rusty Pipe": { type: "material", description: "An old metal pipe.", price: 10 },
 
   // Weapons
-  "Plasma Rifle": { type: "weapon", stats: { attack: 5 }, description: "A powerful energy weapon." },
-  "Laser Blade": { type: "weapon", stats: { attack: 7 }, description: "A high-tech melee weapon." },
-  "Photon Cannon": { type: "weapon", stats: { attack: 10 }, description: "Devastating ranged weapon." },
+  "Plasma Rifle": { type: "weapon", stats: { attack: 5 }, description: "A powerful energy weapon.", price: 500 },
+  "Laser Blade": { type: "weapon", stats: { attack: 7 }, description: "A high-tech melee weapon.", price: 750 },
+  "Photon Cannon": { type: "weapon", stats: { attack: 10 }, description: "Devastating ranged weapon.", price: 1200 },
 
   // Armor
-  "Kevlar Vest": { type: "armor", stats: { defense: 4 }, description: "Basic protective armor." },
-  "Titanium Plating": { type: "armor", stats: { defense: 6 }, description: "Heavy-duty armor plating." },
-  "Exoskeleton": { type: "armor", stats: { defense: 8 }, description: "Powered armor that enhances strength." },
+  "Kevlar Vest": { type: "armor", stats: { defense: 4 }, description: "Basic protective armor.", price: 400 },
+  "Titanium Plating": { type: "armor", stats: { defense: 6 }, description: "Heavy-duty armor plating.", price: 800 },
+  "Exoskeleton": { type: "armor", stats: { defense: 8 }, description: "Powered armor that enhances strength.", price: 1500 },
 
   // Accessories
-  "Shield Generator": { type: "accessory", stats: { defense: 3 }, description: "Generates a personal forcefield." },
-  "Targeting HUD": { type: "accessory", stats: { attack: 3 }, description: "Improves accuracy and damage." }
+  "Shield Generator": { type: "accessory", stats: { defense: 3 }, description: "Generates a personal forcefield.", price: 600 },
+  "Targeting HUD": { type: "accessory", stats: { attack: 3 }, description: "Improves accuracy and damage.", price: 600 }
 };
 
 // ============================================
@@ -176,7 +176,8 @@ const elements = {
   characterXp: document.getElementById("characterXp"),
   characterXpToNext: document.getElementById("characterXpToNext"),
   characterAvatar: document.getElementById("characterAvatar"),
-  characterRaceRole: document.getElementById("characterRaceRole")
+  characterRaceRole: document.getElementById("characterRaceRole"),
+  characterCredits: document.getElementById("characterCredits") // New UI element
 };
 
 const inventoryElement = document.getElementById("inventory");
@@ -257,7 +258,8 @@ function initializeGame() {
   initUI({
     ...deps,
     equipment: { getEffectiveStats: () => ({ attack: 0, defense: 0 }) }, // Placeholder
-    character: { getCharacterAvatar: () => "👤" } // Placeholder
+    character: { getCharacterAvatar: () => "👤" }, // Placeholder
+    shop: { getItemPrice, getItemSellPrice, buyItem, sellItem }
   });
 
   // Initialize Equipment
@@ -300,6 +302,12 @@ function initializeGame() {
 
   // Initialize Locations
   initLocations({
+    ...deps,
+    ui: { addLog, updateUI }
+  });
+
+  // Initialize Shop
+  initShop({
     ...deps,
     ui: { addLog, updateUI }
   });

@@ -44,7 +44,8 @@ export function createCharacter(event) {
         Scientist: { hp: 100, attack: 10, defense: 10, maxEnergy: 150 }
     };
 
-    const stats = roleStats[role];
+    // Default stats if role not found
+    const stats = roleStats[role] || { hp: 100, attack: 10, defense: 10, maxEnergy: 100 };
 
     state.character = {
         name,
@@ -63,8 +64,10 @@ export function createCharacter(event) {
             armor: null,
             accessory: null
         },
+        inventory: [],
         activeQuests: {},
-        completedQuests: []
+        completedQuests: [],
+        credits: 100
     };
 
     state.gameState = "exploring";

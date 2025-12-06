@@ -54,11 +54,11 @@
 ## 🌍 World & Exploration
 
 ### Planet/Location System
-- [ ] **Multiple Planets/Areas** - Different locations with unique themes
-- [ ] **Location-Specific Enemies** - Different enemy types per location
+- [x] **Multiple Planets/Areas** - Different locations with unique themes
+- [x] **Location-Specific Enemies** - Different enemy types per location
 - [ ] **Location-Specific Events** - Unique random events per area
 - [ ] **Location-Specific Loot** - Area-specific items and rewards
-- [ ] **Travel System** - UI for selecting destinations
+- [x] **Travel System** - UI for selecting destinations
 
 ### Quest System
 - [x] **Main Story Quests** - Primary narrative objectives
