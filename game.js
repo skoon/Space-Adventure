@@ -14,7 +14,7 @@ import { initSaveLoad, saveGame, loadGame, exportGame, importGame, autoSave, ini
 import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog, showTravelScreen } from './systems/ui.js';
 import { initInventory, openCombatItemMenu, closeCombatItemMenu, useCombatItem } from './systems/inventory.js';
 import { initLocations, travelTo, getLocationDetails, getUnlockedLocations } from './systems/locations.js';
-import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice } from './systems/shop.js';
+import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem, claimAllOrders } from './systems/shop.js';
 
 // ============================================
 // GAME DATA

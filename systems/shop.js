@@ -73,3 +73,82 @@ export function getItemPrice(itemName) {
 export function getItemSellPrice(itemName) {
     return Math.floor(getItemPrice(itemName) / 2);
 }
+
+/**
+ * Order an item for later pickup (Photon Prime online ordering)
+ * Maximum 3 pending orders allowed
+ */
+export function orderItem(itemName) {
+    const item = items[itemName];
+    if (!item) return false;
+
+    const price = item.price || 10;
+
+    // Check credit
+    if (state.character.credits < price) {
+        addLog(`❌ Insufficient credits! Cost: ${price}, You have: ${state.character.credits}`);
+        return false;
+    }
+
+    // Check pending order limit
+    if (!state.character.pendingOrders) {
+        state.character.pendingOrders = [];
+    }
+
+    if (state.character.pendingOrders.length >= 3) {
+        addLog(`❌ Maximum 3 pending orders! Find a drop box to collect your items first.`);
+        return false;
+    }
+
+    // Deduct credits and add to pending orders
+    state.character.credits -= price;
+    state.character.pendingOrders.push(itemName);
+    addLog(`📦 Ordered ${itemName} from Photon Prime for ${price} credits. Find a drop box to collect!`);
+    updateUI();
+    return true;
+}
+
+/**
+ * Claim a single order from pending orders
+ */
+export function claimOrder(itemName) {
+    if (!state.character.pendingOrders) {
+        state.character.pendingOrders = [];
+        return false;
+    }
+
+    const idx = state.character.pendingOrders.indexOf(itemName);
+    if (idx === -1) return false;
+
+    state.character.pendingOrders.splice(idx, 1);
+    state.inventory.push(itemName);
+    addLog(`📦 Collected ${itemName} from Photon Prime drop box!`);
+    updateUI();
+    return true;
+}
+
+/**
+ * Claim all pending orders
+ */
+export function claimAllOrders() {
+    if (!state.character.pendingOrders || state.character.pendingOrders.length === 0) {
+        return [];
+    }
+
+    const claimed = [...state.character.pendingOrders];
+    claimed.forEach(itemName => {
+        state.inventory.push(itemName);
+    });
+
+    state.character.pendingOrders = [];
+    updateUI();
+    return claimed;
+}
+
+/**
+ * Get list of pending orders
+ */
+export function getPendingOrders() {
+    return state.character.pendingOrders || [];
+}
+

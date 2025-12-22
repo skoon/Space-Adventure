@@ -67,7 +67,8 @@ export function createCharacter(event) {
         inventory: [],
         activeQuests: {},
         completedQuests: [],
-        credits: 100
+        credits: 100,
+        pendingOrders: []  // Photon Prime orders awaiting pickup
     };
 
     state.gameState = "exploring";

@@ -9,7 +9,7 @@ let state;
 // Dependencies
 let getEffectiveStats, getCharacterAvatar, applyQuestItem;
 let getUnlockedLocations, travelTo;
-let buyItem, sellItem, getItemPrice, getItemSellPrice;
+let buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem;
 let items, quests;
 let screens, elements, inventoryElement, missionLogElement, combatElements;
 
@@ -56,6 +56,7 @@ export function initUI(deps) {
         sellItem = deps.shop.sellItem;
         getItemPrice = deps.shop.getItemPrice;
         getItemSellPrice = deps.shop.getItemSellPrice;
+        orderItem = deps.shop.orderItem;
     }
 }
 
@@ -230,6 +231,12 @@ export function updateUI() {
 
     // Update logs
     updateMissionLog();
+
+    // Update pending orders count
+    const pendingOrdersEl = document.getElementById("characterPendingOrders");
+    if (pendingOrdersEl && state.character) {
+        pendingOrdersEl.textContent = state.character.pendingOrders?.length || 0;
+    }
 }
 
 /**
@@ -569,8 +576,8 @@ function updateShopUI() {
                     <div class="text-xs text-gray-400">${item.description}</div>
                     <div class="text-yellow-500 font-mono mt-1">${price} cr</div>
                 </div>
-                <button class="px-3 py-1 rounded text-sm font-bold ${canAfford ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'}"
-                    onclick="buyItemFromShop('${itemName}')">Buy</button>
+                <button class="px-3 py-1 rounded text-sm font-bold ${canAfford ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'}"
+                    onclick="orderItemFromShop('${itemName}')" ${!canAfford ? 'disabled' : ''}>Order Now</button>
             `;
             buyContainer.appendChild(card);
         });
@@ -613,6 +620,13 @@ function updateShopUI() {
 // Global scope helpers for HTML onclick events
 window.buyItemFromShop = function (itemName) {
     if (buyItem(itemName)) {
+        updateShopUI();
+        updateUI(); // Update main UI
+    }
+};
+
+window.orderItemFromShop = function (itemName) {
+    if (orderItem(itemName)) {
         updateShopUI();
         updateUI(); // Update main UI
     }

@@ -20,7 +20,8 @@ const EVENT_TYPES = {
     RESTORE: 'restore',
     HAZARD: 'hazard',
     NPC: 'npc',
-    TRAVEL: 'travel'
+    TRAVEL: 'travel',
+    DROPBOX: 'dropbox'  // Photon Prime delivery drop box
 };
 
 /**
@@ -46,8 +47,13 @@ export function initEvents(deps) {
 export function generateRandomEvent() {
     const roll = Math.random();
 
-    // 5% Travel Event (Transport Device)
-    if (roll < 0.05) {
+    // 10% Drop Box Event (only if pending orders exist)
+    if (roll < 0.10 && state.character?.pendingOrders?.length > 0) {
+        return { type: EVENT_TYPES.DROPBOX };
+    }
+
+    // 5% Travel Event (Transport Device) - adjusted range
+    if (roll < 0.15) {
         return { type: EVENT_TYPES.TRAVEL };
     }
 
@@ -189,7 +195,43 @@ export function handleEvent(event) {
                 ]
             );
             break;
+
+        case EVENT_TYPES.DROPBOX:
+            triggerDropBoxEvent();
+            break;
     }
+}
+
+/**
+ * Trigger a Photon Prime drop box event
+ */
+function triggerDropBoxEvent() {
+    const pendingCount = state.character.pendingOrders?.length || 0;
+
+    showDialog(
+        "📦 Photon Prime Drop Box",
+        `You discovered a Photon Prime drop box! You have <strong>${pendingCount}</strong> item(s) waiting for pickup.<br><br><em>"Thank you for choosing Photon Prime - Delivering across the galaxy at light speed!"</em>`,
+        [
+            {
+                text: "Collect Orders",
+                action: () => {
+                    // Import shop module and claim all orders
+                    import('./shop.js').then(m => {
+                        const claimed = m.claimAllOrders();
+                        if (claimed.length > 0) {
+                            addLog(`📦 Collected ${claimed.length} items from Photon Prime!`);
+                            claimed.forEach(item => addLog(`  ✓ ${item}`));
+                        }
+                        updateUI();
+                    });
+                }
+            },
+            {
+                text: "Leave",
+                action: () => addLog("You decided to come back later.")
+            }
+        ]
+    );
 }
 
 /**

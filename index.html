@@ -101,6 +101,7 @@
                     <div>Credits: <span id="characterCredits" class="text-yellow-400">0</span></div>
                     <div>ATK: <span id="characterAtk"></span></div>
                     <div>DEF: <span id="characterDef"></span></div>
+                    <div>📦 Orders: <span id="characterPendingOrders" class="text-yellow-400">0</span></div>
                   </div>
                   <button onclick="toggleQuestLog()" class="quest-log-button">Quest Log</button>
                   <div class="mt-3 border-t border-gray-700 pt-2">
@@ -368,13 +369,16 @@
       <button onclick="document.getElementById('shopScreen').classList.add('hidden')" 
               class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold">&times;</button>
       
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-3xl font-bold text-yellow-400">Galactic Market</h2>
+      <div class="flex justify-between items-center mb-2">
+        <div>
+          <h2 class="text-3xl font-bold text-blue-400">📦 Photon Prime</h2>
+          <p class="text-sm text-gray-400 italic">Delivering across the galaxy at light speed!</p>
+        </div>
         <div class="text-xl text-green-400 font-mono">Credits: <span id="shopCreditsDisplay">0</span></div>
       </div>
       
       <div class="flex border-b border-gray-600 mb-4">
-        <button onclick="switchShopTab('buy')" id="shopTabBuy" class="px-6 py-2 text-yellow-500 border-b-2 border-yellow-500 font-bold bg-gray-700 rounded-t">Buy</button>
+        <button onclick="switchShopTab('buy')" id="shopTabBuy" class="px-6 py-2 text-yellow-500 border-b-2 border-yellow-500 font-bold bg-gray-700 rounded-t">Order</button>
         <button onclick="switchShopTab('sell')" id="shopTabSell" class="px-6 py-2 text-gray-400 font-bold hover:text-white">Sell</button>
       </div>
 

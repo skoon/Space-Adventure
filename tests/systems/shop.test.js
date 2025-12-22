@@ -1,7 +1,7 @@
-import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice } from '../../systems/shop.js';
+import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem, claimOrder, claimAllOrders } from '../../systems/shop.js';
 
 const mockState = {
-    character: { credits: 100 },
+    character: { credits: 100, pendingOrders: [] },
     inventory: []
 };
 
@@ -20,6 +20,7 @@ describe('Shop System', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockState.character.credits = 100;
+        mockState.character.pendingOrders = [];
         mockState.inventory = [];
 
         initShop({
@@ -75,5 +76,54 @@ describe('Shop System', () => {
 
         expect(result).toBe(false);
         expect(mockState.character.credits).toBe(100);
+    });
+
+    // Photon Prime Online Ordering Tests
+
+    test('orderItem deducts credits and adds to pendingOrders', () => {
+        const result = orderItem("Health Potion");
+
+        expect(result).toBe(true);
+        expect(mockState.character.credits).toBe(80);
+        expect(mockState.character.pendingOrders).toContain("Health Potion");
+        expect(mockState.inventory).not.toContain("Health Potion"); // Not in inventory yet
+        expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('Ordered'));
+    });
+
+    test('orderItem fails if not enough credits', () => {
+        mockState.character.credits = 10;
+        const result = orderItem("Sword");
+
+        expect(result).toBe(false);
+        expect(mockState.character.pendingOrders).toHaveLength(0);
+    });
+
+    test('orderItem fails if max pending orders reached', () => {
+        mockState.character.pendingOrders = ["Item1", "Item2", "Item3"];
+        const result = orderItem("Health Potion");
+
+        expect(result).toBe(false);
+        expect(mockState.character.pendingOrders).toHaveLength(3);
+        expect(mockState.character.credits).toBe(100); // No deduction
+    });
+
+    test('claimOrder moves item from pending to inventory', () => {
+        mockState.character.pendingOrders = ["Sword"];
+        const result = claimOrder("Sword");
+
+        expect(result).toBe(true);
+        expect(mockState.character.pendingOrders).toHaveLength(0);
+        expect(mockState.inventory).toContain("Sword");
+        expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('Collected'));
+    });
+
+    test('claimAllOrders moves all items from pending to inventory', () => {
+        mockState.character.pendingOrders = ["Sword", "Health Potion"];
+        const result = claimAllOrders();
+
+        expect(result).toHaveLength(2);
+        expect(mockState.character.pendingOrders).toHaveLength(0);
+        expect(mockState.inventory).toContain("Sword");
+        expect(mockState.inventory).toContain("Health Potion");
     });
 });
