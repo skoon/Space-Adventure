@@ -23,6 +23,7 @@ let victoryMessage = null;
  */
 export function initUI(deps) {
     // Store state object reference
+    console.log("initUI called", deps);
     state = deps.state;
 
     // Data
@@ -628,6 +629,11 @@ window.sellItemToShop = function (itemName) {
  * Start the game
  */
 export function startGame() {
+    console.log("startGame called");
+    if (!state) {
+        console.error("State is undefined in startGame!");
+        return;
+    }
     state.gameState = "characterCreation";
     showScreen("creation");
 }

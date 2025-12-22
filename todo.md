@@ -8,6 +8,7 @@
 - [x] Combat log with timestamps
 - [x] Character portrait/avatar
 - [x] Victory screen after boss defeats
+- [x] Fix "startGame is not defined" error (Duplicate applyQuestItem in systems/quests.js)
 
 ## 🎮 Combat Enhancements
 
