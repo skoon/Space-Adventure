@@ -299,7 +299,7 @@ function initializeGame() {
     ...deps,
     equipment: { getEffectiveStats: () => ({ attack: 0, defense: 0 }) }, // Placeholder
     character: { getCharacterAvatar: () => "👤" }, // Placeholder
-    shop: { getItemPrice, getItemSellPrice, buyItem, sellItem }
+    shop: { getItemPrice, getItemSellPrice, buyItem, sellItem, orderItem }
   });
 
   // Initialize Equipment

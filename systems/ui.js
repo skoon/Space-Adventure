@@ -625,6 +625,13 @@ function updateShopUI() {
 }
 
 // Global scope helpers for HTML onclick events
+window.sellItemToShop = function (itemName) {
+    if (sellItem(itemName)) {
+        updateShopUI();
+        updateUI(); // Update main UI
+    }
+};
+
 window.buyItemFromShop = function (itemName) {
     if (buyItem(itemName)) {
         updateShopUI();
