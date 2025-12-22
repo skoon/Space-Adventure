@@ -176,37 +176,44 @@ export function updateUI() {
     // Inventory
     if (inventoryElement) {
         inventoryElement.innerHTML = "";
+        
+        // Count items
         const itemCounts = {};
         state.inventory.forEach(item => {
             itemCounts[item] = (itemCounts[item] || 0) + 1;
         });
-
+        
+        // Group by category
+        const categorized = {
+            equipment: [],
+            consumable: [],
+            material: [],
+            other: []
+        };
+        
         Object.entries(itemCounts).forEach(([itemName, count]) => {
-            const button = document.createElement("button");
-            button.className = "inventory-item";
-            button.textContent = `${itemName} x${count}`;
-            button.onclick = () => {
-                const item = items[itemName];
-                if (item && ["weapon", "armor", "accessory"].includes(item.type)) {
-                    // Import equipItem dynamically
-                    import('./equipment.js').then(equipModule => {
-                        equipModule.equipItem(itemName);
-                    });
-                } else if (applyQuestItem) {
-                    console.log("Attempting to apply quest item:", itemName);
-                    // Try to apply to quest
-                    const applied = applyQuestItem(itemName);
-                    console.log("Result:", applied);
-                    if (!applied) {
-                        addLog(`Cannot use ${itemName} right now.`);
-                    } else {
-                        updateUI();
-                    }
-                } else {
-                    console.log("applyQuestItem function not found");
-                }
-            };
-            inventoryElement.appendChild(button);
+            const item = items[itemName];
+            const category = item?.category || 'other';
+            if (categorized[category]) {
+                categorized[category].push({ name: itemName, count, item });
+            } else {
+                categorized['other'].push({ name: itemName, count, item });
+            }
+        });
+        
+        // Render by category
+        ['equipment', 'consumable', 'material', 'other'].forEach(cat => {
+            if (categorized[cat].length > 0) {
+                const header = document.createElement('div');
+                header.className = 'text-xs font-bold text-gray-400 mt-2 mb-1 uppercase tracking-wider';
+                header.textContent = cat;
+                inventoryElement.appendChild(header);
+                
+                categorized[cat].forEach(({ name, count, item }) => {
+                    const button = createInventoryItemButton(name, count, item);
+                    inventoryElement.appendChild(button);
+                });
+            }
         });
     }
 
@@ -632,11 +639,228 @@ window.orderItemFromShop = function (itemName) {
     }
 };
 
-window.sellItemToShop = function (itemName) {
-    if (sellItem(itemName)) {
-        updateShopUI();
-        updateUI(); // Update main UI
+/**
+ * Create inventory item button with tooltip
+ */
+export function createInventoryItemButton(itemName, count, item) {
+    const button = document.createElement("button");
+    button.className = "inventory-item relative group w-full text-left bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded p-2 mb-1 flex justify-between items-center";
+    
+    // Display name with count
+    const nameSpan = document.createElement('span');
+    nameSpan.className = "text-sm text-gray-200";
+    nameSpan.textContent = itemName;
+    button.appendChild(nameSpan);
+    
+    if (count > 1) {
+        const countBadge = document.createElement('span');
+        countBadge.className = 'text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full';
+        countBadge.textContent = `×${count}`;
+        button.appendChild(countBadge);
     }
+    
+    // Tooltip Container (Hidden by default)
+    const tooltip = document.createElement('div');
+    tooltip.className = 'hidden absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 border border-gray-500 rounded shadow-xl z-50 w-48 text-left pointer-events-none';
+    
+    // Desktop Hover
+    button.addEventListener('mouseenter', () => {
+        // Only show if not on touch device (can't easily detect here without complex checks, so we rely on CSS/hybrid)
+        // For hybrid Option C logic:
+        if (window.matchMedia('(hover: hover)').matches) {
+            tooltip.classList.remove('hidden');
+        }
+    });
+    button.addEventListener('mouseleave', () => {
+        if (window.matchMedia('(hover: hover)').matches) {
+            tooltip.classList.add('hidden');
+        }
+    });
+
+    // Mobile Toggle
+    button.addEventListener('click', (e) => {
+        // Prevent action if just toggling tooltip on touch?
+        // Actually the requirement: "Tap to toggle on mobile/touch"
+        // But clicking also Uses/Equips the item.
+        // Let's assume a long press or separate info icon for mobile would be better but "Tap to toggle" implies click.
+        // If we tap, we toggle tooltip. If we tap again, we verify? Or maybe a separate "Use" button in tooltip?
+        // Implementation Plan said: "Tap to toggle".
+        // Let's implement: Click toggles tooltip on Touch. Double click uses?
+        // Or simpler: Click always uses. Tooltip is informational via hover on desktop. 
+        // On mobile, maybe we can't easily see stats without a dedicated inspect.
+        // Let's stick to: Click = Action. Tooltip = Hover (Desktop). 
+        // For Mobile, we might need a "details" view later. 
+        // But for now, I'll follow the "Hover on desktop" part. 
+        // The approved option was hybrid: "Tap to toggle on mobile".
+        // To implement that without blocking usage, maybe tapping shows tooltip for 2 seconds?
+        // Conflict: Tap is also "Use".
+        // I will implement: Click executes native action (Use/Equip). 
+        // Tooltip is purely decorative/informative on hover for now to avoid breaking gameplay flow.
+    });
+    
+    let tooltipHtml = `<div class="font-bold text-yellow-400 text-sm border-b border-gray-700 pb-1 mb-1">${itemName}</div>`;
+    tooltipHtml += `<div class="text-xs text-gray-400 mb-1 italic">${item?.type || 'Item'}</div>`;
+    tooltipHtml += `<div class="text-xs text-gray-300">${item?.description || 'No description'}</div>`;
+    
+    if (item?.stats) {
+        tooltipHtml += '<div class="text-xs text-green-400 mt-1 flex flex-col gap-0.5">';
+        if (item.stats.attack) tooltipHtml += `<span>⚔️ ATK +${item.stats.attack}</span>`;
+        if (item.stats.defense) tooltipHtml += `<span>🛡️ DEF +${item.stats.defense}</span>`;
+        tooltipHtml += '</div>';
+    }
+    
+    if (item?.effect && item?.value) {
+        tooltipHtml += `<div class="text-xs text-blue-400 mt-1">❤️ Restores ${item.value} HP</div>`;
+    }
+    
+    if (item?.price) {
+        tooltipHtml += `<div class="text-xs text-yellow-600 mt-2 text-right">Value: ${Math.floor(item.price/2)} cr</div>`;
+    }
+    
+    tooltip.innerHTML = tooltipHtml;
+    button.appendChild(tooltip);
+    
+    // Click handler for using items
+    button.onclick = (e) => {
+        // If mobile (touch), toggle tooltip instead of using?
+        // Let's check for touch capability sort of
+        const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        
+        // If touch and tooltip hidden, show it and return (don't use yet)
+        if (isTouch && tooltip.classList.contains('hidden')) {
+            // Hide all other tooltips first
+            document.querySelectorAll('.inventory-item > div:not(.hidden)').forEach(el => el.classList.add('hidden'));
+            tooltip.classList.remove('hidden');
+            e.stopPropagation();
+            return;
+        }
+        
+        // If already shown or not touch, proceed to action
+        if (isTouch) tooltip.classList.add('hidden');
+
+        if (item && ["weapon", "armor", "accessory"].includes(item.type)) {
+            import('./equipment.js').then(equipModule => {
+                equipModule.equipItem(itemName);
+            });
+        } else if (applyQuestItem) {
+            const applied = applyQuestItem(itemName);
+            if (!applied) {
+                // If consumable, maybe just use it?
+                // `applyQuestItem` checks quests. If it returns false, it wasn't a quest item use.
+                // But we also have generic `useCombatItem` (via inventory.js) or `useHealItem` (via character.js)
+                // The original code only checked generic item type or applyQuestItem.
+                // Revert to original behavior:
+                if (item?.effect === 'heal') {
+                     import('./character.js').then(charModule => {
+                        charModule.useHealItem(itemName);
+                     });
+                } else {
+                    addLog(`Cannot use ${itemName} right now.`);
+                }
+            } else {
+                updateUI();
+            }
+        }
+    };
+    
+    return button;
+}
+
+/**
+ * Show crafting screen
+ */
+export function showCraftingUI() {
+    // Remove existing if any
+    const existing = document.getElementById('craftingModal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'craftingModal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4';
+    
+    modal.innerHTML = `
+        <div class="bg-gray-800 border-2 border-purple-500 rounded-lg max-w-4xl w-full p-6 relative shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+            <button onclick="document.getElementById('craftingModal').remove()" 
+                    class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold">&times;</button>
+            
+            <h2 class="text-3xl font-bold text-purple-400 mb-6 flex items-center gap-2">
+                <span>🔨</span> Crafting Station
+            </h2>
+            <div id="recipeList" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2"></div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    updateCraftingUI();
+    
+    // Close on outside click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+}
+
+function updateCraftingUI() {
+    const list = document.getElementById('recipeList');
+    if (!list) return;
+    
+    list.innerHTML = '';
+    
+    const knownRecipes = state.character.knownRecipes || {};
+    
+    if (Object.keys(knownRecipes).length === 0) {
+        list.innerHTML = '<div class="col-span-2 text-center text-gray-500 italic p-8">No recipes known yet. Explore the galaxy to discover crafting schematics!</div>';
+        return;
+    }
+    
+    // We need to check craftability. Since we are in UI, we can read inventory directly.
+    Object.entries(knownRecipes).forEach(([id, recipe]) => {
+        // Check materials
+        let canCraft = true;
+        const currentMaterials = {};
+        state.inventory.forEach(i => currentMaterials[i] = (currentMaterials[i] || 0) + 1);
+        
+        let reqHtml = '';
+        Object.entries(recipe.requires).forEach(([mat, amt]) => {
+            const have = currentMaterials[mat] || 0;
+            if (have < amt) canCraft = false;
+            
+            reqHtml += `<div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-300">${mat}</span>
+                <span class="${have >= amt ? 'text-green-400' : 'text-red-400'} font-mono">${have}/${amt}</span>
+            </div>`;
+        });
+        
+        const card = document.createElement('div');
+        card.className = `bg-gray-700 p-4 rounded border-l-4 ${canCraft ? 'border-green-500' : 'border-gray-600 opacity-75'}`;
+        
+        card.innerHTML = `
+            <div class="flex justify-between items-start mb-2">
+                <div class="font-bold text-yellow-400 text-lg">${recipe.name}</div>
+                ${canCraft ? '<span class="text-xs bg-green-900 text-green-300 px-2 py-1 rounded">Ready</span>' : ''}
+            </div>
+            <div class="text-sm text-gray-400 mb-3 italic">${recipe.description}</div>
+            
+            <div class="bg-gray-800 p-3 rounded mb-3">
+                <div class="text-xs font-bold text-gray-500 uppercase mb-2">Required Materials</div>
+                ${reqHtml}
+            </div>
+            
+            <button onclick="craftItemFromUI('${id}')" 
+                    class="w-full py-2 px-4 rounded font-bold transition-colors ${canCraft ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg' : 'bg-gray-600 text-gray-400 cursor-not-allowed'}"
+                    ${!canCraft ? 'disabled' : ''}>
+                ${canCraft ? 'Combine Materials' : 'Missing Materials'}
+            </button>
+        `;
+        list.appendChild(card);
+    });
+}
+
+window.craftItemFromUI = function(recipeId) {
+    import('./crafting.js').then(m => {
+        if (m.craftItem(recipeId)) {
+            updateCraftingUI(); // Refresh list to update material counts
+        }
+    });
 };
 
 /**

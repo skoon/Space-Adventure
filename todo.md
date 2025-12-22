@@ -88,10 +88,10 @@
 
 ### Crafting System
 
-- [ ] **Item Combination** - Combine materials to create items
-- [ ] **Recipe Discovery** - Find and unlock crafting recipes
-- [ ] **Equipment Upgrades** - Enhance existing equipment
-- [ ] **Crafting UI** - Interface for crafting operations
+- [x] **Item Combination** - Combine materials to create items
+- [x] **Recipe Discovery** - Find and unlock crafting recipes
+- [u] **Equipment Upgrades** - Enhance existing equipment
+- [x] **Crafting UI** - Interface for crafting operations
 
 ### Shop/Trading System
 
@@ -103,9 +103,10 @@
 
 ### Item Management
 
-- [ ] **Item Stacking** - Stack consumables with quantities
-- [ ] **Item Categories** - Organize by type (weapons, consumables, etc.)
-- [ ] **Item Tooltips** - Detailed information on hover
+- [x] **Item Stacking** - Stack consumables with quantities
+- [x] **Item Categories** - Organize by type (weapons, consumables, etc.)
+- [x] **Item Tooltips** - Detailed information on hover
+- [ ] **Item Comparison** - Compare equipment stats
 - [ ] **Item Comparison** - Compare equipment stats
 
 ## 🎯 Game Systems

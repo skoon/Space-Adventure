@@ -68,7 +68,8 @@ export function createCharacter(event) {
         activeQuests: {},
         completedQuests: [],
         credits: 100,
-        pendingOrders: []  // Photon Prime orders awaiting pickup
+        pendingOrders: [],  // Photon Prime orders awaiting pickup
+        knownRecipes: {}    // Unlockable crafting recipes
     };
 
     state.gameState = "exploring";

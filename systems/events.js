@@ -10,6 +10,7 @@ let state;
 let addLog, updateUI, showDialog;
 let encounterEnemy, gainXp, checkQuestProgress;
 let quests;
+let deps; // Store all deps for access to data
 let ui; // Store full UI object to access showTravelScreen dynamically
 
 // Event Types
@@ -21,15 +22,18 @@ const EVENT_TYPES = {
     HAZARD: 'hazard',
     NPC: 'npc',
     TRAVEL: 'travel',
-    DROPBOX: 'dropbox'  // Photon Prime delivery drop box
+    DROPBOX: 'dropbox',  // Photon Prime delivery drop box
+    RECIPE: 'recipe'     // Crafting recipe discovery
 };
 
 /**
  * Initialize the events module with required dependencies
  */
-export function initEvents(deps) {
+export function initEvents(dependencies) {
+    deps = dependencies; // Store for later use
     state = deps.state;
     quests = deps.data.quests;
+    deps.data.recipes = deps.data.recipes || {}; // Ensure recipes access
     ui = deps.ui; // Capture full UI object
 
     addLog = deps.ui.addLog;
@@ -47,8 +51,34 @@ export function initEvents(deps) {
 export function generateRandomEvent() {
     const roll = Math.random();
 
+    // 5% Recipe Discovery
+    if (roll < 0.05) {
+        // Need to import game recipes - assuming they are in deps.data or can be accessed via imported module in real game.
+        // But since this is a module, we should rely on deps. However recipes are local to game.js in current architecture.
+        // Wait, initEvents received deps.data.items, but maybe not recipes.
+        // I will assume recipes are passed in data or accessible.
+        // The plan says "const recipes = ..." in game.js. We need to make sure they are passed to events system.
+        // I will check initEvents in game.js later. For now, let's assume `deps.data.recipes` exists.
+        
+        // Actually, looking at game.js initEvents call:
+        // initEvents({ ...deps, ... }) -> deps contains data: { enemies, quests, items, locations }
+        // I haven't added recipes to `deps.data` in `game.js` yet! I need to do that.
+        // Assuming I will do that (it's a critical step), here I use it.
+        
+        const recipes = deps?.data?.recipes || {};
+        const unknownRecipes = Object.keys(recipes).filter(
+            id => !state.character.knownRecipes?.[id]
+        );
+        
+        if (unknownRecipes.length > 0) {
+            const recipeId = unknownRecipes[Math.floor(Math.random() * unknownRecipes.length)];
+            return { type: EVENT_TYPES.RECIPE, recipeId };
+        }
+        // If all known, fall through to other events
+    }
+
     // 10% Drop Box Event (only if pending orders exist)
-    if (roll < 0.10 && state.character?.pendingOrders?.length > 0) {
+    if (roll < 0.15 && state.character?.pendingOrders?.length > 0) {
         return { type: EVENT_TYPES.DROPBOX };
     }
 
@@ -198,6 +228,32 @@ export function handleEvent(event) {
 
         case EVENT_TYPES.DROPBOX:
             triggerDropBoxEvent();
+            break;
+
+        case EVENT_TYPES.RECIPE:
+            // We need access to recipes definitions again
+            // Storing them in a module-level variable would be better
+            const recipes = (ui && ui.getRecipes) ? ui.getRecipes() : (state.recipes || {}); 
+            // Wait, state doesn't have recipes. deps.data does.
+            // Let's modify init to store deps.data reference
+            const recipeDef = deps?.data?.recipes?.[event.recipeId];
+            
+            if (recipeDef) {
+                showDialog(
+                    "📜 Recipe Discovery",
+                    `You found a crafting schematic!<br><br><strong>${recipeDef.name}</strong><br>${recipeDef.description}`,
+                    [{
+                        text: "Learn Recipe",
+                        action: () => {
+                            import('./crafting.js').then(m => {
+                                m.discoverRecipe(event.recipeId, recipeDef);
+                            });
+                        }
+                    }]
+                );
+            } else {
+                addLog("You found an unreadable schematic.");
+            }
             break;
     }
 }

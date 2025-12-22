@@ -1,402 +1,742 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Galactic Odyssey - Sci-Fi Adventure Game</title>
-  <link rel="stylesheet" href="style.css" type="text/css" />
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body>
-  <header class="bg-gray-800 p-4 border-b border-gray-700">
-    <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-        Galactic Odyssey
-      </h1>
-      <div class="flex gap-2">
-        <button onclick="saveGame()" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold transition-colors" title="Save Game">
-          💾 Save
-        </button>
-        <button onclick="loadGame()" class="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold transition-colors" title="Load Game">
-          📂 Load
-        </button>
-        <button onclick="exportGame()" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold transition-colors" title="Export Save">
-          📤 Export
-        </button>
-        <button onclick="importGame()" class="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-bold transition-colors" title="Import Save">
-          📥 Import
-        </button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Galactic Odyssey - Sci-Fi Adventure Game</title>
+    <link rel="stylesheet" href="style.css" type="text/css" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+    <header class="bg-gray-800 p-4 border-b border-gray-700">
+      <div class="flex items-center justify-between">
+        <h1
+          class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent"
+        >
+          Galactic Odyssey
+        </h1>
+        <div class="flex gap-2">
+          <button
+            onclick="saveGame()"
+            class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold transition-colors"
+            title="Save Game"
+          >
+            💾 Save
+          </button>
+          <button
+            onclick="loadGame()"
+            class="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold transition-colors"
+            title="Load Game"
+          >
+            📂 Load
+          </button>
+          <button
+            onclick="exportGame()"
+            class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold transition-colors"
+            title="Export Save"
+          >
+            📤 Export
+          </button>
+          <button
+            onclick="importGame()"
+            class="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-bold transition-colors"
+            title="Import Save"
+          >
+            📥 Import
+          </button>
+        </div>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <main>
-    <div class="container">
-      <!-- Start Screen -->
-      <div id="startScreen" class="screen active-screen start-screen">
-        <div class="flex flex-col items-center justify-center h-full text-white p-4">
-          <h2 class="text-4xl md:text-6xl font-bold mb-8 text-center bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">Galactic Odyssey</h2>
-          <div class="flex flex-col gap-4 items-center">
-            <button class="start-button" onclick="startGame()">Begin Your Journey</button>
-            <button onclick="loadGame()" class="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg text-lg font-bold transition-colors" id="loadGameButton" style="display: none;">
-              📂 Continue Saved Game
-            </button>
+    <main>
+      <div class="container">
+        <!-- Start Screen -->
+        <div id="startScreen" class="screen active-screen start-screen">
+          <div
+            class="flex flex-col items-center justify-center h-full text-white p-4"
+          >
+            <h2
+              class="text-4xl md:text-6xl font-bold mb-8 text-center bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent"
+            >
+              Galactic Odyssey
+            </h2>
+            <div class="flex flex-col gap-4 items-center">
+              <button class="start-button" onclick="startGame()">
+                Begin Your Journey
+              </button>
+              <button
+                onclick="loadGame()"
+                class="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg text-lg font-bold transition-colors"
+                id="loadGameButton"
+                style="display: none"
+              >
+                📂 Continue Saved Game
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Character Creation -->
-      <div id="characterCreationScreen" class="screen character-creation-screen">
-        <div class="bg-gray-900 p-6 rounded-lg shadow-xl max-w-md mx-auto my-8 border border-gray-700">
-          <h2 class="text-2xl font-bold mb-4 text-center text-blue-400">Create Your Character</h2>
-          <form id="characterForm" onsubmit="createCharacter(event)">
-            <div class="mb-4">
-              <label for="nameInput" class="block text-sm font-medium text-gray-300 mb-1">Name</label>
-              <input type="text" id="nameInput" required minlength="2" maxlength="20" 
-                class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
+        <!-- Character Creation -->
+        <div
+          id="characterCreationScreen"
+          class="screen character-creation-screen"
+        >
+          <div
+            class="bg-gray-900 p-6 rounded-lg shadow-xl max-w-md mx-auto my-8 border border-gray-700"
+          >
+            <h2 class="text-2xl font-bold mb-4 text-center text-blue-400">
+              Create Your Character
+            </h2>
+            <form id="characterForm" onsubmit="createCharacter(event)">
+              <div class="mb-4">
+                <label
+                  for="nameInput"
+                  class="block text-sm font-medium text-gray-300 mb-1"
+                  >Name</label
+                >
+                <input
+                  type="text"
+                  id="nameInput"
+                  required
+                  minlength="2"
+                  maxlength="20"
+                  class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
 
-            <div class="mb-4">
-              <label for="raceSelect" class="block text-sm font-medium text-gray-300 mb-1">Race</label>
-              <select id="raceSelect" required class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Select a race</option>
-                <option value="Human">Human</option>
-                <option value="Cyborg">Cyborg</option>
-                <option value="Android">Android</option>
-              </select>
-            </div>
+              <div class="mb-4">
+                <label
+                  for="raceSelect"
+                  class="block text-sm font-medium text-gray-300 mb-1"
+                  >Race</label
+                >
+                <select
+                  id="raceSelect"
+                  required
+                  class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select a race</option>
+                  <option value="Human">Human</option>
+                  <option value="Cyborg">Cyborg</option>
+                  <option value="Android">Android</option>
+                </select>
+              </div>
 
-            <div class="mb-6">
-              <label for="roleSelect" class="block text-sm font-medium text-gray-300 mb-1">Role</label>
-              <select id="roleSelect" required class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Select a role</option>
-                <option value="Warrior">Warrior</option>
-                <option value="Rogue">Rogue</option>
-                <option value="Scientist">Scientist</option>
-              </select>
-            </div>
+              <div class="mb-6">
+                <label
+                  for="roleSelect"
+                  class="block text-sm font-medium text-gray-300 mb-1"
+                  >Role</label
+                >
+                <select
+                  id="roleSelect"
+                  required
+                  class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select a role</option>
+                  <option value="Warrior">Warrior</option>
+                  <option value="Rogue">Rogue</option>
+                  <option value="Scientist">Scientist</option>
+                </select>
+              </div>
 
-            <button type="submit" class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded font-bold transition-colors">
-              Confirm Character
-            </button>
-          </form>
+              <button
+                type="submit"
+                class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded font-bold transition-colors"
+              >
+                Confirm Character
+              </button>
+            </form>
+          </div>
         </div>
-      </div>
 
-      <!-- Exploring Screen -->
-      <div id="exploringScreen" class="screen game-ui">
-        <div class="flex flex-col h-full">
-          <div class="flex-grow overflow-y-auto p-4 space-y-4">
-            <div class="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700">
-              <div class="flex items-center gap-3 mb-3">
-                <div id="playerAvatar" class="text-4xl"></div>
-                <div>
-                  <h2 id="characterName" class="text-xl font-bold text-blue-400"></h2>
-                  <div id="characterRaceRole" class="text-sm text-gray-400"></div>
-                  <div id="characterLevel" class="text-sm text-gray-400"></div>
-                  <div id="characterStats" class="flex gap-2">
-                    <div>HP: <span id="characterHp"></span>/<span id="characterMaxHp"></span></div>
-                    <div>Energy: <span id="characterEnergy"></span>/<span id="characterMaxEnergy"></span></div>
-                    <div>Credits: <span id="characterCredits" class="text-yellow-400">0</span></div>
-                    <div>ATK: <span id="characterAtk"></span></div>
-                    <div>DEF: <span id="characterDef"></span></div>
-                    <div>📦 Orders: <span id="characterPendingOrders" class="text-yellow-400">0</span></div>
-                  </div>
-                  <button onclick="toggleQuestLog()" class="quest-log-button">Quest Log</button>
-                  <div class="mt-3 border-t border-gray-700 pt-2">
-                    <h3 class="text-sm font-bold text-gray-400 mb-1">Equipment</h3>
-                    <div class="grid grid-cols-3 gap-2 text-xs">
-                      <div class="bg-gray-900 p-2 rounded text-center" title="Weapon">
-                        <span class="block text-gray-500">⚔️ Weapon</span>
-                        <span id="equipWeapon" class="text-yellow-400 font-bold">Empty</span>
-                        <button onclick="unequipItem('weapon')" class="text-red-400 hover:text-red-300 ml-1" title="Unequip">×</button>
+        <!-- Exploring Screen -->
+        <div id="exploringScreen" class="screen game-ui">
+          <div class="flex flex-col h-full">
+            <div class="flex-grow overflow-y-auto p-4 space-y-4">
+              <div
+                class="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700"
+              >
+                <div class="flex items-center gap-3 mb-3">
+                  <div id="playerAvatar" class="text-4xl"></div>
+                  <div>
+                    <h2
+                      id="characterName"
+                      class="text-xl font-bold text-blue-400"
+                    ></h2>
+                    <div
+                      id="characterRaceRole"
+                      class="text-sm text-gray-400"
+                    ></div>
+                    <div
+                      id="characterLevel"
+                      class="text-sm text-gray-400"
+                    ></div>
+                    <div id="characterStats" class="flex gap-2">
+                      <div>
+                        HP: <span id="characterHp"></span>/<span
+                          id="characterMaxHp"
+                        ></span>
                       </div>
-                      <div class="bg-gray-900 p-2 rounded text-center" title="Armor">
-                        <span class="block text-gray-500">🛡️ Armor</span>
-                        <span id="equipArmor" class="text-yellow-400 font-bold">Empty</span>
-                        <button onclick="unequipItem('armor')" class="text-red-400 hover:text-red-300 ml-1" title="Unequip">×</button>
+                      <div>
+                        Energy: <span id="characterEnergy"></span>/<span
+                          id="characterMaxEnergy"
+                        ></span>
                       </div>
-                      <div class="bg-gray-900 p-2 rounded text-center" title="Accessory">
-                        <span class="block text-gray-500">💍 Accessory</span>
-                        <span id="equipAccessory" class="text-yellow-400 font-bold">Empty</span>
-                        <button onclick="unequipItem('accessory')" class="text-red-400 hover:text-red-300 ml-1" title="Unequip">×</button>
+                      <div>
+                        Credits:
+                        <span id="characterCredits" class="text-yellow-400"
+                          >0</span
+                        >
+                      </div>
+                      <div>ATK: <span id="characterAtk"></span></div>
+                      <div>DEF: <span id="characterDef"></span></div>
+                      <div>
+                        📦 Orders:
+                        <span
+                          id="characterPendingOrders"
+                          class="text-yellow-400"
+                          >0</span
+                        >
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-              <div class="space-y-2">
-                <div>
-                  <div class="flex justify-between text-sm mb-1">
-                    <span>HP: <span id="playerHp"></span>/<span id="playerMaxHp"></span></span>
-                    <span>Level: <span id="playerLevel"></span></span>
-                  </div>
-                  <div class="w-full bg-gray-700 rounded-full h-2 mb-2">
-                    <div id="hpBar" class="bg-green-500 h-2 rounded-full transition-all" style="width: 100%"></div>
-                  </div>
-                  <div class="flex justify-between text-sm mb-1">
-                    <span>XP: <span id="playerXp"></span>/<span id="xpToNext"></span></span>
-                  </div>
-                  <div class="w-full bg-gray-700 rounded-full h-2">
-                    <div id="xpBar" class="bg-yellow-500 h-2 rounded-full transition-all" style="width: 0%"></div>
-                  </div>
-                </div>
-                <div class="pt-2 border-t border-gray-700">
-                  <div class="text-sm mb-1">Inventory:</div>
-                  <div id="inventory" class="flex flex-wrap gap-2 mt-1"></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700">
-              <h2 class="text-xl font-bold text-blue-400 mb-2">Mission Log</h2>
-              <div id="missionLog" class="max-h-60 overflow-y-auto pr-2"></div>
-            </div>
-          </div>
-
-          <div class="bg-gray-900 p-4 border-t border-gray-700">
-            <div class="grid grid-cols-2 gap-4">
-              <button onclick="travelDeeper()" class="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors">
-                Travel Deeper
-              </button>
-              <button onclick="useHealItem()" id="healButton" class="heal-button disabled-button" disabled>
-                Use Heal Item
-              </button>
-              <button onclick="import('./systems/ui.js').then(m => m.showShop())" class="col-span-2 py-2 px-4 bg-yellow-600 hover:bg-yellow-700 rounded font-bold transition-colors">
-                 🛒 Trade / Shop
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Combat Screen -->
-      <div id="combatScreen" class="screen game-ui">
-        <div class="flex flex-col h-full">
-          <div class="flex-grow overflow-y-auto p-4 space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div class="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700">
-                <div class="flex items-center gap-2 mb-2">
-                  <div id="combatPlayerAvatar" class="text-3xl"></div>
-                  <div>
-                    <h2 id="combatPlayerName" class="text-xl font-bold text-blue-400"></h2>
-                    <div id="playerStatusEffects" class="flex gap-1 mt-1"></div>
+                    <button onclick="toggleQuestLog()" class="quest-log-button">
+                      Quest Log
+                    </button>
+                    <div class="mt-3 border-t border-gray-700 pt-2">
+                      <h3 class="text-sm font-bold text-gray-400 mb-1">
+                        Equipment
+                      </h3>
+                      <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div
+                          class="bg-gray-900 p-2 rounded text-center"
+                          title="Weapon"
+                        >
+                          <span class="block text-gray-500">⚔️ Weapon</span>
+                          <span
+                            id="equipWeapon"
+                            class="text-yellow-400 font-bold"
+                            >Empty</span
+                          >
+                          <button
+                            onclick="unequipItem('weapon')"
+                            class="text-red-400 hover:text-red-300 ml-1"
+                            title="Unequip"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        <div
+                          class="bg-gray-900 p-2 rounded text-center"
+                          title="Armor"
+                        >
+                          <span class="block text-gray-500">🛡️ Armor</span>
+                          <span
+                            id="equipArmor"
+                            class="text-yellow-400 font-bold"
+                            >Empty</span
+                          >
+                          <button
+                            onclick="unequipItem('armor')"
+                            class="text-red-400 hover:text-red-300 ml-1"
+                            title="Unequip"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        <div
+                          class="bg-gray-900 p-2 rounded text-center"
+                          title="Accessory"
+                        >
+                          <span class="block text-gray-500">💍 Accessory</span>
+                          <span
+                            id="equipAccessory"
+                            class="text-yellow-400 font-bold"
+                            >Empty</span
+                          >
+                          <button
+                            onclick="unequipItem('accessory')"
+                            class="text-red-400 hover:text-red-300 ml-1"
+                            title="Unequip"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div class="space-y-2">
                   <div>
                     <div class="flex justify-between text-sm mb-1">
-                      <span>HP: <span id="combatPlayerHp"></span>/<span id="combatPlayerMaxHp"></span></span>
+                      <span
+                        >HP: <span id="playerHp"></span>/<span
+                          id="playerMaxHp"
+                        ></span
+                      ></span>
+                      <span>Level: <span id="playerLevel"></span></span>
                     </div>
                     <div class="w-full bg-gray-700 rounded-full h-2 mb-2">
-                      <div id="combatHpBar" class="bg-green-500 h-2 rounded-full transition-all" style="width: 100%"></div>
+                      <div
+                        id="hpBar"
+                        class="bg-green-500 h-2 rounded-full transition-all"
+                        style="width: 100%"
+                      ></div>
                     </div>
                     <div class="flex justify-between text-sm mb-1">
-                      <span>Energy: <span id="combatPlayerEnergy"></span>/<span id="combatPlayerMaxEnergy"></span></span>
+                      <span
+                        >XP: <span id="playerXp"></span>/<span
+                          id="xpToNext"
+                        ></span
+                      ></span>
                     </div>
                     <div class="w-full bg-gray-700 rounded-full h-2">
-                      <div id="combatEnergyBar" class="bg-blue-500 h-2 rounded-full transition-all" style="width: 100%"></div>
+                      <div
+                        id="xpBar"
+                        class="bg-yellow-500 h-2 rounded-full transition-all"
+                        style="width: 0%"
+                      ></div>
                     </div>
                   </div>
-                  <div class="text-sm">
-                    ATK: <span id="combatPlayerAtk"></span> | DEF: <span id="combatPlayerDef"></span>
+                  <div class="pt-2 border-t border-gray-700">
+                    <div class="text-sm mb-1">Inventory:</div>
+                    <div id="inventory" class="flex flex-wrap gap-2 mt-1"></div>
                   </div>
                 </div>
               </div>
 
-              <div class="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700">
-                <h2 id="enemyName" class="text-xl font-bold text-red-400 mb-2"></h2>
-                <div class="space-y-2">
-                  <div>
-                    <div class="flex justify-between text-sm mb-1">
-                      <span>HP: <span id="enemyHp"></span>/<span id="enemyMaxHp"></span></span>
-                    </div>
-                    <div class="w-full bg-gray-700 rounded-full h-2">
-                      <div id="enemyHpBar" class="bg-red-500 h-2 rounded-full transition-all" style="width: 100%"></div>
-                    </div>
-                  </div>
-                  <div class="text-sm">
-                    ATK: <span id="enemyAtk"></span> | DEF: <span id="enemyDef"></span>
-                  </div>
-                </div>
+              <div
+                class="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700"
+              >
+                <h2 class="text-xl font-bold text-blue-400 mb-2">
+                  Mission Log
+                </h2>
+                <div
+                  id="missionLog"
+                  class="max-h-60 overflow-y-auto pr-2"
+                ></div>
               </div>
             </div>
 
-            <div class="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700">
-              <h2 class="text-xl font-bold text-blue-400 mb-2">Combat Log</h2>
-              <div id="combatLog" class="max-h-40 overflow-y-auto space-y-1 text-sm text-gray-300"></div>
-            </div>
-          </div>
-
-          <div class="bg-gray-900 p-4 border-t border-gray-700">
-            <div class="grid grid-cols-2 gap-4 mb-2">
-              <button onclick="playerAttack()" class="py-3 px-4 bg-red-600 hover:bg-red-700 rounded font-bold transition-colors flex items-center justify-center gap-2">
-                <span>⚔️</span> Attack
-              </button>
-              <button onclick="playerBlock()" class="py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded font-bold transition-colors flex items-center justify-center gap-2">
-                <span>🛡️</span> Block
-              </button>
-            </div>
-            <div class="grid grid-cols-3 gap-4">
-              <button onclick="playerDodge()" class="py-3 px-4 bg-green-600 hover:bg-green-700 rounded font-bold transition-colors flex items-center justify-center gap-2">
-                <span>💨</span> Dodge
-              </button>
-              <button id="specialAbilityButton" onclick="useSpecialAbility()" class="py-3 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors flex items-center justify-center gap-2">
-                <span>⭐</span> Special
-              </button>
-              <button onclick="openCombatItemMenu()" class="py-3 px-4 bg-yellow-600 hover:bg-yellow-700 rounded font-bold transition-colors flex items-center justify-center gap-2">
-                <span>🎒</span> Item
-              </button>
+            <div class="bg-gray-900 p-4 border-t border-gray-700">
+              <div class="grid grid-cols-2 gap-4">
+                <button
+                  onclick="travelDeeper()"
+                  class="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors"
+                >
+                  Travel Deeper
+                </button>
+                <button
+                  onclick="useHealItem()"
+                  id="healButton"
+                  class="heal-button disabled-button"
+                  disabled
+                >
+                  Use Heal Item
+                </button>
+                <button
+                  onclick="import('./systems/ui.js').then(m => m.showShop())"
+                  class="py-2 px-4 bg-yellow-600 hover:bg-yellow-700 rounded font-bold transition-colors"
+                >
+                  🛒 Trade / Shop
+                </button>
+                <button
+                  onclick="import('./systems/ui.js').then(m => m.showCraftingUI())"
+                  class="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors"
+                >
+                  🔨 Crafting
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Defeat Screen -->
-      <div id="defeatScreen" class="screen defeat-screen">
-        <div class="flex flex-col items-center justify-center h-full text-white p-4">
-          <h2 class="text-4xl font-bold mb-4 text-red-500">You Were Defeated</h2>
-          <p class="text-xl mb-8 text-center">Would you like to try again?</p>
-          <button onclick="restartGame()" class="restart-button">Restart Game</button>
+        <!-- Combat Screen -->
+        <div id="combatScreen" class="screen game-ui">
+          <div class="flex flex-col h-full">
+            <div class="flex-grow overflow-y-auto p-4 space-y-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div
+                  class="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700"
+                >
+                  <div class="flex items-center gap-2 mb-2">
+                    <div id="combatPlayerAvatar" class="text-3xl"></div>
+                    <div>
+                      <h2
+                        id="combatPlayerName"
+                        class="text-xl font-bold text-blue-400"
+                      ></h2>
+                      <div
+                        id="playerStatusEffects"
+                        class="flex gap-1 mt-1"
+                      ></div>
+                    </div>
+                  </div>
+                  <div class="space-y-2">
+                    <div>
+                      <div class="flex justify-between text-sm mb-1">
+                        <span
+                          >HP: <span id="combatPlayerHp"></span>/<span
+                            id="combatPlayerMaxHp"
+                          ></span
+                        ></span>
+                      </div>
+                      <div class="w-full bg-gray-700 rounded-full h-2 mb-2">
+                        <div
+                          id="combatHpBar"
+                          class="bg-green-500 h-2 rounded-full transition-all"
+                          style="width: 100%"
+                        ></div>
+                      </div>
+                      <div class="flex justify-between text-sm mb-1">
+                        <span
+                          >Energy: <span id="combatPlayerEnergy"></span>/<span
+                            id="combatPlayerMaxEnergy"
+                          ></span
+                        ></span>
+                      </div>
+                      <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div
+                          id="combatEnergyBar"
+                          class="bg-blue-500 h-2 rounded-full transition-all"
+                          style="width: 100%"
+                        ></div>
+                      </div>
+                    </div>
+                    <div class="text-sm">
+                      ATK: <span id="combatPlayerAtk"></span> | DEF:
+                      <span id="combatPlayerDef"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700"
+                >
+                  <h2
+                    id="enemyName"
+                    class="text-xl font-bold text-red-400 mb-2"
+                  ></h2>
+                  <div class="space-y-2">
+                    <div>
+                      <div class="flex justify-between text-sm mb-1">
+                        <span
+                          >HP: <span id="enemyHp"></span>/<span
+                            id="enemyMaxHp"
+                          ></span
+                        ></span>
+                      </div>
+                      <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div
+                          id="enemyHpBar"
+                          class="bg-red-500 h-2 rounded-full transition-all"
+                          style="width: 100%"
+                        ></div>
+                      </div>
+                    </div>
+                    <div class="text-sm">
+                      ATK: <span id="enemyAtk"></span> | DEF:
+                      <span id="enemyDef"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700"
+              >
+                <h2 class="text-xl font-bold text-blue-400 mb-2">Combat Log</h2>
+                <div
+                  id="combatLog"
+                  class="max-h-40 overflow-y-auto space-y-1 text-sm text-gray-300"
+                ></div>
+              </div>
+            </div>
+
+            <div class="bg-gray-900 p-4 border-t border-gray-700">
+              <div class="grid grid-cols-2 gap-4 mb-2">
+                <button
+                  onclick="playerAttack()"
+                  class="py-3 px-4 bg-red-600 hover:bg-red-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>⚔️</span> Attack
+                </button>
+                <button
+                  onclick="playerBlock()"
+                  class="py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>🛡️</span> Block
+                </button>
+              </div>
+              <div class="grid grid-cols-3 gap-4">
+                <button
+                  onclick="playerDodge()"
+                  class="py-3 px-4 bg-green-600 hover:bg-green-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>💨</span> Dodge
+                </button>
+                <button
+                  id="specialAbilityButton"
+                  onclick="useSpecialAbility()"
+                  class="py-3 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>⭐</span> Special
+                </button>
+                <button
+                  onclick="openCombatItemMenu()"
+                  class="py-3 px-4 bg-yellow-600 hover:bg-yellow-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>🎒</span> Item
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Defeat Screen -->
+        <div id="defeatScreen" class="screen defeat-screen">
+          <div
+            class="flex flex-col items-center justify-center h-full text-white p-4"
+          >
+            <h2 class="text-4xl font-bold mb-4 text-red-500">
+              You Were Defeated
+            </h2>
+            <p class="text-xl mb-8 text-center">Would you like to try again?</p>
+            <button onclick="restartGame()" class="restart-button">
+              Restart Game
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Level Up Notification -->
+    <div
+      id="levelUpNotification"
+      class="level-up-notification"
+      style="display: none"
+    >
+      <div class="level-up-content">
+        <div class="text-center">
+          <div class="text-6xl mb-4">🎉</div>
+          <h2 class="text-3xl font-bold text-yellow-400 mb-2">LEVEL UP!</h2>
+          <p class="text-xl text-white mb-4">
+            You reached Level <span id="levelUpLevel"></span>!
+          </p>
+          <div class="bg-gray-700 rounded p-3 mb-4">
+            <p class="text-sm text-gray-300 mb-1">Stat Increases:</p>
+            <div class="text-left space-y-1">
+              <div class="text-green-400" id="levelUpHp"></div>
+              <div class="text-red-400" id="levelUpAttack"></div>
+              <div class="text-blue-400" id="levelUpDefense"></div>
+            </div>
+          </div>
+          <button
+            onclick="hideLevelUpNotification()"
+            class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded font-bold"
+          >
+            Continue
+          </button>
         </div>
       </div>
     </div>
-  </main>
 
-  <!-- Level Up Notification -->
-  <div id="levelUpNotification" class="level-up-notification" style="display: none;">
-    <div class="level-up-content">
-      <div class="text-center">
-        <div class="text-6xl mb-4">🎉</div>
-        <h2 class="text-3xl font-bold text-yellow-400 mb-2">LEVEL UP!</h2>
-        <p class="text-xl text-white mb-4">You reached Level <span id="levelUpLevel"></span>!</p>
-        <div class="bg-gray-700 rounded p-3 mb-4">
-          <p class="text-sm text-gray-300 mb-1">Stat Increases:</p>
-          <div class="text-left space-y-1">
-            <div class="text-green-400" id="levelUpHp"></div>
-            <div class="text-red-400" id="levelUpAttack"></div>
-            <div class="text-blue-400" id="levelUpDefense"></div>
+    <div id="questLogModal" class="quest-log-modal" style="display: none">
+      <div class="quest-log-content">
+        <div class="text-center">
+          <div class="text-6xl mb-4">📜</div>
+          <h2 class="text-3xl font-bold text-yellow-400 mb-2">Quest Log</h2>
+          <div class="flex gap-2 mb-4">
+            <button
+              id="activeQuestsTab"
+              onclick="switchQuestTab('active')"
+              class="flex-1 py-2 px-4 bg-yellow-600 text-white rounded font-bold"
+            >
+              Active
+            </button>
+            <button
+              id="completedQuestsTab"
+              onclick="switchQuestTab('completed')"
+              class="flex-1 py-2 px-4 bg-gray-700 text-gray-300 rounded font-bold hover:bg-gray-600"
+            >
+              Completed
+            </button>
+          </div>
+          <div id="questList" class="max-h-60 overflow-y-auto pr-2"></div>
+          <button
+            onclick="toggleQuestLog()"
+            class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded font-bold"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="combatItemModal" class="quest-log-modal" style="display: none">
+      <div class="quest-log-content">
+        <div class="text-center">
+          <div class="text-6xl mb-4">🎒</div>
+          <h2 class="text-3xl font-bold text-yellow-400 mb-2">Combat Items</h2>
+          <div
+            id="combatItemList"
+            class="max-h-60 overflow-y-auto pr-2 flex flex-col gap-2"
+          ></div>
+          <button
+            onclick="closeCombatItemMenu()"
+            class="mt-4 px-6 py-2 bg-red-600 hover:bg-red-700 rounded font-bold"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dialog Modal -->
+    <div id="dialogModal" class="quest-log-modal" style="display: none">
+      <div class="quest-log-content">
+        <div class="text-center">
+          <h2 class="text-3xl font-bold text-yellow-400 mb-4" id="dialogTitle">
+            Dialog Title
+          </h2>
+          <p class="text-lg text-white mb-6" id="dialogText">
+            Dialog text goes here.
+          </p>
+
+          <div id="dialogOptions" class="flex flex-col gap-2 justify-center">
+            <!-- Options will be injected here -->
           </div>
         </div>
-        <button onclick="hideLevelUpNotification()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded font-bold">
-          Continue
+      </div>
+    </div>
+
+    <!-- Victory Message -->
+    <div
+      id="victoryMessage"
+      class="victory-message"
+      style="display: none"
+    ></div>
+
+    <!-- Save Message -->
+    <div id="saveMessage" class="save-message" style="display: none"></div>
+
+    <footer
+      class="bg-gray-800 p-3 text-center text-sm text-gray-400 border-t border-gray-700"
+    >
+      &copy; <span id="currentYear"></span> Sci-Fi Adventure Game. All rights
+      reserved.
+    </footer>
+
+    <!-- Travel Screen Modal -->
+    <div
+      id="travelScreen"
+      class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-gray-800 border-2 border-blue-500 rounded-lg max-w-4xl w-full p-6 relative shadow-[0_0_20px_rgba(59,130,246,0.5)]"
+      >
+        <button
+          onclick="document.getElementById('travelScreen').classList.add('hidden')"
+          class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold"
+        >
+          &times;
         </button>
-      </div>
-    </div>
-  </div>
 
-<div id="questLogModal" class="quest-log-modal" style="display: none;">
-  <div class="quest-log-content">
-    <div class="text-center">
-      <div class="text-6xl mb-4">📜</div>
-      <h2 class="text-3xl font-bold text-yellow-400 mb-2">Quest Log</h2>
-      <div class="flex gap-2 mb-4">
-        <button id="activeQuestsTab" onclick="switchQuestTab('active')" class="flex-1 py-2 px-4 bg-yellow-600 text-white rounded font-bold">Active</button>
-        <button id="completedQuestsTab" onclick="switchQuestTab('completed')" class="flex-1 py-2 px-4 bg-gray-700 text-gray-300 rounded font-bold hover:bg-gray-600">Completed</button>
-      </div>
-      <div id="questList" class="max-h-60 overflow-y-auto pr-2"></div>
-      <button onclick="toggleQuestLog()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded font-bold">
-        Close
-      </button>
-    </div>
-  </div>
-</div>
+        <h2 class="text-3xl font-bold text-center text-blue-400 mb-2">
+          Planetary Navigation
+        </h2>
+        <p class="text-center text-gray-400 mb-8">
+          Select a destination for the transport device.
+        </p>
 
-<div id="combatItemModal" class="quest-log-modal" style="display: none;">
-  <div class="quest-log-content">
-    <div class="text-center">
-      <div class="text-6xl mb-4">🎒</div>
-      <h2 class="text-3xl font-bold text-yellow-400 mb-2">Combat Items</h2>
-      <div id="combatItemList" class="max-h-60 overflow-y-auto pr-2 flex flex-col gap-2"></div>
-      <button onclick="closeCombatItemMenu()" class="mt-4 px-6 py-2 bg-red-600 hover:bg-red-700 rounded font-bold">
-        Cancel
-      </button>
-    </div>
-  </div>
-</div>
-
-
-
-<!-- Dialog Modal -->
-<div id="dialogModal" class="quest-log-modal" style="display: none;">
-  <div class="quest-log-content">
-    <div class="text-center">
-      <h2 class="text-3xl font-bold text-yellow-400 mb-4" id="dialogTitle">Dialog Title</h2>
-      <p class="text-lg text-white mb-6" id="dialogText">Dialog text goes here.</p>
-      
-      <div id="dialogOptions" class="flex flex-col gap-2 justify-center">
-        <!-- Options will be injected here -->
-      </div>
-    </div>
-  </div>
-</div>
-
-  <!-- Victory Message -->
-  <div id="victoryMessage" class="victory-message" style="display: none;"></div>
-
-  <!-- Save Message -->
-  <div id="saveMessage" class="save-message" style="display: none;"></div>
-
-  <footer class="bg-gray-800 p-3 text-center text-sm text-gray-400 border-t border-gray-700">
-    &copy; <span id="currentYear"></span> Sci-Fi Adventure Game. All rights reserved.
-  </footer>
-
-
-  <!-- Travel Screen Modal -->
-  <div id="travelScreen" class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
-    <div class="bg-gray-800 border-2 border-blue-500 rounded-lg max-w-4xl w-full p-6 relative shadow-[0_0_20px_rgba(59,130,246,0.5)]">
-      <button onclick="document.getElementById('travelScreen').classList.add('hidden')" 
-              class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold">&times;</button>
-      
-      <h2 class="text-3xl font-bold text-center text-blue-400 mb-2">Planetary Navigation</h2>
-      <p class="text-center text-gray-400 mb-8">Select a destination for the transport device.</p>
-      
-      <div id="travelDestinations" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Destinations will be populated by JS -->
-      </div>
-      
-      <div class="mt-8 text-center">
-        <button onclick="document.getElementById('travelScreen').classList.add('hidden')" 
-                class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Shop Modal -->
-  <div id="shopScreen" class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
-    <div class="bg-gray-800 border-2 border-yellow-500 rounded-lg max-w-4xl w-full p-6 relative shadow-[0_0_20px_rgba(234,179,8,0.5)]">
-      <button onclick="document.getElementById('shopScreen').classList.add('hidden')" 
-              class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold">&times;</button>
-      
-      <div class="flex justify-between items-center mb-2">
-        <div>
-          <h2 class="text-3xl font-bold text-blue-400">📦 Photon Prime</h2>
-          <p class="text-sm text-gray-400 italic">Delivering across the galaxy at light speed!</p>
+        <div
+          id="travelDestinations"
+          class="grid grid-cols-1 md:grid-cols-3 gap-6"
+        >
+          <!-- Destinations will be populated by JS -->
         </div>
-        <div class="text-xl text-green-400 font-mono">Credits: <span id="shopCreditsDisplay">0</span></div>
-      </div>
-      
-      <div class="flex border-b border-gray-600 mb-4">
-        <button onclick="switchShopTab('buy')" id="shopTabBuy" class="px-6 py-2 text-yellow-500 border-b-2 border-yellow-500 font-bold bg-gray-700 rounded-t">Order</button>
-        <button onclick="switchShopTab('sell')" id="shopTabSell" class="px-6 py-2 text-gray-400 font-bold hover:text-white">Sell</button>
-      </div>
 
-      <div id="shopBuyContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 h-96 overflow-y-auto pr-2">
-        <!-- Buy Items injected here -->
-      </div>
-
-      <div id="shopSellContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 h-96 overflow-y-auto pr-2 hidden">
-        <!-- Sell Items injected here -->
-      </div>
-      
-      <div class="mt-6 text-center">
-        <button onclick="document.getElementById('shopScreen').classList.add('hidden')" 
-                class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300">Close</button>
+        <div class="mt-8 text-center">
+          <button
+            onclick="document.getElementById('travelScreen').classList.add('hidden')"
+            class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script type="module" src="game.js"></script>
-</body>
+    <!-- Shop Modal -->
+    <div
+      id="shopScreen"
+      class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-gray-800 border-2 border-yellow-500 rounded-lg max-w-4xl w-full p-6 relative shadow-[0_0_20px_rgba(234,179,8,0.5)]"
+      >
+        <button
+          onclick="document.getElementById('shopScreen').classList.add('hidden')"
+          class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold"
+        >
+          &times;
+        </button>
+
+        <div class="flex justify-between items-center mb-2">
+          <div>
+            <h2 class="text-3xl font-bold text-blue-400">📦 Photon Prime</h2>
+            <p class="text-sm text-gray-400 italic">
+              Delivering across the galaxy at light speed!
+            </p>
+          </div>
+          <div class="text-xl text-green-400 font-mono">
+            Credits: <span id="shopCreditsDisplay">0</span>
+          </div>
+        </div>
+
+        <div class="flex border-b border-gray-600 mb-4">
+          <button
+            onclick="switchShopTab('buy')"
+            id="shopTabBuy"
+            class="px-6 py-2 text-yellow-500 border-b-2 border-yellow-500 font-bold bg-gray-700 rounded-t"
+          >
+            Order
+          </button>
+          <button
+            onclick="switchShopTab('sell')"
+            id="shopTabSell"
+            class="px-6 py-2 text-gray-400 font-bold hover:text-white"
+          >
+            Sell
+          </button>
+        </div>
+
+        <div
+          id="shopBuyContainer"
+          class="grid grid-cols-1 md:grid-cols-2 gap-4 h-96 overflow-y-auto pr-2"
+        >
+          <!-- Buy Items injected here -->
+        </div>
+
+        <div
+          id="shopSellContainer"
+          class="grid grid-cols-1 md:grid-cols-2 gap-4 h-96 overflow-y-auto pr-2 hidden"
+        >
+          <!-- Sell Items injected here -->
+        </div>
+
+        <div class="mt-6 text-center">
+          <button
+            onclick="document.getElementById('shopScreen').classList.add('hidden')"
+            class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="game.js"></script>
+  </body>
 </html>

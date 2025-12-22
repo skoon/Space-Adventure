@@ -15,6 +15,7 @@ import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI
 import { initInventory, openCombatItemMenu, closeCombatItemMenu, useCombatItem } from './systems/inventory.js';
 import { initLocations, travelTo, getLocationDetails, getUnlockedLocations } from './systems/locations.js';
 import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem, claimAllOrders } from './systems/shop.js';
+import { initCrafting, craftItem, discoverRecipe, getKnownRecipes, canCraft } from './systems/crafting.js';
 
 // ============================================
 // GAME DATA
@@ -130,28 +131,66 @@ const quests = {
   }
 };
 
+// Crafting Recipes
+const recipes = {
+  "advanced_heal": {
+      id: "advanced_heal",
+      name: "Advanced Medkit",
+      creates: "Advanced Medkit",
+      requires: {
+          "Energy Cell": 2,
+          "Scrap Metal": 1
+      },
+      description: "Combine energy cells with scrap to create a powerful healing item."
+  },
+  "upgrade_weapon": {
+      id: "upgrade_weapon",
+      name: "Enhanced Plasma Rifle",
+      creates: "Enhanced Plasma Rifle",
+      requires: {
+          "Plasma Rifle": 1,
+          "Alien Crystal": 2
+      },
+      description: "Enhance a plasma rifle with alien technology."
+  },
+  "makeshift_armor": {
+      id: "makeshift_armor",
+      name: "Makeshift Plating",
+      creates: "Makeshift Plating",
+      requires: {
+          "Scrap Metal": 3,
+          "Rusty Pipe": 1
+      },
+      description: "Forge basic armor from scrap materials."
+  }
+};
+
+// Items data (Equipment)
 // Items data (Equipment)
 const items = {
-  "Energy Cell": { type: "consumable", effect: "heal", value: 30, description: "Restores 30 HP", price: 50 },
-  "Nano Stimpack": { type: "consumable", effect: "heal", value: 50, description: "Restores 50 HP", price: 100 },
-  "Alien Crystal": { type: "material", description: "A mysterious glowing crystal.", price: 200 },
-  "Data Chip": { type: "material", description: "Contains encrypted data.", price: 150 },
-  "Scrap Metal": { type: "material", description: "Useful for crafting.", price: 20 },
-  "Rusty Pipe": { type: "material", description: "An old metal pipe.", price: 10 },
+  "Energy Cell": { type: "consumable", category: "consumable", effect: "heal", value: 30, description: "Restores 30 HP", price: 50, stackable: true},
+  "Nano Stimpack": { type: "consumable", category: "consumable", effect: "heal", value: 50, description: "Restores 50 HP", price: 100, stackable: true },
+  "Advanced Medkit": { type: "consumable", category: "consumable", effect: "heal", value: 75, description: "Restores 75 HP (crafted)", price: 150, stackable: true },
+  "Alien Crystal": { type: "material", category: "material", description: "A mysterious glowing crystal.", price: 200, stackable: true },
+  "Data Chip": { type: "material", category: "material", description: "Contains encrypted data.", price: 150, stackable: true },
+  "Scrap Metal": { type: "material", category: "material", description: "Useful for crafting.", price: 20, stackable: true },
+  "Rusty Pipe": { type: "material", category: "material", description: "An old metal pipe.", price: 10, stackable: true },
 
   // Weapons
-  "Plasma Rifle": { type: "weapon", stats: { attack: 5 }, description: "A powerful energy weapon.", price: 500 },
-  "Laser Blade": { type: "weapon", stats: { attack: 7 }, description: "A high-tech melee weapon.", price: 750 },
-  "Photon Cannon": { type: "weapon", stats: { attack: 10 }, description: "Devastating ranged weapon.", price: 1200 },
+  "Plasma Rifle": { type: "weapon", category: "equipment", stats: { attack: 5 }, description: "A powerful energy weapon.", price: 500, stackable: false },
+  "Enhanced Plasma Rifle": { type: "weapon", category: "equipment", stats: { attack: 8 }, description: "An upgraded energy weapon with alien tech.", price: 1000, stackable: false },
+  "Laser Blade": { type: "weapon", category: "equipment", stats: { attack: 7 }, description: "A high-tech melee weapon.", price: 750, stackable: false },
+  "Photon Cannon": { type: "weapon", category: "equipment", stats: { attack: 10 }, description: "Devastating ranged weapon.", price: 1200, stackable: false },
 
   // Armor
-  "Kevlar Vest": { type: "armor", stats: { defense: 4 }, description: "Basic protective armor.", price: 400 },
-  "Titanium Plating": { type: "armor", stats: { defense: 6 }, description: "Heavy-duty armor plating.", price: 800 },
-  "Exoskeleton": { type: "armor", stats: { defense: 8 }, description: "Powered armor that enhances strength.", price: 1500 },
+  "Kevlar Vest": { type: "armor", category: "equipment", stats: { defense: 4 }, description: "Basic protective armor.", price: 400, stackable: false },
+  "Titanium Plating": { type: "armor", category: "equipment", stats: { defense: 6 }, description: "Heavy-duty armor plating.", price: 800, stackable: false },
+  "Exoskeleton": { type: "armor", category: "equipment", stats: { defense: 8 }, description: "Powered armor that enhances strength.", price: 1500, stackable: false },
+  "Makeshift Plating": { type: "armor", category: "equipment", stats: { defense: 5 }, description: "Crude but effective armor.", price: 350, stackable: false },
 
   // Accessories
-  "Shield Generator": { type: "accessory", stats: { defense: 3 }, description: "Generates a personal forcefield.", price: 600 },
-  "Targeting HUD": { type: "accessory", stats: { attack: 3 }, description: "Improves accuracy and damage.", price: 600 }
+  "Shield Generator": { type: "accessory", category: "equipment", stats: { defense: 3 }, description: "Generates a personal forcefield.", price: 600, stackable: false },
+  "Targeting HUD": { type: "accessory", category: "equipment", stats: { attack: 3 }, description: "Improves accuracy and damage.", price: 600, stackable: false }
 };
 
 // ============================================
@@ -250,7 +289,7 @@ function initializeGame() {
   // Initialize all modules
   const deps = {
     state,
-    data: { enemies, quests, items, locations },
+    data: { enemies, quests, items, locations, recipes },
     dom: { screens, elements, inventoryElement, missionLogElement, combatElements },
     locations: { getUnlockedLocations, travelTo }
   };
