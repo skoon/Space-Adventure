@@ -397,6 +397,12 @@ function initializeGame() {
     character: { getCharacterAvatar },
     quests: { applyQuestItem }
   });
+
+  // Initialize Crafting
+  initCrafting({
+    ...deps,
+    ui: { addLog, updateUI }
+  });
 }
 
 // ============================================
