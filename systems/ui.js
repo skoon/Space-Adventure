@@ -12,6 +12,7 @@ let getUnlockedLocations, travelTo;
 let buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem;
 let items, quests;
 let screens, elements, inventoryElement, missionLogElement, combatElements;
+let deps; // Store dependencies globally for the module
 
 // UI state
 let currentQuestTab = "active";
@@ -52,8 +53,9 @@ const renderCache = {
 /**
  * Initialize the UI module with required dependencies
  */
-export function initUI(deps) {
+export function initUI(dependencies) {
     // Store state object reference
+    deps = dependencies;
     console.log("initUI called", deps);
     state = deps.state;
 
