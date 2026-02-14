@@ -38,7 +38,7 @@ export function acceptQuest(questId) {
     if (!quest) return;
 
     state.character.activeQuests[questId] = { progress: 0, currentStep: 0 };
-    addLog(`📜 Quest Accepted: ${quest.title}`);
+    addLog(`[!] Quest Accepted: ${quest.title}`);
     showSaveMessage(`Quest Accepted: ${quest.title}`);
 }
 

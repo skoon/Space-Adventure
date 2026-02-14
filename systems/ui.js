@@ -215,6 +215,14 @@ export function updateUI() {
     updateEquipment();
     updateMissionLog();
     updatePendingOrders();
+    updateLocationDisplay();
+}
+
+function updateLocationDisplay() {
+    const display = document.getElementById("currentLocationDisplay");
+    if (display && state.currentLocation && deps.data.locations[state.currentLocation]) {
+        display.textContent = deps.data.locations[state.currentLocation].name;
+    }
 }
 
 function updateCharacterInfo() {
@@ -511,11 +519,11 @@ export function switchQuestTab(tab) {
     const completedBtn = document.getElementById("completedQuestsTab");
 
     if (tab === "active") {
-        activeBtn.className = "flex-1 py-2 px-4 bg-yellow-600 text-white rounded font-bold";
-        completedBtn.className = "flex-1 py-2 px-4 bg-gray-700 text-gray-300 rounded font-bold hover:bg-gray-600";
+        activeBtn.className = "flex-1 py-1 px-4 font-bold border-r border-yellow-900/50 crt-tab-active";
+        completedBtn.className = "flex-1 py-1 px-4 font-bold crt-tab-inactive";
     } else {
-        activeBtn.className = "flex-1 py-2 px-4 bg-gray-700 text-gray-300 rounded font-bold hover:bg-gray-600";
-        completedBtn.className = "flex-1 py-2 px-4 bg-yellow-600 text-white rounded font-bold";
+        activeBtn.className = "flex-1 py-1 px-4 font-bold border-r border-yellow-900/50 crt-tab-inactive";
+        completedBtn.className = "flex-1 py-1 px-4 font-bold crt-tab-active";
     }
 
     renderQuestList();
@@ -710,7 +718,7 @@ export function showTravelScreen() {
     locations.forEach(loc => {
          const node = document.createElement("div");
          const isCurrent = state.currentLocation === loc.id;
-         node.className = `map-node ${isCurrent ? 'current-location' : ''}`;
+         node.className = `map-node ${isCurrent ? 'current-location animate-pulse ring-4 ring-blue-500' : ''}`;
          
          // Position
          node.style.left = (loc.coordinates?.x || 100) / 8 + "%";
@@ -725,8 +733,9 @@ export function showTravelScreen() {
          if (!isCurrent) {
              node.onclick = () => {
                  if (travelTo(loc.id)) {
-                     updateTheme();
-                     modal.classList.add("hidden");
+                     const travelModal = document.getElementById("travelScreen");
+                     if (travelModal) travelModal.classList.add("hidden");
+                     updateUI(); // Ensure UI updates to reflect new location immediately
                  }
              };
          }

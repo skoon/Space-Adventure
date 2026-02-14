@@ -42,6 +42,11 @@ export function travelTo(locationId) {
     const location = locations[locationId];
     if (!location) return false;
 
+    if (state.gameState === "combat") {
+        addLog("❌ Cannot travel while in combat!");
+        return false;
+    }
+
     if (!location.unlocked) {
         addLog(`❌ Cannot travel to ${location.name}. Functionality locked.`);
         return false;

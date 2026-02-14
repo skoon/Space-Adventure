@@ -32,6 +32,9 @@ export function simulateExploration() {
     if (state.gameState !== "exploring") return;
 
     setTimeout(() => {
+        // Ensure we are still exploring (e.g., haven't entered combat or traveled)
+        if (state.gameState !== "exploring") return;
+
         // Use the new events system
         const locationId = state.currentLocation;
         const event = events.generateRandomEvent(locationId);

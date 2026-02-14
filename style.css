@@ -546,3 +546,211 @@ header button:hover {
     opacity: 0;
   }
 }
+
+/* Retro Sci-Fi / Flash Gordon Styles */
+.retro-panel {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+  border: 4px solid #b8860b; /* Dark Goldenrod */
+  box-shadow: 
+    0 0 10px rgba(184, 134, 11, 0.3),
+    inset 0 0 20px rgba(0, 0, 0, 0.8);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Corner ornaments */
+.retro-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border-top: 4px solid #ffd700;
+  border-left: 4px solid #ffd700;
+  z-index: 5;
+}
+
+.retro-panel::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  border-bottom: 4px solid #ffd700;
+  border-right: 4px solid #ffd700;
+  z-index: 5;
+}
+
+.retro-header-bar {
+  font-family: 'Courier New', serif; /* Fallback to something serif-like or distinct */
+  text-shadow: 2px 2px 0px #000;
+  letter-spacing: 0.2em;
+  background: linear-gradient(90deg, transparent, rgba(184, 134, 11, 0.2), transparent);
+}
+
+#characterName {
+  font-family: 'Georgia', serif;
+  color: #ffd700 !important;
+  text-transform: uppercase;
+  text-shadow: 0 0 5px #ff4500;
+}
+
+#characterStats {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #555;
+  padding: 5px;
+  border-radius: 4px;
+  display: grid !important; /* Force grid layout for better stats display */
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px !important;
+}
+
+#characterStats > div {
+  background: linear-gradient(to bottom, #333, #222);
+  border: 1px solid #777;
+  padding: 4px 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: #00ff00; /* Retro green terminal text */
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Equipment Slots Retro Style */
+.bg-gray-900[title="Weapon"],
+.bg-gray-900[title="Armor"],
+.bg-gray-900[title="Accessory"] {
+  background: #111 !important;
+  border: 2px solid #555;
+  box-shadow: inset 0 0 10px #000;
+}
+
+/* Inventory container retro adjustment */
+.bg-gray-900.border-gray-700.h-full.flex-col {
+  background: #0f1216 !important;
+  border: 2px solid #5f9ea0; /* CadetBlue for a tech feel */
+  box-shadow: 0 0 5px rgba(95, 158, 160, 0.3);
+}
+
+/* CRT Tab Styles */
+.crt-tab-active {
+  background: rgba(255, 176, 0, 0.2) !important;
+  color: #ffb000 !important;
+  border: 1px solid #ffb000 !important;
+  border-bottom: none !important;
+  box-shadow: 0 0 5px rgba(255, 176, 0, 0.5);
+  text-shadow: 0 0 2px #ffb000;
+}
+
+.crt-tab-inactive {
+  background: rgba(45, 30, 0, 0.5) !important;
+  color: rgba(255, 176, 0, 0.5) !important;
+  border: 1px solid rgba(255, 176, 0, 0.2) !important;
+  border-bottom: 1px solid #ffb000 !important;
+}
+
+.crt-tab-inactive:hover {
+  background: rgba(255, 176, 0, 0.1) !important;
+  color: rgba(255, 176, 0, 0.8) !important;
+  cursor: pointer;
+}
+
+/* Quest Log Modal CRT Styles */
+.crt-container {
+  background: #1a1a1a;
+  border: 4px solid #555;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.8);
+  max-width: 600px;
+  width: 90%;
+}
+
+.crt-amber-large {
+  background-color: #1a0f00;
+  color: #ffb000;
+  font-family: 'Courier New', Courier, monospace;
+  padding: 20px;
+  border-radius: 4px; /* Slight curve for screen */
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+  border: 1px solid #332200;
+}
+
+.crt-amber-large::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 2;
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+}
+
+.crt-amber-large h2 {
+  text-shadow: 0 0 5px rgba(255, 176, 0, 0.8);
+}
+
+.crt-amber-large button {
+  font-family: 'Courier New', Courier, monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Custom Scrollbar for CRT */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #1a0f00; 
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #ffb000; 
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cc8c00; 
+}
+
+/* Override existing quest log styles */
+.quest-log-content {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+#questList .bg-gray-700 {
+  background: rgba(255, 176, 0, 0.05) !important;
+  border: 1px solid rgba(255, 176, 0, 0.3) !important;
+}
+
+#questList h3 {
+  color: #ffb000 !important;
+  text-shadow: 0 0 2px rgba(255, 176, 0, 0.5);
+}
+
+#questList p, #questList div {
+  color: rgba(255, 176, 0, 0.8) !important;
+}
+
+/* Quest Progress Bar in CRT */
+#questList .bg-gray-800 {
+  background: #332200 !important;
+}
+
+#questList .bg-yellow-500 {
+  background: #ffb000 !important;
+  box-shadow: 0 0 5px rgba(255, 176, 0, 0.8);
+}
