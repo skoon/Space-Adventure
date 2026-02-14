@@ -337,7 +337,11 @@ export function winCombat() {
 
     const enemyName = state.enemy.name;
     const xpGained = Math.floor(state.enemy.attack * 2 + state.enemy.defense * 3);
-    const loot = ["Energy Cell", "Alien Crystal", "Data Chip"][Math.floor(Math.random() * 3)];
+    const creditsGained = Math.floor(xpGained * (0.8 + Math.random() * 0.4)); // Credits roughly equal to XP
+    
+    // Loot Logic
+    const dropTable = state.enemy.drops || ["Energy Cell", "Alien Crystal", "Data Chip"];
+    const loot = dropTable[Math.floor(Math.random() * dropTable.length)];
 
     // Clear enemy immediately to prevent further interactions
     state.enemy = null;
@@ -345,17 +349,17 @@ export function winCombat() {
     // Restore energy on victory
     state.character.energy = state.character.maxEnergy;
 
-    // Gain XP
+    // Rewards
     gainXp(xpGained);
-
-    // Check Quest Progress
     checkQuestProgress("kill", enemyName, 1);
-
-    // Add loot
+    
+    // Inventory & Credits
     state.inventory.push(loot);
+    state.character.credits = (state.character.credits || 0) + creditsGained;
 
+    // Log
     addLog(`You defeated the ${enemyName}!`);
-    addLog(`You gained ${xpGained} XP and found a ${loot}.`);
+    addLog(`You gained ${xpGained} XP, ${creditsGained} credits and found a ${loot}.`);
 
     // Show victory message
     showVictoryMessage(`Victory! ${enemyName} defeated!`);

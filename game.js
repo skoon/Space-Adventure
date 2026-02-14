@@ -28,31 +28,43 @@ const locations = {
     name: "Terra Prime",
     description: "A lush, earth-like planet with basic resources.",
     hazardLevel: 1,
-    unlocked: true
+    unlocked: true,
+    coordinates: { x: 100, y: 300 },
+    theme: "theme-terra",
+    travelCost: 0,
+    lootTable: ["Scrap Metal", "Rusty Pipe", "Herb", "Energy Cell", "Credits"]
   },
   "xylo_delta": {
     id: "xylo_delta",
     name: "Xylo Delta",
     description: "A desert world filled with dangerous scavengers.",
     hazardLevel: 2,
-    unlocked: true
+    unlocked: true,
+    coordinates: { x: 400, y: 150 },
+    theme: "theme-desert",
+    travelCost: 100,
+    lootTable: ["Sand Sample", "Ancient Shard", "Scrap Metal", "Credits"]
   },
   "nebula_outpost": {
     id: "nebula_outpost",
     name: "Nebula Outpost",
     description: "An abandoned space station drifting in the void.",
     hazardLevel: 3,
-    unlocked: true
+    unlocked: true,
+    coordinates: { x: 600, y: 400 },
+    theme: "theme-space",
+    travelCost: 250,
+    lootTable: ["Data Chip", "Alien Alloy", "Energy Cell", "Credits"]
   }
 };
 
 // Enemies data
 const enemies = [
-  { name: "Xenobot", hp: 50, attack: 10, defense: 3, locations: ["terra_prime", "nebula_outpost"] },
-  { name: "Plasmavore", hp: 40, attack: 12, defense: 2, locations: ["terra_prime", "xylo_delta"] },
-  { name: "Nano Swarm", hp: 30, attack: 8, defense: 1, locations: ["nebula_outpost"] },
-  { name: "Sand Worm", hp: 120, attack: 15, defense: 5, locations: ["xylo_delta"] },
-  { name: "Void Stalker", hp: 80, attack: 18, defense: 2, locations: ["nebula_outpost"] }
+  { name: "Xenobot", hp: 50, attack: 10, defense: 3, locations: ["terra_prime", "nebula_outpost"], drops: ["Scrap Metal", "Energy Cell"] },
+  { name: "Plasmavore", hp: 40, attack: 12, defense: 2, locations: ["terra_prime", "xylo_delta"], drops: ["Alien Crystal"] },
+  { name: "Nano Swarm", hp: 30, attack: 8, defense: 1, locations: ["nebula_outpost"], drops: ["Nano Stimpack", "Scrap Metal"] },
+  { name: "Sand Worm", hp: 120, attack: 15, defense: 5, locations: ["xylo_delta"], drops: ["Sand Sample", "Ancient Shard"] },
+  { name: "Void Stalker", hp: 80, attack: 18, defense: 2, locations: ["nebula_outpost"], drops: ["Alien Alloy", "Data Chip"] }
 ];
 
 // Quests data

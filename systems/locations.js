@@ -47,6 +47,20 @@ export function travelTo(locationId) {
         return false;
     }
 
+    const cost = location.travelCost || 0;
+    const currentCredits = state.character.credits || 0;
+
+    if (currentCredits < cost) {
+        addLog(`❌ Not enough credits! Travel to ${location.name} costs ${cost} credits.`);
+        return false;
+    }
+
+    // Deduct cost
+    if (cost > 0) {
+        state.character.credits = currentCredits - cost;
+        addLog(`Paid ${cost} credits for transport.`);
+    }
+
     state.currentLocation = locationId;
     addLog(`🚀 Traveling to ${location.name}...`);
     addLog(`ARRIVAL: ${location.description}`);

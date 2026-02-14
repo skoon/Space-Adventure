@@ -12,7 +12,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
@@ -34,6 +34,7 @@ header h1 {
   font-size: 2rem;
   font-weight: bold;
   background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -277,7 +278,6 @@ main {
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;
@@ -304,7 +304,6 @@ main {
 }
 
 @keyframes bounce {
-
   0%,
   100% {
     transform: translateX(-50%) translateY(0);
@@ -386,4 +385,82 @@ header button:hover {
     font-size: 1rem;
     padding: 0.75rem 1.5rem;
   }
+}
+
+/* Location Themes */
+.theme-terra {
+  background: linear-gradient(to bottom, #111827, #064e3b);
+  --primary-color: #10b981;
+}
+
+.theme-desert {
+  background: linear-gradient(to bottom, #111827, #7c2d12);
+  --primary-color: #f59e0b;
+}
+
+.theme-space {
+  background: linear-gradient(to bottom, #000000, #312e81);
+  --primary-color: #6366f1;
+}
+
+/* Map Visualization */
+.map-container {
+  background-color: #000;
+  border: 2px solid #374151;
+  border-radius: 0.5rem;
+  height: 300px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+.map-node {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: var(--card-background);
+  border: 2px solid var(--text-color);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s;
+}
+
+.map-node:hover {
+  transform: scale(1.5) translate(-33%, -33%); /* Correction for shared transform origin issues or just use standard scale */
+  /* Actually simpler: separate transform properties or just update scale */
+  box-shadow: 0 0 10px var(--primary-color);
+  border-color: var(--primary-color);
+  z-index: 20;
+}
+/* Fix hover transform conflict */
+.map-node:hover {
+  transform: translate(-50%, -50%) scale(1.5);
+}
+
+.map-node.current-location {
+  background-color: var(--primary-color);
+  box-shadow: 0 0 15px var(--primary-color);
+}
+
+.map-node.locked {
+  background-color: #374151;
+  border-color: #4b5563;
+  cursor: not-allowed;
+}
+
+.map-label {
+  position: absolute;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.75rem;
+  text-shadow: 0 1px 2px black;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 4px;
+  border-radius: 4px;
 }

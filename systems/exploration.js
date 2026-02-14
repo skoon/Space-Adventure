@@ -33,7 +33,8 @@ export function simulateExploration() {
 
     setTimeout(() => {
         // Use the new events system
-        const event = events.generateRandomEvent();
+        const locationId = state.currentLocation;
+        const event = events.generateRandomEvent(locationId);
         events.handleEvent(event);
 
         updateUI();

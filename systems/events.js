@@ -48,23 +48,15 @@ export function initEvents(dependencies) {
 /**
  * Generate a random event based on weights
  */
-export function generateRandomEvent() {
+/**
+ * Generate a random event based on weights and location
+ */
+export function generateRandomEvent(locationId) {
     const roll = Math.random();
-
+    const location = deps.data.locations[locationId];
+    
     // 5% Recipe Discovery
     if (roll < 0.05) {
-        // Need to import game recipes - assuming they are in deps.data or can be accessed via imported module in real game.
-        // But since this is a module, we should rely on deps. However recipes are local to game.js in current architecture.
-        // Wait, initEvents received deps.data.items, but maybe not recipes.
-        // I will assume recipes are passed in data or accessible.
-        // The plan says "const recipes = ..." in game.js. We need to make sure they are passed to events system.
-        // I will check initEvents in game.js later. For now, let's assume `deps.data.recipes` exists.
-        
-        // Actually, looking at game.js initEvents call:
-        // initEvents({ ...deps, ... }) -> deps contains data: { enemies, quests, items, locations }
-        // I haven't added recipes to `deps.data` in `game.js` yet! I need to do that.
-        // Assuming I will do that (it's a critical step), here I use it.
-        
         const recipes = deps?.data?.recipes || {};
         const unknownRecipes = Object.keys(recipes).filter(
             id => !state.character.knownRecipes?.[id]
@@ -74,7 +66,6 @@ export function generateRandomEvent() {
             const recipeId = unknownRecipes[Math.floor(Math.random() * unknownRecipes.length)];
             return { type: EVENT_TYPES.RECIPE, recipeId };
         }
-        // If all known, fall through to other events
     }
 
     // 10% Drop Box Event (only if pending orders exist)
@@ -82,70 +73,135 @@ export function generateRandomEvent() {
         return { type: EVENT_TYPES.DROPBOX };
     }
 
-    // 5% Travel Event (Transport Device) - adjusted range
-    if (roll < 0.15) {
+    // 5% Travel Event (Transport Device)
+    if (roll < 0.20) {
         return { type: EVENT_TYPES.TRAVEL };
     }
 
-    // 25% Combat (0.05 - 0.30)
-    if (roll < 0.30) {
+    // Location Specific Events (20% Chance - 0.20 to 0.40)
+    if (roll < 0.40 && location) {
+        if (locationId === 'terra_prime') {
+             // Terra Prime Specific
+             const subRoll = Math.random();
+             if (subRoll < 0.5) {
+                 return { 
+                     type: EVENT_TYPES.FLAVOR, 
+                     text: "You find a patch of rare medicinal herbs.", 
+                     item: "Herb", // Assumes Herb exists or just flavor text? Added to loot table but not items.js potentially.
+                     // Let's stick to safe items or credits
+                     credits: 50
+                 };
+             } else {
+                 return {
+                     type: EVENT_TYPES.LOOT,
+                     text: "You discover a hidden supply cache left by early settlers.",
+                     item: "Energy Cell",
+                     credits: 25
+                 };
+             }
+        } else if (locationId === 'xylo_delta') {
+            // Xylo Delta Specific
+            const subRoll = Math.random();
+             if (subRoll < 0.5) {
+                 return { 
+                     type: EVENT_TYPES.HAZARD, 
+                     text: "A sudden sandstorm obscures your vision and sandblasts your armor!", 
+                     damage: 15 
+                 };
+             } else {
+                 return {
+                     type: EVENT_TYPES.LOOT,
+                     text: "You find the wreckage of a scavenger skiff.",
+                     item: "Scrap Metal",
+                     credits: 80
+                 };
+             }
+        } else if (locationId === 'nebula_outpost') {
+            // Nebula Outpost Specific
+            const subRoll = Math.random();
+             if (subRoll < 0.5) {
+                 return { 
+                     type: EVENT_TYPES.FLAVOR, 
+                     text: "A ghost signal flickers on your comms, revealing a hidden compartment.", 
+                     xp: 50,
+                     credits: 100
+                 };
+             } else {
+                 return {
+                     type: EVENT_TYPES.COMBAT // Higher combat chance here effectively or specific enemy?
+                     // Let's just return combat, encounterEnemy handles location filtering
+                 };
+             }
+        }
+    }
+
+    // 25% Combat (0.40 - 0.65)
+    if (roll < 0.65) {
         return { type: EVENT_TYPES.COMBAT };
     }
 
-    // 15% Loot (0.30 - 0.45)
-    if (roll < 0.45) {
-        const lootTable = ["Energy Cell", "Data Chip", "Rusty Pipe", "Scrap Metal"];
+    // 15% Loot (0.65 - 0.80)
+    if (roll < 0.80) {
+        // Use location loot table if available
+        let lootTable = ["Energy Cell", "Data Chip", "Rusty Pipe", "Scrap Metal"];
+        if (location && location.lootTable) {
+            lootTable = location.lootTable;
+        }
+        
         const item = lootTable[Math.floor(Math.random() * lootTable.length)];
-        return {
+        
+        // Handle "Credits" as a special item case or separate property?
+        // Implementation plan said "Credits will be added to loot tables".
+        // If item is "Credits", we give credits.
+        
+        let event = {
             type: EVENT_TYPES.LOOT,
-            text: `You discovered an Abandoned Outpost and found a ${item}.`,
+            text: `You searched the area and found a ${item}.`,
             item: item
         };
+        
+        if (item === "Credits") {
+            const amount = 50 + Math.floor(Math.random() * 100);
+            event.text = `You found a credit chip worth ${amount} credits.`;
+            event.item = null;
+            event.credits = amount;
+        } else {
+            // Add small credit amount to normal loot actions too?
+            event.credits = 10 + Math.floor(Math.random() * 20);
+        }
+        
+        return event;
     }
 
-    // 15% Ancient Ruins (0.45 - 0.60)
-    if (roll < 0.60) {
+    // 10% Ancient Ruins / Flavor (0.80 - 0.90)
+    if (roll < 0.90) {
         return {
             type: EVENT_TYPES.FLAVOR,
             text: "You explored Ancient Ruins and deciphered glyphs.",
-            xp: 15
+            xp: 25,
+            credits: 20
         };
     }
 
-    // 10% Restore (0.60 - 0.70)
-    if (roll < 0.70) {
-        return {
+    // 10% Restore or Hazard or NPC (0.90 - 1.00)
+    // Let's mix them
+    const subRoll = Math.random();
+    if (subRoll < 0.33) {
+         return {
             type: EVENT_TYPES.RESTORE,
-            text: "You encountered a Strange Anomaly. Your energy is restored.",
-            stat: "energy",
-            amount: 100
+            text: "You found a functional regeneration station.",
+            stat: "hp",
+            amount: 50
         };
-    }
-
-    // 10% Hazard (0.70 - 0.80)
-    if (roll < 0.80) {
-        const hazards = [
-            { text: "A sudden radiation storm burns you!", damage: 10 },
-            { text: "Debris from an asteroid field hits you.", damage: 5 }
-        ];
-        const hazard = hazards[Math.floor(Math.random() * hazards.length)];
-        return {
-            type: EVENT_TYPES.HAZARD,
-            text: hazard.text,
-            damage: hazard.damage
-        };
-    }
-
-    // 10% NPC Encounter (0.80 - 0.90)
-    if (roll < 0.90) {
+    } else if (subRoll < 0.66) {
         return { type: EVENT_TYPES.NPC };
+    } else {
+         return {
+            type: EVENT_TYPES.HAZARD,
+            text: "Seismic activity causes a rockfall!",
+            damage: 8
+        };
     }
-
-    // 10% Quiet (0.90 - 1.00)
-    return {
-        type: EVENT_TYPES.FLAVOR,
-        text: "The landscape is quiet... for now."
-    };
 }
 
 /**
@@ -159,8 +215,14 @@ export function handleEvent(event) {
 
         case EVENT_TYPES.LOOT:
             addLog(event.text);
-            state.inventory.push(event.item);
-            checkQuestProgress("collect", event.item, 1);
+            if (event.item) {
+                state.inventory.push(event.item);
+                checkQuestProgress("collect", event.item, 1);
+            }
+            if (event.credits) {
+                state.character.credits = (state.character.credits || 0) + event.credits;
+                addLog(`You gained ${event.credits} credits.`);
+            }
             updateUI();
             break;
 
@@ -168,6 +230,10 @@ export function handleEvent(event) {
             addLog(event.text);
             if (event.xp) {
                 gainXp(event.xp);
+            }
+            if (event.credits) {
+                state.character.credits = (state.character.credits || 0) + event.credits;
+                addLog(`You gained ${event.credits} credits.`);
             }
             updateUI();
             break;

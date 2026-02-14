@@ -18,6 +18,37 @@ let currentQuestTab = "active";
 let levelUpNotification = null;
 let victoryMessage = null;
 
+// Render Cache
+const renderCache = {
+    character: {
+        name: null,
+        level: null,
+        race: null,
+        role: null,
+        avatar: null
+    },
+    stats: {
+        hp: null,
+        maxHp: null,
+        xp: null,
+        xpToNext: null,
+        credits: null,
+        attack: null,
+        defense: null
+    },
+    inventory: null, // text representation for comparison
+    equipment: {
+        weapon: null,
+        armor: null,
+        accessory: null
+    },
+    log: {
+        length: 0,
+        lastEntry: null
+    },
+    orders: 0
+};
+
 /**
  * Initialize the UI module with required dependencies
  */
@@ -25,6 +56,14 @@ export function initUI(deps) {
     // Store state object reference
     console.log("initUI called", deps);
     state = deps.state;
+
+    // Reset render cache
+    renderCache.character = { name: null, level: null, race: null, role: null, avatar: null };
+    renderCache.stats = { hp: null, maxHp: null, xp: null, xpToNext: null, credits: null, attack: null, defense: null };
+    renderCache.inventory = null;
+    renderCache.equipment = { weapon: null, armor: null, accessory: null };
+    renderCache.log = { length: 0, lastEntry: null };
+    renderCache.orders = 0;
 
     // Data
     items = deps.data.items;
@@ -58,6 +97,26 @@ export function initUI(deps) {
         getItemSellPrice = deps.shop.getItemSellPrice;
         orderItem = deps.shop.orderItem;
     }
+
+    // Apply initial theme
+    updateTheme();
+}
+
+/**
+ * Update the game theme based on current location
+ */
+function updateTheme() {
+    // Remove existing themes
+    document.body.classList.remove('theme-terra', 'theme-desert', 'theme-space');
+    
+    // Add new theme
+    const theme = state.currentLocation && deps.data.locations[state.currentLocation]?.theme;
+    if (theme) {
+        document.body.classList.add(theme);
+    } else {
+        // Default fallback (maybe terra?)
+        document.body.classList.add('theme-terra');
+    }
 }
 
 /**
@@ -90,6 +149,18 @@ export function addLog(message) {
  */
 export function updateMissionLog() {
     if (!missionLogElement) return;
+    
+    // Optimization: Check if log has changed
+    const currentLength = state.log.length;
+    const lastEntry = currentLength > 0 ? state.log[currentLength - 1] : null;
+    
+    if (renderCache.log.length === currentLength && renderCache.log.lastEntry === lastEntry) {
+        return;
+    }
+    
+    renderCache.log.length = currentLength;
+    renderCache.log.lastEntry = lastEntry;
+
     missionLogElement.innerHTML = "";
 
     state.log.slice(-10).reverse().forEach(entry => {
@@ -129,120 +200,221 @@ export function getStatusEffectIcon(type) {
 
 /**
  * Update UI with current character stats
+ * Optimized to only update changed elements
  */
 export function updateUI() {
     if (!state.character) return;
 
-    // Character info
-    if (elements.characterName) elements.characterName.textContent = state.character.name;
-    if (elements.characterLevel) elements.characterLevel.textContent = state.character.level;
-    if (elements.characterHp) elements.characterHp.textContent = state.character.hp;
-    if (elements.characterMaxHp) elements.characterMaxHp.textContent = state.character.maxHp;
-    if (elements.characterEnergy) elements.characterEnergy.textContent = state.character.energy;
-    if (elements.characterMaxEnergy) elements.characterMaxEnergy.textContent = state.character.maxEnergy;
+    updateTheme(); // Ensure theme matches location
+    updateCharacterInfo();
+    updateStats();
+    updateBars();
+    updateInventory();
+    updateEquipment();
+    updateMissionLog();
+    updatePendingOrders();
+}
 
-    if (elements.characterCredits) {
-        elements.characterCredits.textContent = state.character.credits || 0;
+function updateCharacterInfo() {
+    const char = state.character;
+    
+    if (renderCache.character.name !== char.name) {
+        if (elements.characterName) elements.characterName.textContent = char.name;
+        renderCache.character.name = char.name;
+    }
+    
+    if (renderCache.character.level !== char.level) {
+        if (elements.characterLevel) elements.characterLevel.textContent = char.level;
+        renderCache.character.level = char.level;
+    }
+    
+    const avatar = getCharacterAvatar(char.race, char.role);
+    if (renderCache.character.avatar !== avatar) {
+        if (elements.characterAvatar) elements.characterAvatar.textContent = avatar;
+        renderCache.character.avatar = avatar;
+    }
+    
+    const raceRole = `${char.race} ${char.role}`;
+    if (renderCache.character.raceRole !== raceRole) {
+        if (elements.characterRaceRole) elements.characterRaceRole.textContent = raceRole;
+        renderCache.character.raceRole = raceRole;
+    }
+}
+
+function updateStats() {
+    const char = state.character;
+    const stats = getEffectiveStats();
+    
+    // HP
+    if (renderCache.stats.hp !== char.hp) {
+        if (elements.characterHp) elements.characterHp.textContent = char.hp;
+        renderCache.stats.hp = char.hp;
+    }
+    if (renderCache.stats.maxHp !== char.maxHp) {
+        if (elements.characterMaxHp) elements.characterMaxHp.textContent = char.maxHp;
+        renderCache.stats.maxHp = char.maxHp;
     }
 
-    const stats = getEffectiveStats();
-    if (elements.characterAtk) elements.characterAtk.textContent = stats.attack;
-    if (elements.characterDef) elements.characterDef.textContent = stats.defense;
+    // Energy
+    if (elements.characterEnergy && renderCache.stats.energy !== char.energy) {
+        elements.characterEnergy.textContent = char.energy;
+        renderCache.stats.energy = char.energy;
+    }
+    if (elements.characterMaxEnergy && renderCache.stats.maxEnergy !== char.maxEnergy) {
+        elements.characterMaxEnergy.textContent = char.maxEnergy;
+        renderCache.stats.maxEnergy = char.maxEnergy;
+    }
+    
+    // XP
+    if (renderCache.stats.xp !== char.xp) {
+        if (elements.characterXp) elements.characterXp.textContent = char.xp;
+        renderCache.stats.xp = char.xp;
+    }
+    
+    const xpToNext = char.level * 100;
+    if (renderCache.stats.xpToNext !== xpToNext) {
+        if (elements.characterXpToNext) elements.characterXpToNext.textContent = xpToNext;
+        renderCache.stats.xpToNext = xpToNext;
+    }
+    
+    // Credits
+    if (renderCache.stats.credits !== char.credits) {
+        if (elements.characterCredits) elements.characterCredits.textContent = char.credits || 0;
+        renderCache.stats.credits = char.credits;
+    }
+    
+    // Effective Stats
+    if (renderCache.stats.attack !== stats.attack) {
+        if (elements.characterAtk) elements.characterAtk.textContent = stats.attack;
+        renderCache.stats.attack = stats.attack;
+    }
+    if (renderCache.stats.defense !== stats.defense) {
+        if (elements.characterDef) elements.characterDef.textContent = stats.defense;
+        renderCache.stats.defense = stats.defense;
+    }
+}
 
-    if (elements.characterXp) elements.characterXp.textContent = state.character.xp;
-    const xpToNext = state.character.level * 100;
-    if (elements.characterXpToNext) elements.characterXpToNext.textContent = xpToNext;
-
-    // XP Bar
-    const xpPercentage = (state.character.xp / xpToNext) * 100;
+function updateBars() {
+    const char = state.character;
+    const xpToNext = char.level * 100;
+    
+    // We update bars every time updateStats runs, but actually we can check if values involved changed.
+    // However, bars are derived. Let's just update them if HP or XP changed.
+    
+    const xpPercentage = (char.xp / xpToNext) * 100;
     const xpBar = document.getElementById("xpBar");
     if (xpBar) xpBar.style.width = `${xpPercentage}%`;
 
-    // HP Bar
-    const hpPercentage = (state.character.hp / state.character.maxHp) * 100;
+    const hpPercentage = (char.hp / char.maxHp) * 100;
     const hpBar = document.getElementById("hpBar");
     if (hpBar) hpBar.style.width = `${hpPercentage}%`;
+}
 
-    // Character Avatar
-    if (elements.characterAvatar) {
-        elements.characterAvatar.textContent = getCharacterAvatar(state.character.race, state.character.role);
+function updateInventory() {
+    if (!inventoryElement) return;
+    
+    // Create a signature of the inventory to check for changes
+    // Sort logic in rendering can affect display, but underlying data is state.inventory
+    // We simply JSON stringify state.inventory to detect add/remove
+    const inventorySig = JSON.stringify(state.inventory);
+    
+    if (renderCache.inventory === inventorySig) {
+        // Inventory hasn't changed
+        // Check heal button only
+        updateHealButton();
+        return;
     }
+    
+    renderCache.inventory = inventorySig;
+    inventoryElement.innerHTML = "";
+    
+    // Count items
+    const itemCounts = {};
+    state.inventory.forEach(item => {
+        itemCounts[item] = (itemCounts[item] || 0) + 1;
+    });
+    
+    // Group by category
+    const categorized = {
+        equipment: [],
+        consumable: [],
+        material: [],
+        other: []
+    };
+    
+    Object.entries(itemCounts).forEach(([itemName, count]) => {
+        const item = items[itemName];
+        const category = item?.category || 'other';
+        if (categorized[category]) {
+            categorized[category].push({ name: itemName, count, item });
+        } else {
+            categorized['other'].push({ name: itemName, count, item });
+        }
+    });
+    
+    // Render by category
+    ['equipment', 'consumable', 'material', 'other'].forEach(cat => {
+        if (categorized[cat].length > 0) {
+            const header = document.createElement('div');
+            header.className = 'text-xs font-bold text-gray-400 mt-2 mb-1 uppercase tracking-wider';
+            header.textContent = cat;
+            inventoryElement.appendChild(header);
+            
+            categorized[cat].forEach(({ name, count, item }) => {
+                const button = createInventoryItemButton(name, count, item);
+                inventoryElement.appendChild(button);
+            });
+        }
+    });
+    
+    updateHealButton();
+}
 
-    // Race and Role
-    if (elements.characterRaceRole) {
-        elements.characterRaceRole.textContent = `${state.character.race} ${state.character.role}`;
-    }
-
-    // Inventory
-    if (inventoryElement) {
-        inventoryElement.innerHTML = "";
-        
-        // Count items
-        const itemCounts = {};
-        state.inventory.forEach(item => {
-            itemCounts[item] = (itemCounts[item] || 0) + 1;
-        });
-        
-        // Group by category
-        const categorized = {
-            equipment: [],
-            consumable: [],
-            material: [],
-            other: []
-        };
-        
-        Object.entries(itemCounts).forEach(([itemName, count]) => {
-            const item = items[itemName];
-            const category = item?.category || 'other';
-            if (categorized[category]) {
-                categorized[category].push({ name: itemName, count, item });
-            } else {
-                categorized['other'].push({ name: itemName, count, item });
-            }
-        });
-        
-        // Render by category
-        ['equipment', 'consumable', 'material', 'other'].forEach(cat => {
-            if (categorized[cat].length > 0) {
-                const header = document.createElement('div');
-                header.className = 'text-xs font-bold text-gray-400 mt-2 mb-1 uppercase tracking-wider';
-                header.textContent = cat;
-                inventoryElement.appendChild(header);
-                
-                categorized[cat].forEach(({ name, count, item }) => {
-                    const button = createInventoryItemButton(name, count, item);
-                    inventoryElement.appendChild(button);
-                });
-            }
-        });
-    }
-
-    // Heal button state
+function updateHealButton() {
     const healButton = document.getElementById("healButton");
     if (healButton) {
         const hasHeal = state.inventory.includes("Energy Cell") && state.character?.hp < state.character?.maxHp;
-        healButton.disabled = !hasHeal;
-        healButton.className = `heal-button ${hasHeal ? "" : "disabled-button"}`;
+        // Optimization: check if class/disabled actually needs changing? 
+        // DOM operations are cheap for properties, expensive for layout
+        if (healButton.disabled !== !hasHeal) {
+             healButton.disabled = !hasHeal;
+             healButton.className = `heal-button ${hasHeal ? "" : "disabled-button"}`;
+        }
     }
+}
 
-    // Equipment Slots
-    if (state.character.equipment) {
+function updateEquipment() {
+    if (!state.character || !state.character.equipment) return;
+    
+    const equip = state.character.equipment;
+    
+    if (renderCache.equipment.weapon !== equip.weapon) {
         const weaponEl = document.getElementById("equipWeapon");
-        const armorEl = document.getElementById("equipArmor");
-        const accessoryEl = document.getElementById("equipAccessory");
-
-        if (weaponEl) weaponEl.textContent = state.character.equipment.weapon || "Empty";
-        if (armorEl) armorEl.textContent = state.character.equipment.armor || "Empty";
-        if (accessoryEl) accessoryEl.textContent = state.character.equipment.accessory || "Empty";
+        if (weaponEl) weaponEl.textContent = equip.weapon || "Empty";
+        renderCache.equipment.weapon = equip.weapon;
     }
+    
+    if (renderCache.equipment.armor !== equip.armor) {
+        const armorEl = document.getElementById("equipArmor");
+        if (armorEl) armorEl.textContent = equip.armor || "Empty";
+        renderCache.equipment.armor = equip.armor;
+    }
+    
+    if (renderCache.equipment.accessory !== equip.accessory) {
+        const accessoryEl = document.getElementById("equipAccessory");
+        if (accessoryEl) accessoryEl.textContent = equip.accessory || "Empty";
+        renderCache.equipment.accessory = equip.accessory;
+    }
+}
 
-    // Update logs
-    updateMissionLog();
-
-    // Update pending orders count
-    const pendingOrdersEl = document.getElementById("characterPendingOrders");
-    if (pendingOrdersEl && state.character) {
-        pendingOrdersEl.textContent = state.character.pendingOrders?.length || 0;
+function updatePendingOrders() {
+    const pendingCount = state.character.pendingOrders?.length || 0;
+    if (renderCache.orders !== pendingCount) {
+        const pendingOrdersEl = document.getElementById("characterPendingOrders");
+        if (pendingOrdersEl) {
+            pendingOrdersEl.textContent = pendingCount;
+        }
+        renderCache.orders = pendingCount;
     }
 }
 
@@ -480,35 +652,132 @@ export function showTravelScreen() {
     if (!modal || !container || !getUnlockedLocations) return;
 
     container.innerHTML = "";
+    
     const locations = getUnlockedLocations();
+
+    // MAP VISUALIZATION
+    const mapContainer = document.createElement("div");
+    mapContainer.className = "map-container";
+    
+    // Draw connections (simple SVG lines)
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", "100%");
+    svg.setAttribute("height", "100%");
+    svg.style.position = "absolute";
+    svg.style.top = "0";
+    svg.style.left = "0";
+    
+    // Define connections (manual for now, or just connect all to Nebula?)
+    // Let's connect Terra -> Xylo -> Nebula
+    const connections = [
+        { from: "terra_prime", to: "xylo_delta" },
+        { from: "xylo_delta", to: "nebula_outpost" },
+        // Shortcuts? Terra -> Nebula (Long range)
+        { from: "terra_prime", to: "nebula_outpost" }
+    ];
+    
+    connections.forEach(conn => {
+        const fromLoc = locations.find(l => l.id === conn.from);
+        const toLoc = locations.find(l => l.id === conn.to);
+        
+        if (fromLoc && toLoc) {
+             // Coordinate mapping: Game defines coordinates like x:100, y:300.
+             // Assume defaults: Map 800x600?
+             // Let's map to percentage. x/800 * 100, y/600 * 100
+             const x1 = (fromLoc.coordinates?.x || 0) / 8 + "%";
+             const y1 = (fromLoc.coordinates?.y || 0) / 6 + "%";
+             const x2 = (toLoc.coordinates?.x || 0) / 8 + "%";
+             const y2 = (toLoc.coordinates?.y || 0) / 6 + "%";
+             
+             const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+             line.setAttribute("x1", x1);
+             line.setAttribute("y1", y1);
+             line.setAttribute("x2", x2);
+             line.setAttribute("y2", y2);
+             line.setAttribute("stroke", "#4b5563"); // Gray-600
+             line.setAttribute("stroke-width", "2");
+             // Dashed line for effect
+             line.setAttribute("stroke-dasharray", "5,5");
+             svg.appendChild(line);
+        }
+    });
+    
+    mapContainer.appendChild(svg);
+    
+    // Draw Nodes
+    locations.forEach(loc => {
+         const node = document.createElement("div");
+         const isCurrent = state.currentLocation === loc.id;
+         node.className = `map-node ${isCurrent ? 'current-location' : ''}`;
+         
+         // Position
+         node.style.left = (loc.coordinates?.x || 100) / 8 + "%";
+         node.style.top = (loc.coordinates?.y || 100) / 6 + "%";
+         
+         // Tooltip / Label
+         const label = document.createElement("div");
+         label.className = "map-label text-xs";
+         label.innerHTML = `${loc.name}`;
+         node.appendChild(label);
+         
+         if (!isCurrent) {
+             node.onclick = () => {
+                 if (travelTo(loc.id)) {
+                     updateTheme();
+                     modal.classList.add("hidden");
+                 }
+             };
+         }
+         
+         mapContainer.appendChild(node);
+    });
+
+    container.appendChild(mapContainer);
+
+    // List View (Compact)
+    const listContainer = document.createElement("div");
+    listContainer.className = "grid grid-cols-1 gap-2";
 
     locations.forEach(loc => {
         const isCurrent = state.currentLocation === loc.id;
+        const currentCredits = state.character.credits || 0;
+        const canAfford = currentCredits >= (loc.travelCost || 0);
+        
         const card = document.createElement("div");
-        card.className = `p-4 rounded border transition-all ${isCurrent ? 'bg-blue-900 border-blue-400' : 'bg-gray-700 border-gray-600 hover:border-white cursor-pointer'}`;
+        card.className = `p-3 rounded border flex justify-between items-center ${isCurrent ? 'bg-blue-900 border-blue-400' : 'bg-gray-700 border-gray-600'}`;
 
         card.innerHTML = `
-            <div class="text-xl font-bold mb-2 ${isCurrent ? 'text-blue-300' : 'text-gray-200'}">${loc.name}</div>
-            <div class="text-sm text-gray-400 mb-3 h-12">${loc.description}</div>
-            <div class="flex justify-between items-center text-xs">
-                <span class="text-yellow-500">Hazard Lv.${loc.hazardLevel}</span>
-                ${isCurrent ? '<span class="text-blue-400 font-bold">CURRENT</span>' : ''}
+            <div>
+                <div class="font-bold ${isCurrent ? 'text-blue-300' : 'text-gray-200'}">${loc.name}</div>
+                <div class="text-xs text-gray-400">${loc.description}</div>
+            </div>
+            <div class="text-right">
+                ${isCurrent ? 
+                    '<span class="text-blue-400 font-bold text-sm">CURRENT</span>' : 
+                    `<button class="px-3 py-1 rounded text-sm font-bold ${canAfford ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-red-900 text-gray-400 cursor-not-allowed'}" 
+                        onclick="window.travelToLocation('${loc.id}')" ${!canAfford ? 'disabled' : ''}>
+                        Travel (${loc.travelCost || 0} cr)
+                    </button>`
+                }
             </div>
         `;
-
-        if (!isCurrent) {
-            card.onclick = () => {
-                if (travelTo(loc.id)) {
-                    modal.classList.add("hidden");
-                }
-            };
-        }
-
-        container.appendChild(card);
+        
+        listContainer.appendChild(card);
     });
-
+    
+    container.appendChild(listContainer);
     modal.classList.remove("hidden");
 }
+
+// Global helper for the button
+window.travelToLocation = function(locId) {
+    if (travelTo(locId)) {
+        // Theme update is handled in updateUI usually, but clean to force check
+        // Ideally updateUI calls updateTheme?
+        // Let's add updateTheme to updateUI to be sure
+        document.getElementById("travelScreen").classList.add("hidden");
+    }
+};
 
 let currentShopTab = 'buy';
 
