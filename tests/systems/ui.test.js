@@ -25,7 +25,8 @@ describe('UI System', () => {
                 pendingOrders: []
             },
             inventory: ['Energy Cell'],
-            log: []
+            log: [],
+            currentLocation: 'terra_prime'
         };
 
         // Mock Data
@@ -33,7 +34,10 @@ describe('UI System', () => {
             items: {
                 'Energy Cell': { category: 'consumable', description: 'Heals 30 HP' }
             },
-            quests: {}
+            quests: {},
+            locations: {
+                'terra_prime': { theme: 'theme-terra' }
+            }
         };
 
         // Mock DOM Elements

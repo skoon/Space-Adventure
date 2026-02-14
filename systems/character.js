@@ -33,6 +33,12 @@ export function initCharacter(deps) {
 export function createCharacter(event) {
     event.preventDefault();
 
+    if (!state) {
+        console.error("Character system not initialized: state is undefined");
+        alert("Game initialization failed. Please refresh the page.");
+        return;
+    }
+
     const name = document.getElementById("nameInput").value;
     const race = document.getElementById("raceSelect").value;
     const role = document.getElementById("roleSelect").value;
