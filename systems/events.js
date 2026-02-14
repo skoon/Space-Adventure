@@ -68,14 +68,14 @@ export function generateRandomEvent(locationId) {
         }
     }
 
-    // 10% Drop Box Event (only if pending orders exist)
-    if (roll < 0.15 && state.character?.pendingOrders?.length > 0) {
-        return { type: EVENT_TYPES.DROPBOX };
+    // 3% Travel Event (Transport Device) - Rare!
+    if (roll < 0.08) {
+        return { type: EVENT_TYPES.TRAVEL };
     }
 
-    // 5% Travel Event (Transport Device)
-    if (roll < 0.20) {
-        return { type: EVENT_TYPES.TRAVEL };
+    // 10% Drop Box Event (only if pending orders exist)
+    if (roll < 0.18 && state.character?.pendingOrders?.length > 0) {
+        return { type: EVENT_TYPES.DROPBOX };
     }
 
     // Location Specific Events (20% Chance - 0.20 to 0.40)
