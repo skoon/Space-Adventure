@@ -464,3 +464,85 @@ header button:hover {
   padding: 2px 4px;
   border-radius: 4px;
 }
+
+/* Quest Terminal (Amber CRT) */
+.quest-terminal-container {
+  cursor: pointer;
+  width: 100%;
+  max-width: 200px;
+  transition: transform 0.2s;
+}
+
+.quest-terminal-container:hover {
+  transform: scale(1.02);
+}
+
+.terminal-frame {
+  background-color: #2d2d2d;
+  border-radius: 8px;
+  padding: 8px;
+  border-bottom: 4px solid #1a1a1a;
+  border-right: 4px solid #1a1a1a;
+  border-top: 2px solid #3d3d3d;
+  border-left: 2px solid #3d3d3d;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.terminal-screen {
+  background-color: #1a0f00; /* Very dark amber/brown background */
+  border-radius: 4px; /* Slight curve for screen */
+  padding: 8px;
+  font-family: 'Courier New', Courier, monospace;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #332200;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Amber CRT glow */
+.crt-amber {
+  color: #ffb000;
+  text-shadow: 0 0 5px rgba(255, 176, 0, 0.5);
+}
+
+/* Scanline effect */
+.terminal-screen::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 2;
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+}
+
+.terminal-header {
+  font-size: 0.7rem;
+  border-bottom: 1px solid #ffb000;
+  margin-bottom: 4px;
+  padding-bottom: 2px;
+  opacity: 0.8;
+}
+
+.terminal-content {
+  font-size: 0.9rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.blink {
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
