@@ -66,7 +66,7 @@ export function discoverRecipe(recipeId, recipeDef) {
     
     if (!state.character.knownRecipes[recipeId]) {
         state.character.knownRecipes[recipeId] = recipeDef;
-        addLog(`📜 Discovered recipe: ${recipeDef.name}!`);
+        addLog(`[!] Discovered recipe: ${recipeDef.name}!`);
         updateUI();
         return true;
     }

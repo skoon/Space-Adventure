@@ -306,7 +306,7 @@ export function handleEvent(event) {
             
             if (recipeDef) {
                 showDialog(
-                    "📜 Recipe Discovery",
+                    "[!] Recipe Discovery",
                     `You found a crafting schematic!<br><br><strong>${recipeDef.name}</strong><br>${recipeDef.description}`,
                     [{
                         text: "Learn Recipe",
