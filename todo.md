@@ -65,8 +65,8 @@
 
 - [x] **Multiple Planets/Areas** - Different locations with unique themes
 - [x] **Location-Specific Enemies** - Different enemy types per location
-- [ ] **Location-Specific Events** - Unique random events per area
-- [ ] **Location-Specific Loot** - Area-specific items and rewards
+- [x] **Location-Specific Events** - Unique random events per area
+- [x] **Location-Specific Loot** - Area-specific items and rewards
 - [x] **Travel System** - UI for selecting destinations
 
 ### Quest System
@@ -150,6 +150,12 @@
 - [ ] **Leaderboard UI** - Display rankings
 
 ## 🎨 UI/UX Enhancements
+
+### Visual Style
+
+- [x] **Retro Sci-Fi Theme** - Flash Gordon/Buck Rogers styling for stats
+- [x] **CRT Effects** - Amber monitors for Quest Log and terminals
+- [x] **Map Visualization** - Visual travel map with location highlighting
 
 ### Animations & Effects
 
