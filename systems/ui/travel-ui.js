@@ -148,3 +148,5 @@ export function travelToLocation(locId) {
         updateUI();
     }
 }
+
+window.travelToLocation = travelToLocation;
