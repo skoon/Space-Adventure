@@ -11,11 +11,12 @@ import { initCharacter, createCharacter, gainXp, getCharacterAvatar, useHealItem
 import { initExploration, simulateExploration, travelDeeper } from './systems/exploration.js';
 import { initEvents, generateRandomEvent, handleEvent } from './systems/events.js';
 import { initSaveLoad, saveGame, loadGame, exportGame, importGame, autoSave, initializeSaveSystem } from './systems/saveload.js';
-import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog, showTravelScreen } from './systems/ui.js';
+import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog, showTravelScreen, showSettingsModal } from './systems/ui.js';
 import { initInventory, openCombatItemMenu, closeCombatItemMenu, useCombatItem } from './systems/inventory.js';
 import { initLocations, travelTo, getLocationDetails, getUnlockedLocations } from './systems/locations.js';
 import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem, claimAllOrders } from './systems/shop.js';
 import { initCrafting, craftItem, discoverRecipe, getKnownRecipes, canCraft } from './systems/crafting.js';
+import { initSettings, getDifficulty, setDifficulty } from './systems/settings.js';
 
 // ============================================
 // GAME DATA
@@ -303,7 +304,8 @@ function initializeGame() {
     state,
     data: { enemies, quests, items, locations, recipes },
     dom: { screens, elements, inventoryElement, missionLogElement, combatElements },
-    locations: { getUnlockedLocations, travelTo }
+    locations: { getUnlockedLocations, travelTo },
+    settings: { getDifficulty, setDifficulty }
   };
 
   // Initialize UI first (needed by other modules)
@@ -415,6 +417,9 @@ function initializeGame() {
     ...deps,
     ui: { addLog, updateUI }
   });
+
+  // Initialize Settings
+  initSettings();
 }
 
 // ============================================
@@ -466,4 +471,9 @@ window.useSpecialAbility = useSpecialAbility;
 window.openCombatItemMenu = openCombatItemMenu;
 window.closeCombatItemMenu = closeCombatItemMenu;
 window.useCombatItem = useCombatItem;
+window.closeCombatItemMenu = closeCombatItemMenu;
+window.useCombatItem = useCombatItem;
 window.hideLevelUpNotification = hideLevelUpNotification;
+window.setDifficulty = setDifficulty;
+window.getDifficulty = getDifficulty;
+window.showSettingsModal = showSettingsModal;

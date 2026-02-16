@@ -13,6 +13,7 @@ let enemies, combatElements;
 let addLog, updateCombatLog, showScreen, updateUI;
 let getEffectiveStats, getCharacterAvatar, getStatusEffectIcon;
 let gainXp, checkQuestProgress, showVictoryMessage, simulateExploration;
+let getDifficulty;
 
 /**
  * Initialize the combat module with required dependencies
@@ -37,6 +38,7 @@ export function initCombat(deps) {
     checkQuestProgress = deps.quests.checkQuestProgress;
     showVictoryMessage = deps.ui.showVictoryMessage;
     simulateExploration = deps.exploration.simulateExploration;
+    getDifficulty = deps.settings.getDifficulty;
 }
 
 /**
@@ -68,9 +70,14 @@ export function encounterEnemy() {
     // Fallback if no specific enemies found (shouldn't happen with good data)
     if (availableEnemies.length === 0) availableEnemies = enemies;
 
+    const difficulty = getDifficulty ? getDifficulty() : { enemyHpModifier: 1.0, enemyDmgModifier: 1.0 };
     const randomEnemy = { ...availableEnemies[Math.floor(Math.random() * availableEnemies.length)] };
-    randomEnemy.hp = Math.floor(randomEnemy.hp * (0.8 + Math.random() * 0.4));
+    
+    // Apply difficulty modifiers
+    const hpRandomness = 0.8 + Math.random() * 0.4; // Variance
+    randomEnemy.hp = Math.floor(randomEnemy.hp * hpRandomness * difficulty.enemyHpModifier);
     randomEnemy.maxHp = randomEnemy.hp;
+    randomEnemy.attack = Math.floor(randomEnemy.attack * difficulty.enemyDmgModifier);
 
     state.enemy = randomEnemy;
     state.playerStatusEffects = [];

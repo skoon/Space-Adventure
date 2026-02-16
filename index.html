@@ -141,6 +141,31 @@
                 </select>
               </div>
 
+              <div class="mb-6">
+                <label
+                  for="difficultySelect"
+                  class="block text-sm font-medium text-gray-300 mb-1"
+                  >Difficulty</label
+                >
+                <select
+                  id="difficultySelect"
+                  class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="easy">
+                    Easy - Story Focus (70% Enemy Stats)
+                  </option>
+                  <option value="normal" selected>
+                    Normal - Standard Experience
+                  </option>
+                  <option value="hard">
+                    Hard - Veteran Challenge (130% Enemy Stats)
+                  </option>
+                </select>
+                <p id="difficultyDesc" class="text-xs text-gray-400 mt-1">
+                  The standard experience.
+                </p>
+              </div>
+
               <button
                 type="submit"
                 class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded font-bold transition-colors"
@@ -155,21 +180,32 @@
         <div id="exploringScreen" class="screen game-ui">
           <div class="flex flex-col h-full">
             <div class="flex-grow overflow-y-auto p-4">
-              <!-- Location Header -->
-              <div
-                class="mb-4 bg-gray-900 border-2 border-blue-500 rounded p-2 text-center shadow-lg relative overflow-hidden"
-              >
+              <div class="flex justify-between items-center mb-4 gap-2">
+                <!-- Location Header -->
                 <div
-                  class="absolute inset-0 bg-blue-500 opacity-10 animate-pulse"
-                ></div>
-                <h2
-                  class="text-xl md:text-2xl font-bold text-blue-300 relative z-10 tracking-widest uppercase"
+                  class="flex-grow bg-gray-900 border-2 border-blue-500 rounded p-2 text-center shadow-lg relative overflow-hidden"
                 >
-                  LOCATION:
-                  <span id="currentLocationDisplay" class="text-white"
-                    >UNKNOWN SECTOR</span
+                  <div
+                    class="absolute inset-0 bg-blue-500 opacity-10 animate-pulse"
+                  ></div>
+                  <h2
+                    class="text-xl md:text-2xl font-bold text-blue-300 relative z-10 tracking-widest uppercase"
                   >
-                </h2>
+                    LOCATION:
+                    <span id="currentLocationDisplay" class="text-white"
+                      >UNKNOWN SECTOR</span
+                    >
+                  </h2>
+                </div>
+                <!-- Settings Button -->
+                <button
+                  id="settingsBtn"
+                  class="bg-gray-800 border-2 border-gray-500 rounded p-2 text-2xl hover:bg-gray-700 hover:border-gray-400 transition-colors shadow-lg h-full flex items-center justify-center w-16"
+                  onclick="showSettingsModal()"
+                  title="Settings"
+                >
+                  ⚙️
+                </button>
               </div>
 
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">

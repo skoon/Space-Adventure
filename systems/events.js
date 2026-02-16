@@ -250,13 +250,21 @@ export function handleEvent(event) {
 
         case EVENT_TYPES.HAZARD:
             addLog(event.text);
-            state.character.hp = Math.max(0, state.character.hp - event.damage);
+            const difficulty = (deps.settings && deps.settings.getDifficulty) 
+                ? deps.settings.getDifficulty() 
+                : { hazardDmgModifier: 1.0 };
+                
+            const damage = Math.ceil(event.damage * difficulty.hazardDmgModifier);
+            
+            state.character.hp = Math.max(0, state.character.hp - damage);
             if (state.character.hp <= 0) {
                 // Handle death if necessary, though usually combat handles this.
                 // For now, let's just ensure they don't die from random events without a fight or check.
                 // Or maybe they do? Let's keep it simple: 1 HP min for hazards to avoid cheap deaths.
                 if (state.character.hp === 0) state.character.hp = 1;
-                addLog("You barely survived the hazard!");
+                addLog(`You took ${damage} damage and barely survived!`);
+            } else {
+                addLog(`You took ${damage} damage.`);
             }
             updateUI();
             break;

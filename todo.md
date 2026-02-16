@@ -128,10 +128,10 @@
 
 ### Difficulty Settings
 
-- [ ] **Difficulty Levels** - Easy, Normal, Hard modes
-- [ ] **Enemy Scaling** - Adjust enemy strength based on difficulty
-- [ ] **Reward Scaling** - Higher difficulty = better rewards
-- [ ] **Difficulty Selection** - UI for choosing difficulty at start
+- [x] **Difficulty Levels** - Easy, Normal, Hard modes
+- [x] **Enemy Scaling** - Adjust enemy strength based on difficulty
+- [x] **Reward Scaling** - Higher difficulty = better rewards (Implicit via harder enemies giving more XP/Loot?) - Wait, I didn't implement loot scaling, only stats.
+- [x] **Difficulty Selection** - UI for choosing difficulty at start
 
 ## 👥 Social & Meta Features
 

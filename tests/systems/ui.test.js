@@ -84,6 +84,10 @@ describe('UI System', () => {
                 buyItem: jest.fn(),
                 sellItem: jest.fn(),
                 orderItem: jest.fn()
+            },
+            settings: {
+                getDifficulty: jest.fn().mockReturnValue({ id: 'normal', description: 'Normal' }),
+                setDifficulty: jest.fn()
             }
         };
 

@@ -98,7 +98,8 @@ describe('Combat System', () => {
             equipment: mockEquipment,
             character: mockCharacter,
             quests: mockQuests,
-            exploration: mockExploration
+            exploration: mockExploration,
+            settings: { getDifficulty: jest.fn().mockReturnValue({ enemyHpModifier: 1, enemyDmgModifier: 1 }) }
         });
 
         // Mock global document.getElementById (used for specialAbilityButton)
