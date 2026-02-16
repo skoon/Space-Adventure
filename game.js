@@ -18,192 +18,50 @@ import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem,
 import { initCrafting, craftItem, discoverRecipe, getKnownRecipes, canCraft } from './systems/crafting.js';
 import { initSettings, getDifficulty, setDifficulty } from './systems/settings.js';
 
+import { locations } from './data/locations.js';
+import { enemies } from './data/enemies.js';
+import { quests } from './data/quests.js';
+import { recipes } from './data/recipes.js';
+import { items } from './data/items.js';
+
 // ============================================
 // GAME DATA
 // ============================================
 
 // Locations Data
-const locations = {
-  "terra_prime": {
-    id: "terra_prime",
-    name: "Terra Prime",
-    description: "A lush, earth-like planet with basic resources.",
-    hazardLevel: 1,
-    unlocked: true,
-    coordinates: { x: 100, y: 300 },
-    theme: "theme-terra",
-    travelCost: 0,
-    lootTable: ["Scrap Metal", "Rusty Pipe", "Herb", "Energy Cell", "Credits"]
-  },
-  "xylo_delta": {
-    id: "xylo_delta",
-    name: "Xylo Delta",
-    description: "A desert world filled with dangerous scavengers.",
-    hazardLevel: 2,
-    unlocked: true,
-    coordinates: { x: 400, y: 150 },
-    theme: "theme-desert",
-    travelCost: 100,
-    lootTable: ["Sand Sample", "Ancient Shard", "Scrap Metal", "Credits"]
-  },
-  "nebula_outpost": {
-    id: "nebula_outpost",
-    name: "Nebula Outpost",
-    description: "An abandoned space station drifting in the void.",
-    hazardLevel: 3,
-    unlocked: true,
-    coordinates: { x: 600, y: 400 },
-    theme: "theme-space",
-    travelCost: 250,
-    lootTable: ["Data Chip", "Alien Alloy", "Energy Cell", "Credits"]
-  }
-};
+// Locations Data (Moved to data/locations.js)
 
 // Enemies data
-const enemies = [
-  { name: "Xenobot", hp: 50, attack: 10, defense: 3, locations: ["terra_prime", "nebula_outpost"], drops: ["Scrap Metal", "Energy Cell"] },
-  { name: "Plasmavore", hp: 40, attack: 12, defense: 2, locations: ["terra_prime", "xylo_delta"], drops: ["Alien Crystal"] },
-  { name: "Nano Swarm", hp: 30, attack: 8, defense: 1, locations: ["nebula_outpost"], drops: ["Nano Stimpack", "Scrap Metal"] },
-  { name: "Sand Worm", hp: 120, attack: 15, defense: 5, locations: ["xylo_delta"], drops: ["Sand Sample", "Ancient Shard"] },
-  { name: "Void Stalker", hp: 80, attack: 18, defense: 2, locations: ["nebula_outpost"], drops: ["Alien Alloy", "Data Chip"] }
-];
+// Enemies data (Moved to data/enemies.js)
 
 // Quests data
-const quests = {
-  "quest_001": {
-    id: "quest_001",
-    title: "First Contact",
-    description: "Defeat 3 Xenobots to secure the landing zone.",
-    type: "kill",
-    target: "Xenobot",
-    amount: 3,
-    rewards: { xp: 50, items: ["Energy Cell"] },
-    isMainStory: true
-  },
-  "quest_002": {
-    id: "quest_002",
-    title: "Scrap Collector",
-    description: "Collect 2 Scrap Metal pieces for repairs.",
-    type: "collect",
-    target: "Scrap Metal",
-    amount: 2,
-    rewards: { xp: 30, items: ["Nano Stimpack"] },
-    isMainStory: false
-  },
-  "quest_003": {
-    id: "quest_003",
-    title: "Alien Threat",
-    description: "Defeat 5 Plasmavores to protect the colony.",
-    type: "kill",
-    target: "Plasmavore",
-    amount: 5,
-    rewards: { xp: 75, items: ["Plasma Rifle"] },
-    isMainStory: true
-  },
-  "quest_004": {
-    id: "quest_004",
-    title: "Lost Cargo",
-    description: "Recover a lost Data Chip.",
-    type: "collect",
-    target: "Data Chip",
-    amount: 1,
-    rewards: { xp: 45, items: ["Energy Cell"] },
-    isMainStory: false
-  },
-  "story_01": {
-    id: "story_01",
-    title: "The Awakening",
-    description: "Investigate the strange signal.",
-    type: "kill", // Initial type for display, though steps override
-    target: "Xenobot",
-    amount: 1,
-    rewards: { xp: 100 },
-    isMainStory: true,
-    steps: [
-      {
-        type: "kill",
-        target: "Xenobot",
-        amount: 1,
-        rewards: { xp: 20 },
-        dialog: {
-          title: "Target Eliminated",
-          text: "You've defeated the scout. But where did it come from? You notice a strange device on its chassis."
-        }
-      },
-      {
-        type: "collect",
-        target: "Scrap Metal",
-        amount: 1,
-        rewards: { items: ["Energy Cell"] },
-        dialog: {
-          title: "Repairs Needed",
-          text: "This scrap will help fix the comms array. Maybe we can decode the signal."
-        }
-      }
-    ]
-  }
-};
+// Quests data (Moved to data/quests.js)
 
 // Crafting Recipes
-const recipes = {
-  "advanced_heal": {
-      id: "advanced_heal",
-      name: "Advanced Medkit",
-      creates: "Advanced Medkit",
-      requires: {
-          "Energy Cell": 2,
-          "Scrap Metal": 1
-      },
-      description: "Combine energy cells with scrap to create a powerful healing item."
-  },
-  "upgrade_weapon": {
-      id: "upgrade_weapon",
-      name: "Enhanced Plasma Rifle",
-      creates: "Enhanced Plasma Rifle",
-      requires: {
-          "Plasma Rifle": 1,
-          "Alien Crystal": 2
-      },
-      description: "Enhance a plasma rifle with alien technology."
-  },
-  "makeshift_armor": {
-      id: "makeshift_armor",
-      name: "Makeshift Plating",
-      creates: "Makeshift Plating",
-      requires: {
-          "Scrap Metal": 3,
-          "Rusty Pipe": 1
-      },
-      description: "Forge basic armor from scrap materials."
-  }
-};
+// Crafting Recipes (Moved to data/recipes.js)
 
 // Items data (Equipment)
 // Items data (Equipment)
-const items = {
-  "Energy Cell": { type: "consumable", category: "consumable", effect: "heal", value: 30, description: "Restores 30 HP", price: 50, stackable: true},
-  "Nano Stimpack": { type: "consumable", category: "consumable", effect: "heal", value: 50, description: "Restores 50 HP", price: 100, stackable: true },
-  "Advanced Medkit": { type: "consumable", category: "consumable", effect: "heal", value: 75, description: "Restores 75 HP (crafted)", price: 150, stackable: true },
-  "Alien Crystal": { type: "material", category: "material", description: "A mysterious glowing crystal.", price: 200, stackable: true },
-  "Data Chip": { type: "material", category: "material", description: "Contains encrypted data.", price: 150, stackable: true },
-  "Scrap Metal": { type: "material", category: "material", description: "Useful for crafting.", price: 20, stackable: true },
-  "Rusty Pipe": { type: "material", category: "material", description: "An old metal pipe.", price: 10, stackable: true },
+// Items data (Equipment) (Moved to data/items.js)
 
-  // Weapons
-  "Plasma Rifle": { type: "weapon", category: "equipment", stats: { attack: 5 }, description: "A powerful energy weapon.", price: 500, stackable: false },
-  "Enhanced Plasma Rifle": { type: "weapon", category: "equipment", stats: { attack: 8 }, description: "An upgraded energy weapon with alien tech.", price: 1000, stackable: false },
-  "Laser Blade": { type: "weapon", category: "equipment", stats: { attack: 7 }, description: "A high-tech melee weapon.", price: 750, stackable: false },
-  "Photon Cannon": { type: "weapon", category: "equipment", stats: { attack: 10 }, description: "Devastating ranged weapon.", price: 1200, stackable: false },
+// ============================================
+// ERROR HANDLING
+// ============================================
 
-  // Armor
-  "Kevlar Vest": { type: "armor", category: "equipment", stats: { defense: 4 }, description: "Basic protective armor.", price: 400, stackable: false },
-  "Titanium Plating": { type: "armor", category: "equipment", stats: { defense: 6 }, description: "Heavy-duty armor plating.", price: 800, stackable: false },
-  "Exoskeleton": { type: "armor", category: "equipment", stats: { defense: 8 }, description: "Powered armor that enhances strength.", price: 1500, stackable: false },
-  "Makeshift Plating": { type: "armor", category: "equipment", stats: { defense: 5 }, description: "Crude but effective armor.", price: 350, stackable: false },
-
-  // Accessories
-  "Shield Generator": { type: "accessory", category: "equipment", stats: { defense: 3 }, description: "Generates a personal forcefield.", price: 600, stackable: false },
-  "Targeting HUD": { type: "accessory", category: "equipment", stats: { attack: 3 }, description: "Improves accuracy and damage.", price: 600, stackable: false }
+window.onerror = function(message, source, lineno, colno, error) {
+    console.error("Global Error:", message, "at", source, ":", lineno, ":", colno);
+    // Try to log to UI if possible
+    try {
+        const errDiv = document.getElementById("errorDisplay");
+        if (errDiv) {
+            errDiv.style.display = "block";
+            errDiv.textContent = `Error: ${message}`;
+            setTimeout(() => { errDiv.style.display = "none"; }, 5000);
+        }
+    } catch (e) {
+        // Ignore errors in error handler
+    }
+    return false; // Let default handler run
 };
 
 // ============================================
@@ -311,8 +169,8 @@ function initializeGame() {
   // Initialize UI first (needed by other modules)
   initUI({
     ...deps,
-    equipment: { getEffectiveStats: () => ({ attack: 0, defense: 0 }) }, // Placeholder
-    character: { getCharacterAvatar: () => "👤" }, // Placeholder
+    equipment: { getEffectiveStats: () => ({ attack: 0, defense: 0 }), equipItem }, // Placeholder stats, real function
+    character: { getCharacterAvatar: () => "👤", useHealItem }, // Placeholder avatar, real function
     shop: { getItemPrice, getItemSellPrice, buyItem, sellItem, orderItem }
   });
 

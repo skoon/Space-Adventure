@@ -1,0 +1,132 @@
+/**
+ * Quest UI Module
+ * Handles quest log rendering and interactions
+ */
+
+let state;
+let quests;
+let currentQuestTab = "active";
+
+export function initQuestUI(deps) {
+    state = deps.state;
+    quests = deps.data.quests;
+}
+
+/**
+ * Toggle quest log modal
+ */
+export function toggleQuestLog() {
+    const modal = document.getElementById("questListModal"); // Wait, original was questLogModal?
+    const modalReal = document.getElementById("questLogModal"); 
+    
+    // Check which ID is actually used in HTML. Based on ui.js line 519 it is "questLogModal"
+    if (!modalReal) return;
+
+    if (modalReal.style.display === "none" || modalReal.classList.contains("hidden")) {
+        modalReal.classList.remove("hidden");
+        modalReal.style.display = "flex";
+        renderQuestList();
+    } else {
+        modalReal.classList.add("hidden");
+        modalReal.style.display = "none";
+    }
+}
+
+/**
+ * Switch quest tab
+ */
+export function switchQuestTab(tab) {
+    currentQuestTab = tab;
+
+    // Update tab styles
+    const activeBtn = document.getElementById("activeQuestsTab");
+    const completedBtn = document.getElementById("completedQuestsTab");
+
+    if (activeBtn && completedBtn) {
+        if (tab === "active") {
+            activeBtn.className = "flex-1 py-1 px-4 font-bold border-r border-yellow-900/50 crt-tab-active";
+            completedBtn.className = "flex-1 py-1 px-4 font-bold crt-tab-inactive";
+        } else {
+            activeBtn.className = "flex-1 py-1 px-4 font-bold border-r border-yellow-900/50 crt-tab-inactive";
+            completedBtn.className = "flex-1 py-1 px-4 font-bold crt-tab-active";
+        }
+    }
+
+    renderQuestList();
+}
+
+/**
+ * Render quest list
+ */
+export function renderQuestList() {
+    const list = document.getElementById("questList");
+    if (!list || !state.character) return;
+
+    list.innerHTML = "";
+
+    const questIds = currentQuestTab === "active"
+        ? Object.keys(state.character.activeQuests)
+        : state.character.completedQuests;
+
+    if (questIds.length === 0) {
+        list.innerHTML = `<div class="text-gray-400 text-center italic p-4">No ${currentQuestTab} quests.</div>`;
+        return;
+    }
+
+    questIds.forEach(questId => {
+        const quest = quests[questId];
+        if (!quest) return;
+
+        const div = document.createElement("div");
+        div.className = "bg-gray-700 p-4 rounded border border-gray-600";
+
+        let description = quest.description;
+        let targetAmount = quest.amount;
+        let targetTarget = quest.target;
+        let progress = 0;
+        let progressText = "";
+
+        if (currentQuestTab === "active") {
+            const activeQuest = state.character.activeQuests[questId];
+            progress = activeQuest.progress;
+
+            // Handle multi-step quests
+            if (quest.steps && quest.steps.length > 0) {
+                const currentStepIndex = activeQuest.currentStep || 0;
+                if (currentStepIndex < quest.steps.length) {
+                    const step = quest.steps[currentStepIndex];
+                    if (step.description) description = step.description; 
+
+                    targetAmount = step.amount;
+                    targetTarget = step.target;
+                }
+            }
+
+            const percentage = Math.min(100, (progress / targetAmount) * 100);
+            progressText = `
+                <div class="mt-2">
+                    <div class="flex justify-between text-sm text-gray-300 mb-1">
+                        <span>Progress: ${progress}/${targetAmount} ${targetTarget}s</span>
+                        <span>${Math.round(percentage)}%</span>
+                    </div>
+                    <div class="w-full bg-gray-800 rounded-full h-2">
+                        <div class="bg-yellow-500 h-2 rounded-full" style="width: ${percentage}%"></div>
+                    </div>
+                </div>
+            `;
+        } else {
+            progressText = `<div class="mt-2 text-green-400 text-sm font-bold">✅ Completed</div>`;
+        }
+
+        div.innerHTML = `
+            <h3 class="text-lg font-bold text-yellow-400">${quest.title}</h3>
+            <p class="text-gray-300 text-sm mt-1">${description}</p>
+            <div class="mt-2 text-xs text-gray-400">
+                Rewards: ${quest.rewards.xp ? `${quest.rewards.xp} XP` : ""} ${quest.rewards.items ? `+ ${quest.rewards.items.join(", ")}` : ""}
+            </div>
+            ${progressText}
+        `;
+
+        list.appendChild(div);
+    });
+}
