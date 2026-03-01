@@ -68,6 +68,9 @@ export function switchShopTab(tab) {
  * Update Shop UI content
  */
 export function updateShopUI() {
+    const shopScreen = document.getElementById("shopScreen");
+    if (!shopScreen || shopScreen.classList.contains("hidden")) return;
+
     // Update Credits Display
     const creditsDisplay = document.getElementById("shopCreditsDisplay");
     if (creditsDisplay && state.character) {
