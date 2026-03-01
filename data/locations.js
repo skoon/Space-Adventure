@@ -31,5 +31,16 @@ export const locations = {
     theme: "theme-space",
     travelCost: 250,
     lootTable: ["Data Chip", "Alien Alloy", "Energy Cell", "Credits"]
-  }
+  },
+  "Norkon Outpost": {
+    id: "norkon_outpost",
+    name: "Norkon Outpost",
+    description: "A space station drifting in the void.",
+    hazardLevel: 3,
+    unlocked: true,
+    coordinates: { x: 200, y: 100 },
+    theme: "theme-space",
+    travelCost: 250,
+    lootTable: ["Data Chip", "Alien Alloy", "Energy Cell", "Credits"]
+  },
 };

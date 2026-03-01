@@ -28,6 +28,8 @@ export function showTravelScreen() {
 
     if (!modal || !container || !getUnlockedLocations) return;
 
+    modal.classList.remove("hidden");
+
     container.innerHTML = "";
     
     const unlockedLocs = getUnlockedLocations();
