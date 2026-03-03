@@ -46,6 +46,34 @@ export function initCombat(deps) {
  * Decrements duration and removes expired effects
  */
 export function processStatusEffects() {
+    // Process DOTs before decrementing duration
+    state.playerStatusEffects.forEach(effect => {
+        if (effect.type === 'poison') {
+            state.character.hp -= effect.damage;
+            addLog(`☠️ Poison ticks for ${effect.damage} damage!`);
+        } else if (effect.type === 'burn') {
+            state.character.hp -= effect.damage;
+            addLog(`🔥 Burn ticks for ${effect.damage} damage!`);
+        }
+    });
+
+    state.enemyStatusEffects.forEach(effect => {
+        if (state.enemy && effect.type === 'poison') {
+            state.enemy.hp -= effect.damage;
+            addLog(`☠️ ${state.enemy.name} takes ${effect.damage} poison damage!`);
+        } else if (state.enemy && effect.type === 'burn') {
+            state.enemy.hp -= effect.damage;
+            addLog(`🔥 ${state.enemy.name} takes ${effect.damage} burn damage!`);
+        }
+    });
+
+    // We do NOT check for death here (state.character.hp <= 0 or state.enemy.hp <= 0)
+    // to avoid complex cascading state changes outside of the main loop functions. 
+    // Usually death from DOTs is handled after processStatusEffects returns to the caller,
+    // or we could add explicit checks. To keep it safe, let's let the caller check hp <= 0.
+    
+    updateCombatLog();
+
     state.playerStatusEffects = state.playerStatusEffects.map(effect => ({
         ...effect,
         duration: effect.duration - 1
@@ -135,6 +163,19 @@ export function updateCombatUI() {
     if (combatElements.enemyAtk) combatElements.enemyAtk.textContent = state.enemy.attack;
     if (combatElements.enemyDef) combatElements.enemyDef.textContent = state.enemy.defense;
 
+    // Enemy Status effects
+    const enemyEffectsContainer = document.getElementById("enemyStatusEffects");
+    if (enemyEffectsContainer) {
+        enemyEffectsContainer.innerHTML = "";
+        state.enemyStatusEffects.forEach((effect, i) => {
+            const span = document.createElement("span");
+            span.className = "status-effect-icon";
+            span.textContent = getStatusEffectIcon(effect.type);
+            span.title = effect.type;
+            enemyEffectsContainer.appendChild(span);
+        });
+    }
+
     const enemyHpPercentage = ((state.enemy.maxHp || state.enemy.hp) > 0 ? state.enemy.hp / (state.enemy.maxHp || state.enemy.hp) : 0) * 100;
     if (combatElements.enemyHpBar) combatElements.enemyHpBar.style.width = `${enemyHpPercentage}%`;
 
@@ -160,6 +201,21 @@ export function updateCombatUI() {
 export function playerAttack() {
     if (!state.character || !state.enemy) return;
     processStatusEffects();
+
+    if (state.character.hp <= 0) {
+        addLog("You succumbed to your injuries...");
+        state.gameState = "defeat";
+        showScreen("defeat");
+        updateCombatUI();
+        updateUI();
+        return;
+    }
+    if (state.enemy.hp <= 0) {
+        addLog(`${state.enemy.name} succumbed to its injuries!`);
+        winCombat();
+        updateCombatUI();
+        return;
+    }
 
     // Critical hit chance (15% base, higher for Rogues)
     const critChance = state.character.role === "Rogue" ? 0.25 : 0.15;
@@ -195,6 +251,21 @@ export function playerBlock() {
     if (!state.character || !state.enemy) return;
     processStatusEffects();
 
+    if (state.character.hp <= 0) {
+        addLog("You succumbed to your injuries...");
+        state.gameState = "defeat";
+        showScreen("defeat");
+        updateCombatUI();
+        updateUI();
+        return;
+    }
+    if (state.enemy.hp <= 0) {
+        addLog(`${state.enemy.name} succumbed to its injuries!`);
+        winCombat();
+        updateCombatUI();
+        return;
+    }
+
     state.playerStatusEffects = [
         ...state.playerStatusEffects.filter(e => e.type !== "blocking"),
         { type: "blocking", duration: 1 }
@@ -212,6 +283,21 @@ export function playerBlock() {
 export function playerDodge() {
     if (!state.character || !state.enemy) return;
     processStatusEffects();
+
+    if (state.character.hp <= 0) {
+        addLog("You succumbed to your injuries...");
+        state.gameState = "defeat";
+        showScreen("defeat");
+        updateCombatUI();
+        updateUI();
+        return;
+    }
+    if (state.enemy.hp <= 0) {
+        addLog(`${state.enemy.name} succumbed to its injuries!`);
+        winCombat();
+        updateCombatUI();
+        return;
+    }
 
     state.playerStatusEffects = [
         ...state.playerStatusEffects.filter(e => e.type !== "dodging"),
@@ -239,6 +325,21 @@ export function useSpecialAbility() {
     }
 
     processStatusEffects();
+
+    if (state.character.hp <= 0) {
+        addLog("You succumbed to your injuries...");
+        state.gameState = "defeat";
+        showScreen("defeat");
+        updateCombatUI();
+        updateUI();
+        return;
+    }
+    if (state.enemy.hp <= 0) {
+        addLog(`${state.enemy.name} succumbed to its injuries!`);
+        winCombat();
+        updateCombatUI();
+        return;
+    }
 
     state.character.energy = Math.max(0, currentEnergy - energyCost);
 
@@ -309,8 +410,12 @@ export function enemyTurn() {
 
     // Check if player is blocking
     const isBlocking = state.playerStatusEffects.some(e => e.type === "blocking");
+    const activeDefenseBreak = state.playerStatusEffects.find(e => e.type === "defenseBreak");
     const stats = getEffectiveStats();
-    let damage = Math.max(0, state.enemy.attack - stats.defense);
+    let effectiveDefense = stats.defense - (activeDefenseBreak?.value || 0);
+    effectiveDefense = Math.max(0, effectiveDefense); // Don't let defense go below 0
+
+    let damage = Math.max(0, state.enemy.attack - effectiveDefense);
 
     if (isBlocking) {
         damage = Math.floor(damage * 0.5); // 50% damage reduction
@@ -322,6 +427,27 @@ export function enemyTurn() {
 
     addLog(`${state.enemy.name} hits you for ${damage} damage.`);
     updateCombatLog();
+
+    // 15% chance for enemy to apply a status effect
+    if (Math.random() < 0.15 && state.enemy.attack > 0) {
+        const effects = ["poison", "burn", "defenseBreak"];
+        const randomEffect = effects[Math.floor(Math.random() * effects.length)];
+        
+        let existingEffect = state.playerStatusEffects.find(e => e.type === randomEffect);
+        if (!existingEffect) {
+            if (randomEffect === "defenseBreak") {
+                state.playerStatusEffects.push({ type: "defenseBreak", value: 3, duration: 3 });
+                addLog(`⚠️ ${state.enemy.name} broke your defense! (-3 DEF for 3 turns)`);
+            } else if (randomEffect === "poison") {
+                state.playerStatusEffects.push({ type: "poison", damage: 5, duration: 3 });
+                addLog(`☠️ ${state.enemy.name} poisoned you!`);
+            } else if (randomEffect === "burn") {
+                state.playerStatusEffects.push({ type: "burn", damage: 8, duration: 2 });
+                addLog(`🔥 ${state.enemy.name} set you on fire!`);
+            }
+            updateCombatLog();
+        }
+    }
 
     // Regenerate energy (5 per turn)
     state.character.energy = Math.min(state.character.maxEnergy, (state.character.energy || state.character.maxEnergy) + 5);

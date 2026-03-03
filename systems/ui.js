@@ -139,7 +139,10 @@ export function getStatusEffectIcon(type) {
         blocking: "🛡️",
         dodging: "💨",
         defenseBoost: "🔰",
-        attackBoost: "⚔️"
+        attackBoost: "⚔️",
+        poison: "☠️",
+        burn: "🔥",
+        defenseBreak: "⚠️"
     };
     return icons[type] || "✨";
 }

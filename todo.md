@@ -27,7 +27,7 @@
 
 - [x] **Buffs/Debuffs** - Defense boost, blocking, dodging effects implemented
 - [x] **Temporary Stat Boosts** - Shield Boost provides temporary defense increase
-- [ ] **Enemy Status Effects** - Enemies can apply debuffs to player
+- [x] **Enemy Status Effects** - Enemies can apply debuffs to player
 - [x] **Status Effect UI** - Visual indicators for active effects
 
 ### Boss Battles
