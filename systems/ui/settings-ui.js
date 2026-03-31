@@ -3,6 +3,8 @@
  * Handles settings modal
  */
 
+import { VERSION } from '../../data/version.js';
+
 let deps;
 let showDialog;
 
@@ -30,6 +32,10 @@ export function showSettingsModal() {
                 <option value="hard" ${currentDiff.id === 'hard' ? 'selected' : ''}>Hard - Veteran</option>
             </select>
             <p id="inGameDifficultyDesc" class="text-xs text-gray-400 mb-4">${currentDiff.description}</p>
+            
+            <div class="mt-4 pt-4 border-t border-gray-700 text-center text-xs text-gray-500">
+                Version: <span class="text-gray-400 font-mono">${VERSION}</span>
+            </div>
         </div>
         `,
         [

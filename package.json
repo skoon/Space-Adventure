@@ -1,10 +1,11 @@
 {
   "name": "space-adventure",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "A space adventure game",
   "scripts": {
     "start": "http-server -p 8080",
-    "test": "jest"
+    "test": "jest",
+    "build": "node build.js"
   },
   "devDependencies": {
     "@babel/core": "^7.28.5",
