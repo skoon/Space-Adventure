@@ -265,9 +265,10 @@ function initializeGame() {
   // Re-initialize UI with all dependencies
   initUI({
     ...deps,
-    equipment: { getEffectiveStats },
-    character: { getCharacterAvatar },
-    quests: { applyQuestItem }
+    equipment: { getEffectiveStats, equipItem, unequipItem },
+    character: { getCharacterAvatar, useHealItem },
+    quests: { applyQuestItem },
+    shop: { getItemPrice, getItemSellPrice, buyItem, sellItem, orderItem }
   });
 
   // Initialize Crafting
