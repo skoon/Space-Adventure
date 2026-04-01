@@ -69,12 +69,24 @@ export function showSaveMessage(message) {
     }
 }
 
+let dialogQueue = [];
+let isDialogOpen = false;
+
 /**
- * Show dialog modal
+ * Helper to process the next dialog in queue
  */
-export function showDialog(title, text, options = []) {
+function processDialogQueue() {
+    if (isDialogOpen || dialogQueue.length === 0) return;
+
+    // Grab the first queued item
+    const { title, text, options } = dialogQueue.shift();
+    isDialogOpen = true;
+
     const modal = document.getElementById("dialogModal");
-    if (!modal) return;
+    if (!modal) {
+        isDialogOpen = false;
+        return;
+    }
 
     document.getElementById("dialogTitle").textContent = title;
     document.getElementById("dialogText").innerHTML = text;
@@ -82,12 +94,13 @@ export function showDialog(title, text, options = []) {
     const optionsContainer = document.getElementById("dialogOptions");
     optionsContainer.innerHTML = "";
 
-    if (options.length === 0) {
+    let currentOptions = options;
+    if (!currentOptions || currentOptions.length === 0) {
         // Default "Continue" option
-        options = [{ text: "Continue", action: hideDialog }];
+        currentOptions = [{ text: "Continue", action: hideDialog }];
     }
 
-    options.forEach(option => {
+    currentOptions.forEach(option => {
         const button = document.createElement("button");
         button.className = "px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded font-bold text-white transition-colors";
         button.textContent = option.text;
@@ -102,11 +115,23 @@ export function showDialog(title, text, options = []) {
 }
 
 /**
- * Hide dialog modal
+ * Show dialog modal (Queues the request)
+ */
+export function showDialog(title, text, options = []) {
+    dialogQueue.push({ title, text, options });
+    processDialogQueue();
+}
+
+/**
+ * Hide dialog modal and queue next
  */
 export function hideDialog() {
     const modal = document.getElementById("dialogModal");
     if (modal) {
         modal.style.display = "none";
     }
+    isDialogOpen = false;
+
+    // Process next item in queue, slight delay for visual transition
+    setTimeout(processDialogQueue, 100);
 }
