@@ -12,7 +12,8 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Rajdhani', "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  letter-spacing: 0.02em;
 }
 
 body {
@@ -465,12 +466,12 @@ header button:hover {
   border-radius: 4px;
 }
 
-/* Quest Terminal (Amber CRT) */
+/* Quest Terminal / Log Containers (Cyber Theme) */
 .quest-terminal-container {
   cursor: pointer;
   width: 100%;
   max-width: 200px;
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .quest-terminal-container:hover {
@@ -478,62 +479,45 @@ header button:hover {
 }
 
 .terminal-frame {
-  background-color: #2d2d2d;
-  border-radius: 8px;
-  padding: 8px;
-  border-bottom: 4px solid #1a1a1a;
-  border-right: 4px solid #1a1a1a;
-  border-top: 2px solid #3d3d3d;
-  border-left: 2px solid #3d3d3d;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+  background-color: rgba(15, 23, 42, 0.7);
+  border-radius: 6px;
+  padding: 4px;
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  backdrop-filter: blur(4px);
 }
 
 .terminal-screen {
-  background-color: #1a0f00; /* Very dark amber/brown background */
-  border-radius: 4px; /* Slight curve for screen */
+  background-color: rgba(2, 6, 23, 0.8);
+  border-radius: 4px;
   padding: 8px;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Rajdhani', monospace; /* Rajdhani looks very tech-like */
   position: relative;
   overflow: hidden;
-  border: 1px solid #332200;
+  border: 1px solid rgba(6, 182, 212, 0.2);
   min-height: 60px;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-/* Amber CRT glow */
-.crt-amber {
-  color: #ffb000;
-  text-shadow: 0 0 5px rgba(255, 176, 0, 0.5);
-}
-
-/* Scanline effect */
-.terminal-screen::before {
-  content: " ";
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-  z-index: 2;
-  background-size: 100% 2px, 3px 100%;
-  pointer-events: none;
+/* Cyber glow and texts */
+.crt-cyan {
+  color: #06b6d4;
+  text-shadow: 0 0 5px rgba(6, 182, 212, 0.5);
 }
 
 .terminal-header {
-  font-size: 0.7rem;
-  border-bottom: 1px solid #ffb000;
+  font-size: 0.75rem;
+  border-bottom: 1px solid #06b6d4;
   margin-bottom: 4px;
   padding-bottom: 2px;
   opacity: 0.8;
+  text-transform: uppercase;
 }
 
 .terminal-content {
-  font-size: 0.9rem;
-  font-weight: bold;
+  font-size: 0.95rem;
+  font-weight: 600;
   letter-spacing: 1px;
 }
 
@@ -547,186 +531,144 @@ header button:hover {
   }
 }
 
-/* Retro Sci-Fi / Flash Gordon Styles */
-.retro-panel {
-  background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-  border: 4px solid #b8860b; /* Dark Goldenrod */
-  box-shadow: 
-    0 0 10px rgba(184, 134, 11, 0.3),
-    inset 0 0 20px rgba(0, 0, 0, 0.8);
+/* Modern Sci-Fi / Cyber Styles */
+.cyber-panel {
   position: relative;
   overflow: hidden;
 }
 
-/* Corner ornaments */
-.retro-panel::before {
+/* Futuristic corner accents */
+.cyber-panel::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   width: 20px;
   height: 20px;
-  border-top: 4px solid #ffd700;
-  border-left: 4px solid #ffd700;
+  border-top: 2px solid #06b6d4;
+  border-left: 2px solid #06b6d4;
   z-index: 5;
+  box-shadow: -2px -2px 5px rgba(6, 182, 212, 0.5);
 }
 
-.retro-panel::after {
+.cyber-panel::after {
   content: '';
   position: absolute;
   bottom: 0;
   right: 0;
   width: 20px;
   height: 20px;
-  border-bottom: 4px solid #ffd700;
-  border-right: 4px solid #ffd700;
+  border-bottom: 2px solid #06b6d4;
+  border-right: 2px solid #06b6d4;
   z-index: 5;
+  box-shadow: 2px 2px 5px rgba(6, 182, 212, 0.5);
 }
 
-.retro-header-bar {
-  font-family: 'Courier New', serif; /* Fallback to something serif-like or distinct */
-  text-shadow: 2px 2px 0px #000;
-  letter-spacing: 0.2em;
-  background: linear-gradient(90deg, transparent, rgba(184, 134, 11, 0.2), transparent);
+.cyber-header-bar {
+  text-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
+  letter-spacing: 0.25em;
+  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.15), transparent);
+}
+
+.cyber-glow-text {
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.6), 0 0 20px rgba(6, 182, 212, 0.3);
 }
 
 #characterName {
-  font-family: 'Georgia', serif;
-  color: #ffd700 !important;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  color: #38bdf8 !important; /* light sky blue */
   text-transform: uppercase;
-  text-shadow: 0 0 5px #ff4500;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+  letter-spacing: 0.05em;
 }
 
 #characterStats {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid #555;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(56, 189, 248, 0.3);
   padding: 5px;
-  border-radius: 4px;
-  display: grid !important; /* Force grid layout for better stats display */
+  border-radius: 6px;
+  display: grid !important; 
   grid-template-columns: repeat(2, 1fr);
   gap: 8px !important;
+  backdrop-filter: blur(2px);
 }
 
 #characterStats > div {
-  background: linear-gradient(to bottom, #333, #222);
-  border: 1px solid #777;
+  background: rgba(2, 6, 23, 0.6);
+  border: 1px solid rgba(6, 182, 212, 0.2);
   padding: 4px 8px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.8rem;
-  color: #00ff00; /* Retro green terminal text */
-  box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+  font-family: 'Rajdhani', monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #38bdf8;
   display: flex;
   justify-content: space-between;
+  border-radius: 4px;
 }
 
-/* Equipment Slots Retro Style */
+/* Equipment Slots Cyber Style */
 .bg-gray-900[title="Weapon"],
 .bg-gray-900[title="Armor"],
 .bg-gray-900[title="Accessory"] {
-  background: #111 !important;
-  border: 2px solid #555;
-  box-shadow: inset 0 0 10px #000;
+  background: rgba(15, 23, 42, 0.7) !important;
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+  border-radius: 6px;
 }
 
-/* Inventory container retro adjustment */
-.bg-gray-900.border-gray-700.h-full.flex-col {
-  background: #0f1216 !important;
-  border: 2px solid #5f9ea0; /* CadetBlue for a tech feel */
-  box-shadow: 0 0 5px rgba(95, 158, 160, 0.3);
+/* Base button overrides for Cyber feel */
+button {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
 }
 
-/* CRT Tab Styles - High Specificity */
-button.crt-tab-active {
-  background: rgba(255, 176, 0, 0.2) !important;
-  color: #ffb000 !important;
-  border-top: 2px solid #ffb000 !important;
-  border-left: 2px solid #ffb000 !important;
-  border-right: 2px solid #ffb000 !important;
-  border-bottom: none !important;
-  box-shadow: 0 0 10px rgba(255, 176, 0, 0.3);
-  text-shadow: 0 0 5px #ffb000;
-  z-index: 10;
-  position: relative;
-}
-
-button.crt-tab-inactive {
-  background: rgba(45, 30, 0, 0.8) !important;
-  color: rgba(255, 176, 0, 0.4) !important;
-  border: 1px solid rgba(255, 176, 0, 0.1) !important;
-  border-bottom: 2px solid #ffb000 !important;
-  opacity: 0.7;
-}
-
-button.crt-tab-inactive:hover {
-  background: rgba(255, 176, 0, 0.1) !important;
-  color: rgba(255, 176, 0, 0.9) !important;
-  cursor: pointer;
-  opacity: 1;
-}
-
-/* Quest Log Modal CRT Styles */
-.crt-container {
-  background: #1a1a1a;
-  border: 4px solid #555;
-  border-radius: 10px;
+/* Quest Log Modal Cyber Styles */
+.crt-container-cyan {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(6, 182, 212, 0.5);
+  border-radius: 12px;
   padding: 10px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.8);
+  box-shadow: 0 0 30px rgba(6, 182, 212, 0.2), inset 0 0 20px rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(10px);
   max-width: 600px;
   width: 90%;
 }
 
-.crt-amber-large {
-  background-color: #1a0f00;
-  color: #ffb000;
-  font-family: 'Courier New', Courier, monospace;
+.crt-cyan-large {
+  background-color: rgba(2, 6, 23, 0.7);
+  color: #06b6d4;
   padding: 20px;
-  border-radius: 4px; /* Slight curve for screen */
+  border-radius: 8px; 
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-  border: 1px solid #332200;
+  border: 1px solid rgba(6, 182, 212, 0.3);
 }
 
-.crt-amber-large::before {
-  content: " ";
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-  z-index: 2;
-  background-size: 100% 2px, 3px 100%;
-  pointer-events: none;
-}
-
-.crt-amber-large h2 {
-  text-shadow: 0 0 5px rgba(255, 176, 0, 0.8);
-}
-
-.crt-amber-large button {
-  font-family: 'Courier New', Courier, monospace;
+.crt-cyan-large button {
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
-/* Custom Scrollbar for CRT */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
+/* Custom Scrollbar for Cyber containers */
+.custom-scrollbar-cyan::-webkit-scrollbar {
+  width: 6px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #1a0f00; 
+.custom-scrollbar-cyan::-webkit-scrollbar-track {
+  background: rgba(2, 6, 23, 0.5); 
+  border-radius: 3px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #ffb000; 
-  border-radius: 4px;
+.custom-scrollbar-cyan::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.5); 
+  border-radius: 3px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #cc8c00; 
+.custom-scrollbar-cyan::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.9); 
 }
 
 /* Override existing quest log styles */
@@ -738,25 +680,27 @@ button.crt-tab-inactive:hover {
 }
 
 #questList .bg-gray-700 {
-  background: rgba(255, 176, 0, 0.05) !important;
-  border: 1px solid rgba(255, 176, 0, 0.3) !important;
+  background: rgba(6, 182, 212, 0.05) !important;
+  border: 1px solid rgba(6, 182, 212, 0.2) !important;
 }
 
 #questList h3 {
-  color: #ffb000 !important;
-  text-shadow: 0 0 2px rgba(255, 176, 0, 0.5);
+  color: #22d3ee !important;
+  text-shadow: 0 0 4px rgba(6, 182, 212, 0.5);
+  letter-spacing: 0.05em;
 }
 
 #questList p, #questList div {
-  color: rgba(255, 176, 0, 0.8) !important;
+  color: rgba(165, 243, 252, 0.8) !important;
 }
 
-/* Quest Progress Bar in CRT */
+/* Quest Progress Bar in Cyber */
 #questList .bg-gray-800 {
-  background: #332200 !important;
+  background: rgba(2, 6, 23, 0.8) !important;
+  border: 1px solid rgba(6, 182, 212, 0.3);
 }
 
 #questList .bg-yellow-500 {
-  background: #ffb000 !important;
-  box-shadow: 0 0 5px rgba(255, 176, 0, 0.8);
+  background: #06b6d4 !important;
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.8);
 }
