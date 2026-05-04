@@ -101,13 +101,15 @@ export function encounterEnemy() {
     const difficulty = getDifficulty ? getDifficulty() : { enemyHpModifier: 1.0, enemyDmgModifier: 1.0 };
     const randomEnemy = { ...availableEnemies[Math.floor(Math.random() * availableEnemies.length)] };
     
-    // Apply difficulty modifiers
+    // Apply level scaling and difficulty modifiers
+    const levelScale = 1 + ((state.character.level - 1) * 0.15);
     const hpRandomness = 0.8 + Math.random() * 0.4; // Variance
-    randomEnemy.hp = Math.floor(randomEnemy.hp * hpRandomness * difficulty.enemyHpModifier);
+    randomEnemy.hp = Math.floor(randomEnemy.hp * hpRandomness * difficulty.enemyHpModifier * levelScale);
     randomEnemy.maxHp = randomEnemy.hp;
-    randomEnemy.attack = Math.floor(randomEnemy.attack * difficulty.enemyDmgModifier);
+    randomEnemy.attack = Math.floor(randomEnemy.attack * difficulty.enemyDmgModifier * levelScale);
 
     state.enemy = randomEnemy;
+    state.character.ap = state.character.maxAp || 3;
     state.playerStatusEffects = [];
     state.enemyStatusEffects = [];
     state.gameState = "combat";
@@ -143,6 +145,35 @@ export function updateCombatUI() {
 
     const energyPercentage = (currentEnergy / maxEnergy) * 100;
     if (combatElements.playerEnergyBar) combatElements.playerEnergyBar.style.width = `${energyPercentage}%`;
+
+    const apPercentage = (state.character.ap / (state.character.maxAp || 3)) * 100;
+    const apElement = document.getElementById("combatPlayerAp");
+    if (apElement) apElement.textContent = state.character.ap;
+    const maxApElement = document.getElementById("combatPlayerMaxAp");
+    if (maxApElement) maxApElement.textContent = state.character.maxAp || 3;
+    const apBar = document.getElementById("combatApBar");
+    if (apBar) apBar.style.width = `${apPercentage}%`;
+
+    const attackBtn = document.querySelector('button[onclick="playerAttack()"]');
+    const blockBtn = document.querySelector('button[onclick="playerBlock()"]');
+    const dodgeBtn = document.querySelector('button[onclick="playerDodge()"]');
+    const itemBtn = document.querySelector('button[onclick="openCombatItemMenu()"]');
+    if (attackBtn) {
+        attackBtn.disabled = state.character.ap < 2;
+        attackBtn.className = `py-3 px-4 bg-red-600 hover:bg-red-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < 2 ? "opacity-50 cursor-not-allowed" : ""}`;
+    }
+    if (blockBtn) {
+        blockBtn.disabled = state.character.ap < 1;
+        blockBtn.className = `py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < 1 ? "opacity-50 cursor-not-allowed" : ""}`;
+    }
+    if (dodgeBtn) {
+        dodgeBtn.disabled = state.character.ap < 1;
+        dodgeBtn.className = `py-3 px-4 bg-green-600 hover:bg-green-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < 1 ? "opacity-50 cursor-not-allowed" : ""}`;
+    }
+    if (itemBtn) {
+        itemBtn.disabled = state.character.ap < 1;
+        itemBtn.className = `py-3 px-4 bg-yellow-600 hover:bg-yellow-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < 1 ? "opacity-50 cursor-not-allowed" : ""}`;
+    }
 
     // Status effects
     if (combatElements.playerStatusEffects) {
@@ -182,8 +213,10 @@ export function updateCombatUI() {
     // Update special ability button
     const specialButton = document.getElementById("specialAbilityButton");
     if (specialButton) {
-        specialButton.disabled = currentEnergy < 30;
-        specialButton.className = `special-button ${currentEnergy >= 30 ? "" : "disabled-button"}`;
+        const hasEnergy = currentEnergy >= 30;
+        const hasAp = state.character.ap >= 3;
+        specialButton.disabled = !hasEnergy || !hasAp;
+        specialButton.className = `py-3 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${hasEnergy && hasAp ? "" : "opacity-50 cursor-not-allowed"}`;
         // Update button text based on role
         if (state.character.role === "Warrior") {
             specialButton.textContent = "⭐ Power Strike";
@@ -199,8 +232,8 @@ export function updateCombatUI() {
  * Player performs a basic attack
  */
 export function playerAttack() {
-    if (!state.character || !state.enemy) return;
-    processStatusEffects();
+    if (!state.character || !state.enemy || state.character.ap < 2) return;
+    state.character.ap -= 2;
 
     if (state.character.hp <= 0) {
         addLog("You succumbed to your injuries...");
@@ -237,7 +270,7 @@ export function playerAttack() {
 
     if (state.enemy.hp <= 0) {
         winCombat();
-    } else {
+    } else if (state.character.ap <= 0) {
         enemyTurn();
     }
 
@@ -248,8 +281,8 @@ export function playerAttack() {
  * Player blocks, reducing incoming damage by 50%
  */
 export function playerBlock() {
-    if (!state.character || !state.enemy) return;
-    processStatusEffects();
+    if (!state.character || !state.enemy || state.character.ap < 1) return;
+    state.character.ap -= 1;
 
     if (state.character.hp <= 0) {
         addLog("You succumbed to your injuries...");
@@ -273,16 +306,19 @@ export function playerBlock() {
 
     addLog("🛡️ You raise your guard, ready to block the next attack!");
     updateCombatLog();
-    updateCombatUI();
-    enemyTurn();
+    if (state.character.ap <= 0) {
+        enemyTurn();
+    } else {
+        updateCombatUI();
+    }
 }
 
 /**
  * Player dodges, 30% chance to avoid attack
  */
 export function playerDodge() {
-    if (!state.character || !state.enemy) return;
-    processStatusEffects();
+    if (!state.character || !state.enemy || state.character.ap < 1) return;
+    state.character.ap -= 1;
 
     if (state.character.hp <= 0) {
         addLog("You succumbed to your injuries...");
@@ -306,15 +342,18 @@ export function playerDodge() {
 
     addLog("💨 You prepare to dodge the next attack!");
     updateCombatLog();
-    updateCombatUI();
-    enemyTurn();
+    if (state.character.ap <= 0) {
+        enemyTurn();
+    } else {
+        updateCombatUI();
+    }
 }
 
 /**
  * Player uses role-specific special ability
  */
 export function useSpecialAbility() {
-    if (!state.character || !state.enemy) return;
+    if (!state.character || !state.enemy || state.character.ap < 3) return;
 
     const energyCost = 30;
     const currentEnergy = state.character.energy ?? state.character.maxEnergy ?? 100;
@@ -324,7 +363,7 @@ export function useSpecialAbility() {
         return;
     }
 
-    processStatusEffects();
+    state.character.ap -= 3;
 
     if (state.character.hp <= 0) {
         addLog("You succumbed to your injuries...");
@@ -354,7 +393,7 @@ export function useSpecialAbility() {
 
         if (state.enemy.hp <= 0) {
             winCombat();
-        } else {
+        } else if (state.character.ap <= 0) {
             enemyTurn();
         }
     } else if (state.character.role === "Rogue") {
@@ -368,7 +407,7 @@ export function useSpecialAbility() {
 
         if (state.enemy.hp <= 0) {
             winCombat();
-        } else {
+        } else if (state.character.ap <= 0) {
             enemyTurn();
         }
     } else if (state.character.role === "Scientist") {
@@ -379,10 +418,23 @@ export function useSpecialAbility() {
         ];
         addLog("🔬 You activate a defensive shield! Defense increased for 3 turns.");
         updateCombatLog();
-        enemyTurn();
+        if (state.character.ap <= 0) enemyTurn();
     }
 
     updateCombatUI();
+}
+
+/**
+ * End the player's turn explicitly
+ */
+export function endPlayerTurn() {
+    if (!state.character || !state.enemy) return;
+    
+    state.character.ap = 0;
+    addLog("⏭️ You end your turn.");
+    updateCombatLog();
+    updateCombatUI();
+    enemyTurn();
 }
 
 /**
@@ -452,10 +504,16 @@ export function enemyTurn() {
     // Regenerate energy (5 per turn)
     state.character.energy = Math.min(state.character.maxEnergy, (state.character.energy || state.character.maxEnergy) + 5);
 
+    // Reset AP for the new turn
+    state.character.ap = state.character.maxAp || 3;
+
     if (state.character.hp <= 0) {
         addLog("You have been defeated...");
         state.gameState = "defeat";
         showScreen("defeat");
+    } else {
+        // Start of player's new turn
+        processStatusEffects();
     }
 
     updateCombatUI();

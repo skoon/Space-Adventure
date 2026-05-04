@@ -65,6 +65,8 @@ export function createCharacter(event) {
         defense: stats.defense,
         energy: stats.maxEnergy,
         maxEnergy: stats.maxEnergy,
+        ap: 3,
+        maxAp: 3,
         equipment: {
             weapon: null,
             armor: null,

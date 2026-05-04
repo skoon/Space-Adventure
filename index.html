@@ -250,6 +250,9 @@
                               ></span>
                             </div>
                             <div>
+                              AP: <span id="characterAp" class="text-yellow-400"></span>/<span id="characterMaxAp"></span>
+                            </div>
+                            <div>
                               Credits:
                               <span
                                 id="characterCredits"
@@ -497,10 +500,24 @@
                           ></span
                         ></span>
                       </div>
-                      <div class="w-full bg-gray-700 rounded-full h-2">
+                      <div class="w-full bg-gray-700 rounded-full h-2 mb-2">
                         <div
                           id="combatEnergyBar"
                           class="bg-blue-500 h-2 rounded-full transition-all"
+                          style="width: 100%"
+                        ></div>
+                      </div>
+                      <div class="flex justify-between text-sm mb-1 text-yellow-400 font-bold">
+                        <span
+                          >AP: <span id="combatPlayerAp"></span>/<span
+                            id="combatPlayerMaxAp"
+                          ></span
+                        ></span>
+                      </div>
+                      <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div
+                          id="combatApBar"
+                          class="bg-yellow-500 h-2 rounded-full transition-all shadow-[0_0_8px_rgba(234,179,8,0.8)]"
                           style="width: 100%"
                         ></div>
                       </div>
@@ -562,36 +579,42 @@
                   onclick="playerAttack()"
                   class="py-3 px-4 bg-red-600 hover:bg-red-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
                 >
-                  <span>⚔️</span> Attack
+                  <span>⚔️</span> Attack (2 AP)
                 </button>
                 <button
                   onclick="playerBlock()"
                   class="py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
                 >
-                  <span>🛡️</span> Block
+                  <span>🛡️</span> Block (1 AP)
                 </button>
               </div>
-              <div class="grid grid-cols-3 gap-4">
+              <div class="grid grid-cols-3 gap-4 mb-2">
                 <button
                   onclick="playerDodge()"
                   class="py-3 px-4 bg-green-600 hover:bg-green-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
                 >
-                  <span>💨</span> Dodge
+                  <span>💨</span> Dodge (1 AP)
                 </button>
                 <button
                   id="specialAbilityButton"
                   onclick="useSpecialAbility()"
                   class="py-3 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
                 >
-                  <span>⭐</span> Special
+                  <span>⭐</span> Special (3 AP)
                 </button>
                 <button
                   onclick="openCombatItemMenu()"
                   class="py-3 px-4 bg-yellow-600 hover:bg-yellow-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
                 >
-                  <span>🎒</span> Item
+                  <span>🎒</span> Item (1 AP)
                 </button>
               </div>
+              <button
+                onclick="endPlayerTurn()"
+                class="w-full py-3 px-4 bg-gray-600 hover:bg-gray-500 rounded font-bold transition-colors flex items-center justify-center gap-2 text-white"
+              >
+                <span>⏭️</span> End Turn
+              </button>
             </div>
           </div>
         </div>

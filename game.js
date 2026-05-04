@@ -4,7 +4,7 @@
  */
 
 // Import all system modules
-import { initCombat, processStatusEffects, encounterEnemy, updateCombatUI, playerAttack, playerBlock, playerDodge, useSpecialAbility, enemyTurn, winCombat } from './systems/combat.js';
+import { initCombat, processStatusEffects, encounterEnemy, updateCombatUI, playerAttack, playerBlock, playerDodge, useSpecialAbility, endPlayerTurn, enemyTurn, winCombat } from './systems/combat.js';
 import { initQuests, acceptQuest, checkQuestProgress, applyQuestItem } from './systems/quests.js';
 import { initEquipment, getEffectiveStats, equipItem, unequipItem } from './systems/equipment.js';
 import { initCharacter, createCharacter, gainXp, getCharacterAvatar, useHealItem, restartGame } from './systems/character.js';
@@ -327,6 +327,7 @@ window.playerAttack = playerAttack;
 window.playerBlock = playerBlock;
 window.playerDodge = playerDodge;
 window.useSpecialAbility = useSpecialAbility;
+window.endPlayerTurn = endPlayerTurn;
 window.openCombatItemMenu = openCombatItemMenu;
 window.closeCombatItemMenu = closeCombatItemMenu;
 window.useCombatItem = useCombatItem;

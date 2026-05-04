@@ -92,7 +92,9 @@ export function closeCombatItemMenu() {
  * Use a combat item
  */
 export function useCombatItem(itemName) {
-    if (!state.character || !state.enemy) return;
+    if (!state.character || !state.enemy || state.character.ap < 1) return;
+    
+    state.character.ap -= 1;
 
     const item = items[itemName];
     if (!item || item.type !== "consumable") return;
@@ -121,6 +123,7 @@ export function useCombatItem(itemName) {
     updateCombatUI();
     closeCombatItemMenu();
 
-    // Enemy turn
-    setTimeout(enemyTurn, 500);
+    if (state.character.ap <= 0) {
+        setTimeout(enemyTurn, 500);
+    }
 }
