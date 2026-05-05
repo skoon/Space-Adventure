@@ -15,6 +15,8 @@
 
 ### Multiple Combat Actions
 
+- [x] **Action Points (AP) System** - Spend AP to perform multiple actions per turn (Attack, Block, Dodge, Use Items)
+
 - [x] **Block Action** - Reduces incoming damage by 50% for one turn
 - [x] **Dodge Action** - 30% chance to completely avoid enemy attack
 - [x] **Special Abilities per Role**
@@ -129,7 +131,8 @@
 ### Difficulty Settings
 
 - [x] **Difficulty Levels** - Easy, Normal, Hard modes
-- [x] **Enemy Scaling** - Adjust enemy strength based on difficulty
+- [x] **Enemy Level Scaling** - Enemies scale dynamically with player level to maintain challenge
+- [x] **Enemy Difficulty Scaling** - Adjust enemy strength based on difficulty
 - [x] **Reward Scaling** - Higher difficulty = better rewards (Implicit via harder enemies giving more XP/Loot?) - Wait, I didn't implement loot scaling, only stats.
 - [x] **Difficulty Selection** - UI for choosing difficulty at start
 

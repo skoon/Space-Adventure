@@ -4,7 +4,7 @@
  */
 
 // Import all system modules
-import { initCombat, processStatusEffects, encounterEnemy, updateCombatUI, playerAttack, playerBlock, playerDodge, useSpecialAbility, endPlayerTurn, enemyTurn, winCombat } from './systems/combat.js';
+import { initCombat, processStatusEffects, encounterEnemy, encounterBoss, updateCombatUI, playerAttack, playerBlock, playerDodge, useSpecialAbility, endPlayerTurn, enemyTurn, winCombat } from './systems/combat.js';
 import { initQuests, acceptQuest, checkQuestProgress, applyQuestItem } from './systems/quests.js';
 import { initEquipment, getEffectiveStats, equipItem, unequipItem } from './systems/equipment.js';
 import { initCharacter, createCharacter, gainXp, getCharacterAvatar, useHealItem, restartGame } from './systems/character.js';
@@ -19,7 +19,7 @@ import { initCrafting, craftItem, discoverRecipe, getKnownRecipes, canCraft } fr
 import { initSettings, getDifficulty, setDifficulty } from './systems/settings.js';
 
 import { locations } from './data/locations.js';
-import { enemies } from './data/enemies.js';
+import { enemies, bosses } from './data/enemies.js';
 import { quests } from './data/quests.js';
 import { recipes } from './data/recipes.js';
 import { items } from './data/items.js';
@@ -160,7 +160,7 @@ function initializeGame() {
   // Initialize all modules
   const deps = {
     state,
-    data: { enemies, quests, items, locations, recipes },
+    data: { enemies, bosses, quests, items, locations, recipes },
     dom: { screens, elements, inventoryElement, missionLogElement, combatElements },
     locations: { getUnlockedLocations, travelTo },
     settings: { getDifficulty, setDifficulty }
@@ -323,6 +323,7 @@ window.switchQuestTab = switchQuestTab;
 
 
 // Combat functions
+window.encounterBoss = encounterBoss;
 window.playerAttack = playerAttack;
 window.playerBlock = playerBlock;
 window.playerDodge = playerDodge;

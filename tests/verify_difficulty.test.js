@@ -4,7 +4,7 @@ const { initSettings, setDifficulty, getDifficulty } = require('../systems/setti
 
 // Mock dependencies
 const mockState = {
-    character: { hp: 100, maxHp: 100, defense: 0 },
+    character: { hp: 100, maxHp: 100, defense: 0, level: 1 },
     currentLocation: 'terra_prime',
     log: []
 };

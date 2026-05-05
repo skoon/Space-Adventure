@@ -7,7 +7,7 @@
 let state;
 
 // Data and DOM references
-let enemies, combatElements;
+let enemies, bosses, combatElements;
 
 // Import functions from other modules
 let addLog, updateCombatLog, showScreen, updateUI;
@@ -24,6 +24,7 @@ export function initCombat(deps) {
 
     // Data
     enemies = deps.data.enemies;
+    bosses = deps.data.bosses;
     combatElements = deps.dom.combatElements;
 
     // Functions
@@ -119,6 +120,41 @@ export function encounterEnemy() {
 }
 
 /**
+ * Encounter the area boss
+ */
+export function encounterBoss() {
+    let availableBosses = bosses;
+    if (state.currentLocation) {
+        availableBosses = bosses.filter(b => !b.locations || b.locations.includes(state.currentLocation));
+    }
+
+    if (availableBosses.length === 0) {
+        addLog("No boss found in this area.");
+        return;
+    }
+
+    const difficulty = getDifficulty ? getDifficulty() : { enemyHpModifier: 1.0, enemyDmgModifier: 1.0 };
+    const bossTemplate = availableBosses[Math.floor(Math.random() * availableBosses.length)];
+    const boss = { ...bossTemplate, isBoss: true, currentPhase: 0 };
+    
+    // Apply level scaling and difficulty modifiers
+    const levelScale = 1 + ((state.character.level - 1) * 0.15);
+    const hpRandomness = 0.9 + Math.random() * 0.2; // Less variance for bosses
+    boss.hp = Math.floor(boss.hp * hpRandomness * difficulty.enemyHpModifier * levelScale);
+    boss.maxHp = boss.hp;
+    boss.attack = Math.floor(boss.attack * difficulty.enemyDmgModifier * levelScale);
+
+    state.enemy = boss;
+    state.character.ap = state.character.maxAp || 3;
+    state.playerStatusEffects = [];
+    state.enemyStatusEffects = [];
+    state.gameState = "combat";
+    showScreen("combat");
+    updateCombatUI();
+    addLog(`⚠️ WARNING: YOU HAVE ENCOUNTERED THE AREA BOSS, ${state.enemy.name.toUpperCase()}!`);
+}
+
+/**
  * Update the combat UI with current stats
  */
 export function updateCombatUI() {
@@ -188,7 +224,17 @@ export function updateCombatUI() {
     }
 
     // Enemy stats
-    if (combatElements.enemyName) combatElements.enemyName.textContent = state.enemy.name;
+    const enemyContainer = document.getElementById("enemyContainer");
+    if (enemyContainer) {
+        if (state.enemy.isBoss) {
+            enemyContainer.classList.add("boss-container", "border-red-500");
+        } else {
+            enemyContainer.classList.remove("boss-container", "border-red-500");
+        }
+    }
+    if (combatElements.enemyName) {
+        combatElements.enemyName.textContent = state.enemy.isBoss ? `💀 ${state.enemy.name}` : state.enemy.name;
+    }
     if (combatElements.enemyHp) combatElements.enemyHp.textContent = state.enemy.hp;
     if (combatElements.enemyMaxHp) combatElements.enemyMaxHp.textContent = state.enemy.maxHp || state.enemy.hp;
     if (combatElements.enemyAtk) combatElements.enemyAtk.textContent = state.enemy.attack;
@@ -260,6 +306,7 @@ export function playerAttack() {
     const baseDamage = Math.max(0, stats.attack - state.enemy.defense);
     const damage = Math.floor(baseDamage * critMultiplier);
     state.enemy.hp -= damage;
+    checkPhaseTransition();
 
     if (isCritical) {
         addLog(`💥 CRITICAL HIT! You hit the ${state.enemy.name} for ${damage} damage!`);
@@ -387,6 +434,7 @@ export function useSpecialAbility() {
         const baseDamage = Math.max(0, state.character.attack - state.enemy.defense);
         const damage = Math.floor(baseDamage * 1.5);
         state.enemy.hp -= damage;
+        checkPhaseTransition();
 
         addLog(`⚔️ POWER STRIKE! You unleash a devastating blow for ${damage} damage!`);
         updateCombatLog();
@@ -401,6 +449,7 @@ export function useSpecialAbility() {
         const baseDamage = Math.max(0, state.character.attack - state.enemy.defense);
         const damage = Math.floor(baseDamage * 2.5);
         state.enemy.hp -= damage;
+        checkPhaseTransition();
 
         addLog(`🗡️ ASSASSINATE! You strike a critical weak point for ${damage} damage!`);
         updateCombatLog();
@@ -467,6 +516,36 @@ export function enemyTurn() {
     let effectiveDefense = stats.defense - (activeDefenseBreak?.value || 0);
     effectiveDefense = Math.max(0, effectiveDefense); // Don't let defense go below 0
 
+    // Boss Special Attacks
+    if (state.enemy.isBoss && state.enemy.specialAttacks) {
+        for (let sp of state.enemy.specialAttacks) {
+            if (Math.random() < sp.chance) {
+                let spDamage = Math.max(0, Math.floor(state.enemy.attack * sp.damageMultiplier) - effectiveDefense);
+                if (isBlocking) {
+                    spDamage = Math.floor(spDamage * 0.5);
+                    addLog(`🛡️ You blocked ${state.enemy.name}'s special attack, reducing damage!`);
+                }
+                state.character.hp -= spDamage;
+                addLog(`💀 ${sp.msg} It hits you for ${spDamage} damage!`);
+                updateCombatLog();
+                
+                // Rest of turn logic (status effects, energy, etc.)
+                state.character.energy = Math.min(state.character.maxEnergy, (state.character.energy || state.character.maxEnergy) + 5);
+                state.character.ap = state.character.maxAp || 3;
+                if (state.character.hp <= 0) {
+                    addLog("You have been defeated...");
+                    state.gameState = "defeat";
+                    showScreen("defeat");
+                } else {
+                    processStatusEffects();
+                }
+                updateCombatUI();
+                updateUI();
+                return; // End turn early
+            }
+        }
+    }
+
     let damage = Math.max(0, state.enemy.attack - effectiveDefense);
 
     if (isBlocking) {
@@ -527,8 +606,14 @@ export function winCombat() {
     if (!state.enemy) return; // Safety check
 
     const enemyName = state.enemy.name;
-    const xpGained = Math.floor(state.enemy.attack * 2 + state.enemy.defense * 3);
-    const creditsGained = Math.floor(xpGained * (0.8 + Math.random() * 0.4)); // Credits roughly equal to XP
+    const isBoss = state.enemy.isBoss;
+    let xpGained = Math.floor(state.enemy.attack * 2 + state.enemy.defense * 3);
+    let creditsGained = Math.floor(xpGained * (0.8 + Math.random() * 0.4)); // Credits roughly equal to XP
+    
+    if (isBoss) {
+        xpGained *= 3;
+        creditsGained *= 3;
+    }
     
     // Loot Logic
     const dropTable = state.enemy.drops || ["Energy Cell", "Alien Crystal", "Data Chip"];
@@ -553,10 +638,36 @@ export function winCombat() {
     addLog(`You gained ${xpGained} XP, ${creditsGained} credits and found a ${loot}.`);
 
     // Show victory message
-    showVictoryMessage(`Victory! ${enemyName} defeated!`);
+    if (isBoss) {
+        showVictoryMessage(`🏆 Epic Victory! You defeated the area boss ${enemyName}!`);
+    } else {
+        showVictoryMessage(`Victory! ${enemyName} defeated!`);
+    }
 
     state.gameState = "exploring";
     showScreen("exploring");
     updateUI();
     simulateExploration();
+}
+
+/**
+ * Check if the boss has reached a new phase threshold
+ */
+export function checkPhaseTransition() {
+    if (!state.enemy || !state.enemy.isBoss || !state.enemy.phases) return;
+
+    const currentHpPct = state.enemy.hp / state.enemy.maxHp;
+    const currentPhaseIdx = state.enemy.currentPhase || 0;
+
+    if (currentPhaseIdx < state.enemy.phases.length) {
+        const nextPhase = state.enemy.phases[currentPhaseIdx];
+        if (currentHpPct <= nextPhase.threshold) {
+            state.enemy.currentPhase = currentPhaseIdx + 1;
+            state.enemy.attack += nextPhase.attackBuff || 0;
+            state.enemy.defense += nextPhase.defenseBuff || 0;
+            state.enemy.defense -= nextPhase.defenseNerf || 0;
+            addLog(`⚠️ BOSS PHASE: ${nextPhase.msg}`);
+            updateCombatLog();
+        }
+    }
 }

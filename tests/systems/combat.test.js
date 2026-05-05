@@ -1,4 +1,4 @@
-import { initCombat, playerAttack, playerBlock, playerDodge, useSpecialAbility, enemyTurn, winCombat } from '../../systems/combat.js';
+import { initCombat, playerAttack, playerBlock, playerDodge, useSpecialAbility, enemyTurn, winCombat, encounterEnemy, encounterBoss, checkPhaseTransition } from '../../systems/combat.js';
 
 // Mock dependencies
 const mockState = {
@@ -11,7 +11,10 @@ const mockState = {
         maxEnergy: 50,
         role: 'Warrior',
         attack: 10,
-        defense: 5
+        defense: 5,
+        ap: 3,
+        maxAp: 3,
+        level: 5
     },
     enemy: {
         name: 'Goblin',
@@ -47,7 +50,6 @@ const mockUi = {
 
 const mockEquipment = {
     getEffectiveStats: jest.fn().mockImplementation(() => {
-        // Return base stats for simplicity unless overridden
         return {
             attack: mockState.character.attack,
             defense: mockState.character.defense
@@ -72,10 +74,11 @@ describe('Combat System', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        // Reset state deep copy logic (simplified reset)
         mockState.character.hp = 100;
         mockState.character.energy = 50;
         mockState.character.role = 'Warrior';
+        mockState.character.ap = 3;
+        mockState.character.level = 5;
         mockState.enemy = {
             name: 'Goblin',
             hp: 50,
@@ -89,10 +92,16 @@ describe('Combat System', () => {
         mockState.gameState = 'combat';
         mockState.inventory = [];
 
-        // Re-inject dependencies
         initCombat({
             state: mockState,
-            data: { enemies: [] },
+            data: { 
+                enemies: [{ name: 'Scaled Goblin', hp: 50, attack: 10, defense: 2, locations: ['terra_prime'] }],
+                bosses: [{ 
+                    name: 'Test Boss', hp: 200, attack: 20, defense: 5, locations: ['terra_prime'],
+                    phases: [{ threshold: 0.5, attackBuff: 10, defenseBuff: 5, msg: "Phase 2!" }],
+                    specialAttacks: [{ chance: 1.0, damageMultiplier: 2.0, msg: "Special!" }]
+                }]
+            },
             dom: { combatElements: mockCombatElements },
             ui: mockUi,
             equipment: mockEquipment,
@@ -102,88 +111,101 @@ describe('Combat System', () => {
             settings: { getDifficulty: jest.fn().mockReturnValue({ enemyHpModifier: 1, enemyDmgModifier: 1 }) }
         });
 
-        // Mock global document.getElementById (used for specialAbilityButton)
         document.getElementById = jest.fn().mockReturnValue({
             disabled: false,
             className: '',
-            textContent: ''
+            textContent: '',
+            style: {}
         });
-        document.createElement = jest.fn().mockReturnValue({ className: '', textContent: '' });
+        document.querySelector = jest.fn().mockReturnValue({
+            disabled: false,
+            className: '',
+            style: {}
+        });
+        document.createElement = jest.fn().mockReturnValue({ className: '', textContent: '', style: {} });
     });
 
     test('playerAttack deals damage to enemy', () => {
-        // Given
-        // calculate expected damage: (10 - 2) = 8.
-
-        // When
         playerAttack();
-
-        // Then
-        // Enemy HP should decrease
         expect(mockState.enemy.hp).toBeLessThan(50);
-        // Should log result
         expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('damage'));
     });
 
     test('playerAttack triggers victory when enemy dies', () => {
-        // Given
-        mockState.enemy.hp = 1; // 1 HP left
-
-        // When
+        mockState.enemy.hp = 1;
         playerAttack();
-
-        // Then
-        expect(mockState.enemy).toBeNull(); // Enemy cleared on victory
+        expect(mockState.enemy).toBeNull();
         expect(mockUi.showVictoryMessage).toHaveBeenCalled();
         expect(mockCharacter.gainXp).toHaveBeenCalled();
     });
 
     test('playerBlock reduces incoming damage', () => {
-        // Given
-        // normal damage: 8 (enemy atk) - 5 (player def) = 3
-
-        // When
+        mockState.character.ap = 1;
         playerBlock();
-
-        // Then
-        // Blocking flag should be set
         expect(mockState.playerStatusEffects).toEqual(expect.arrayContaining([expect.objectContaining({ type: 'blocking' })]));
-
-        // Enemy turn happens immediately in block logic?
-        // Let's check the code: yes, playerBlock calls enemyTurn().
-        // Enemy damage: ceil(3 * 0.5) = 1 (using floor in code: Math.floor(3 * 0.5) = 1)
-        // or code: Math.floor(damage * 0.5)
-
-        expect(mockState.character.hp).toBe(99); // 100 - 1
+        expect(mockState.character.hp).toBe(99);
         expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('blocked'));
     });
 
     test('character uses Warrior special ability', () => {
-        // Given
         mockState.character.role = 'Warrior';
         mockState.character.energy = 50;
-
-        // When
         useSpecialAbility();
-
-        // Then
-        // Energy reduced by 30 => 20, then +5 from enemy turn => 25
         expect(mockState.character.energy).toBe(25);
-        // Damage deal logic: (10 - 2) * 1.5 = 12
-        expect(mockState.enemy.hp).toBe(38); // 50 - 12
+        expect(mockState.enemy.hp).toBe(38);
         expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('POWER STRIKE'));
     });
 
     test('character cannot use special ability without enough energy', () => {
-        // Given
         mockState.character.energy = 10;
         const initialHp = mockState.enemy.hp;
-
-        // When
         useSpecialAbility();
-
-        // Then
-        expect(mockState.enemy.hp).toBe(initialHp); // No damage
+        expect(mockState.enemy.hp).toBe(initialHp);
         expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('Not enough energy'));
+    });
+
+    test('playerAttack consumes AP and deals damage', () => {
+        mockState.character.ap = 3;
+        playerAttack();
+        expect(mockState.character.ap).toBe(1);
+        expect(mockState.enemy.hp).toBeLessThan(50);
+    });
+
+    test('encounterEnemy scales enemy stats based on player level', () => {
+        mockState.character.level = 10;
+        encounterEnemy();
+        expect(mockState.enemy.maxHp).toBeGreaterThan(60);
+        expect(mockState.enemy.attack).toBeGreaterThan(15);
+        expect(mockState.character.ap).toBe(3);
+    });
+
+    test('encounterBoss initializes boss state correctly', () => {
+        encounterBoss();
+        expect(mockState.enemy.isBoss).toBe(true);
+        expect(mockState.enemy.currentPhase).toBe(0);
+        expect(mockState.enemy.maxHp).toBeGreaterThan(100);
+    });
+
+    test('checkPhaseTransition buffs boss when threshold met', () => {
+        mockState.enemy = {
+            isBoss: true,
+            hp: 40,
+            maxHp: 100,
+            attack: 20,
+            defense: 5,
+            currentPhase: 0,
+            phases: [{ threshold: 0.5, attackBuff: 10, defenseBuff: 5, msg: "Phase 2!" }]
+        };
+        checkPhaseTransition();
+        expect(mockState.enemy.currentPhase).toBe(1);
+        expect(mockState.enemy.attack).toBe(30);
+        expect(mockState.enemy.defense).toBe(10);
+    });
+
+    test('winCombat grants 3x rewards for bosses', () => {
+        mockState.enemy = { name: "Test Boss", attack: 10, defense: 10, isBoss: true };
+        winCombat();
+        expect(mockCharacter.gainXp).toHaveBeenCalledWith(150);
+        expect(mockUi.showVictoryMessage).toHaveBeenCalledWith(expect.stringContaining('Epic Victory'));
     });
 });
