@@ -94,14 +94,14 @@ export function closeCombatItemMenu() {
 export function useCombatItem(itemName) {
     if (!state.character || !state.enemy || state.character.ap < 1) return;
     
-    state.character.ap -= 1;
-
     const item = items[itemName];
     if (!item || item.type !== "consumable") return;
 
     // Remove 1 from inventory
     const index = state.inventory.indexOf(itemName);
     if (index === -1) return;
+    
+    state.character.ap -= 1;
     state.inventory.splice(index, 1);
 
     // Apply effect

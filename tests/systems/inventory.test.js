@@ -23,7 +23,7 @@ describe('Inventory System', () => {
         jest.clearAllMocks();
         jest.useFakeTimers();
         mockState.inventory = ['Energy Cell', 'Scrap', 'Alien Crystal'];
-        mockState.character = { hp: 50, maxHp: 100, energy: 50, maxEnergy: 100 };
+        mockState.character = { hp: 50, maxHp: 100, energy: 50, maxEnergy: 100, ap: 1, maxAp: 3 };
         mockState.enemy = { name: "Test Enemy", hp: 50, maxHp: 50 };
 
         initInventory({

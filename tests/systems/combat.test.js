@@ -71,6 +71,17 @@ const mockExploration = {
 };
 
 describe('Combat System', () => {
+    let globalRandom;
+
+    beforeAll(() => {
+        globalRandom = Math.random;
+        Math.random = jest.fn(() => 0.5); // Consistent non-critical, non-status-effect random value
+    });
+
+    afterAll(() => {
+        Math.random = globalRandom;
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
 
@@ -115,12 +126,14 @@ describe('Combat System', () => {
             disabled: false,
             className: '',
             textContent: '',
-            style: {}
+            style: {},
+            classList: { add: jest.fn(), remove: jest.fn() }
         });
         document.querySelector = jest.fn().mockReturnValue({
             disabled: false,
             className: '',
-            style: {}
+            style: {},
+            classList: { add: jest.fn(), remove: jest.fn() }
         });
         document.createElement = jest.fn().mockReturnValue({ className: '', textContent: '', style: {} });
     });
@@ -139,12 +152,21 @@ describe('Combat System', () => {
         expect(mockCharacter.gainXp).toHaveBeenCalled();
     });
 
-    test('playerBlock reduces incoming damage', () => {
-        mockState.character.ap = 1;
+    test('playerBlock applies blocking status effect', () => {
+        mockState.character.ap = 2; // Keep AP > 0 so enemyTurn doesn't run
         playerBlock();
         expect(mockState.playerStatusEffects).toEqual(expect.arrayContaining([expect.objectContaining({ type: 'blocking' })]));
+        expect(mockState.character.hp).toBe(100); // HP hasn't changed yet
+        expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('ready to block'));
+    });
+
+    test('blocking reduces incoming damage during enemy turn', () => {
+        mockState.playerStatusEffects = [{ type: 'blocking', duration: 1 }];
+        mockState.character.hp = 100;
+        // enemy atk: 8, player def: 5 => 3 dmg. Block => 1 dmg.
+        enemyTurn();
         expect(mockState.character.hp).toBe(99);
-        expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('blocked'));
+        expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('reducing damage'));
     });
 
     test('character uses Warrior special ability', () => {
