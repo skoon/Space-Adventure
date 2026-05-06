@@ -12,6 +12,8 @@ let enemies, bosses, combatElements;
 // Import functions from other modules
 let addLog, updateCombatLog, showScreen, updateUI;
 let getEffectiveStats, getCharacterAvatar, getStatusEffectIcon;
+import { hasSkill, getPassiveBonus } from './skills.js';
+
 let gainXp, checkQuestProgress, showVictoryMessage, simulateExploration;
 let getDifficulty;
 
@@ -170,8 +172,8 @@ export function updateCombatUI() {
     if (combatElements.playerHp) combatElements.playerHp.textContent = state.character.hp;
     if (combatElements.playerMaxHp) combatElements.playerMaxHp.textContent = state.character.maxHp;
     const stats = getEffectiveStats();
-    if (combatElements.playerAtk) combatElements.playerAtk.textContent = stats.attack;
-    if (combatElements.playerDef) combatElements.playerDef.textContent = stats.defense;
+    if (combatElements.playerAtk) combatElements.playerAtk.textContent = stats.attack + getPassiveBonus('attack');
+    if (combatElements.playerDef) combatElements.playerDef.textContent = stats.defense + getPassiveBonus('defense');
     if (combatElements.playerEnergy) combatElements.playerEnergy.textContent = currentEnergy;
     if (combatElements.playerMaxEnergy) combatElements.playerMaxEnergy.textContent = maxEnergy;
     if (combatElements.playerAvatar) combatElements.playerAvatar.textContent = getCharacterAvatar(state.character.race, state.character.role);
@@ -258,19 +260,25 @@ export function updateCombatUI() {
 
     // Update special ability button
     const specialButton = document.getElementById("specialAbilityButton");
-    if (specialButton) {
-        const hasEnergy = currentEnergy >= 30;
+        let energyCost = 30;
+        let abilityName = "⭐ Special";
+        
+        if (state.character.role === "Warrior") {
+            if (hasSkill('warrior_whirlwind')) { abilityName = "🌪️ Whirlwind"; energyCost = 40; }
+            else abilityName = "⭐ Power Strike";
+        } else if (state.character.role === "Rogue") {
+            if (hasSkill('rogue_shadowstrike')) { abilityName = "🌑 Shadow Strike"; energyCost = 45; }
+            else abilityName = "⭐ Assassinate";
+        } else if (state.character.role === "Scientist") {
+            if (hasSkill('sci_overload')) { abilityName = "💥 Overload"; energyCost = 50; }
+            else abilityName = "⭐ Shield Boost";
+        }
+
+        const hasEnergy = currentEnergy >= energyCost;
         const hasAp = state.character.ap >= 3;
         specialButton.disabled = !hasEnergy || !hasAp;
-        specialButton.className = `py-3 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${hasEnergy && hasAp ? "" : "opacity-50 cursor-not-allowed"}`;
-        // Update button text based on role
-        if (state.character.role === "Warrior") {
-            specialButton.textContent = "⭐ Power Strike";
-        } else if (state.character.role === "Rogue") {
-            specialButton.textContent = "⭐ Assassinate";
-        } else if (state.character.role === "Scientist") {
-            specialButton.textContent = "⭐ Shield Boost";
-        }
+        specialButton.className = `py-3 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors flex items-center justify-center gap-2 text-sm ${hasEnergy && hasAp ? "" : "opacity-50 cursor-not-allowed"}`;
+        specialButton.textContent = `${abilityName} (3 AP)`;
     }
 }
 
@@ -296,14 +304,16 @@ export function playerAttack() {
         return;
     }
 
-    // Critical hit chance (15% base, higher for Rogues)
-    const critChance = state.character.role === "Rogue" ? 0.25 : 0.15;
+    // Critical hit chance (15% base, higher for Rogues) + passive
+    const passiveCrit = getPassiveBonus('critChance');
+    const critChance = (state.character.role === "Rogue" ? 0.25 : 0.15) + passiveCrit;
     const isCritical = Math.random() < critChance;
     const critMultiplier = isCritical ? 2 : 1;
 
     // Check for attack buffs
     const stats = getEffectiveStats();
-    const baseDamage = Math.max(0, stats.attack - state.enemy.defense);
+    const passiveAttack = getPassiveBonus('attack');
+    const baseDamage = Math.max(0, (stats.attack + passiveAttack) - state.enemy.defense);
     const damage = Math.floor(baseDamage * critMultiplier);
     state.enemy.hp -= damage;
     checkPhaseTransition();
@@ -382,9 +392,10 @@ export function playerDodge() {
         return;
     }
 
+    const passiveDodge = getPassiveBonus('dodgeChance');
     state.playerStatusEffects = [
         ...state.playerStatusEffects.filter(e => e.type !== "dodging"),
-        { type: "dodging", duration: 1 }
+        { type: "dodging", chance: 0.3 + passiveDodge, duration: 1 }
     ];
 
     addLog("💨 You prepare to dodge the next attack!");
@@ -402,7 +413,11 @@ export function playerDodge() {
 export function useSpecialAbility() {
     if (!state.character || !state.enemy || state.character.ap < 3) return;
 
-    const energyCost = 30;
+    let energyCost = 30;
+    if (state.character.role === "Warrior" && hasSkill('warrior_whirlwind')) energyCost = 40;
+    if (state.character.role === "Rogue" && hasSkill('rogue_shadowstrike')) energyCost = 45;
+    if (state.character.role === "Scientist" && hasSkill('sci_overload')) energyCost = 50;
+
     const currentEnergy = state.character.energy ?? state.character.maxEnergy ?? 100;
     if (currentEnergy < energyCost) {
         addLog("⚠️ Not enough energy to use special ability!");
@@ -428,46 +443,66 @@ export function useSpecialAbility() {
     }
 
     state.character.energy = Math.max(0, currentEnergy - energyCost);
+    const stats = getEffectiveStats();
+    const effectiveAttack = stats.attack + getPassiveBonus('attack');
 
     if (state.character.role === "Warrior") {
-        // Power Strike - 1.5x damage
-        const baseDamage = Math.max(0, state.character.attack - state.enemy.defense);
-        const damage = Math.floor(baseDamage * 1.5);
-        state.enemy.hp -= damage;
+        if (hasSkill('warrior_whirlwind')) {
+            const damage = Math.max(0, effectiveAttack - state.enemy.defense);
+            state.enemy.hp -= damage;
+            state.character.ap += 1; // Refund 1 AP
+            addLog(`🌪️ WHIRLWIND! You slash through the enemy for ${damage} damage and regain 1 AP!`);
+        } else {
+            // Power Strike - 1.5x damage
+            const baseDamage = Math.max(0, effectiveAttack - state.enemy.defense);
+            const damage = Math.floor(baseDamage * 1.5);
+            state.enemy.hp -= damage;
+            addLog(`⚔️ POWER STRIKE! You unleash a devastating blow for ${damage} damage!`);
+        }
         checkPhaseTransition();
-
-        addLog(`⚔️ POWER STRIKE! You unleash a devastating blow for ${damage} damage!`);
         updateCombatLog();
 
-        if (state.enemy.hp <= 0) {
-            winCombat();
-        } else if (state.character.ap <= 0) {
-            enemyTurn();
-        }
+        if (state.enemy.hp <= 0) winCombat();
+        else if (state.character.ap <= 0) enemyTurn();
     } else if (state.character.role === "Rogue") {
-        // Guaranteed Critical Hit - 2.5x damage
-        const baseDamage = Math.max(0, state.character.attack - state.enemy.defense);
-        const damage = Math.floor(baseDamage * 2.5);
-        state.enemy.hp -= damage;
-        checkPhaseTransition();
-
-        addLog(`🗡️ ASSASSINATE! You strike a critical weak point for ${damage} damage!`);
-        updateCombatLog();
-
-        if (state.enemy.hp <= 0) {
-            winCombat();
-        } else if (state.character.ap <= 0) {
-            enemyTurn();
+        if (hasSkill('rogue_shadowstrike')) {
+            const baseDamage = Math.max(0, effectiveAttack - state.enemy.defense);
+            const damage = Math.floor(baseDamage * 2.0);
+            state.enemy.hp -= damage;
+            state.enemyStatusEffects.push({ type: "poison", damage: 8, duration: 3 });
+            addLog(`🌑 SHADOW STRIKE! You deal ${damage} damage and poison the enemy!`);
+        } else {
+            // Guaranteed Critical Hit - 2.5x damage
+            const baseDamage = Math.max(0, effectiveAttack - state.enemy.defense);
+            const damage = Math.floor(baseDamage * 2.5);
+            state.enemy.hp -= damage;
+            addLog(`🗡️ ASSASSINATE! You strike a critical weak point for ${damage} damage!`);
         }
-    } else if (state.character.role === "Scientist") {
-        // Shield Boost - temporary defense increase
-        state.playerStatusEffects = [
-            ...state.playerStatusEffects.filter(e => e.type !== "defenseBoost"),
-            { type: "defenseBoost", value: 5, duration: 3 }
-        ];
-        addLog("🔬 You activate a defensive shield! Defense increased for 3 turns.");
+        checkPhaseTransition();
         updateCombatLog();
-        if (state.character.ap <= 0) enemyTurn();
+
+        if (state.enemy.hp <= 0) winCombat();
+        else if (state.character.ap <= 0) enemyTurn();
+    } else if (state.character.role === "Scientist") {
+        if (hasSkill('sci_overload')) {
+            const baseDamage = Math.max(0, effectiveAttack - state.enemy.defense);
+            const damage = Math.floor(baseDamage * 2.0);
+            state.enemy.hp -= damage;
+            state.enemyStatusEffects.push({ type: "defenseBreak", value: Math.floor(state.enemy.defense / 2), duration: 2 });
+            addLog(`💥 OVERLOAD! You deal ${damage} damage and shatter their defense!`);
+            checkPhaseTransition();
+            if (state.enemy.hp <= 0) winCombat();
+            else if (state.character.ap <= 0) enemyTurn();
+        } else {
+            // Shield Boost - temporary defense increase
+            state.playerStatusEffects = [
+                ...state.playerStatusEffects.filter(e => e.type !== "defenseBoost"),
+                { type: "defenseBoost", value: 5, duration: 3 }
+            ];
+            addLog("🔬 You activate a defensive shield! Defense increased for 3 turns.");
+            if (state.character.ap <= 0) enemyTurn();
+        }
+        updateCombatLog();
     }
 
     updateCombatUI();
@@ -493,9 +528,9 @@ export function enemyTurn() {
     if (!state.character || !state.enemy) return;
 
     // Check if player is dodging
-    const isDodging = state.playerStatusEffects.some(e => e.type === "dodging");
-    if (isDodging) {
-        const dodgeSuccess = Math.random() < 0.3; // 30% chance
+    const dodgeEffect = state.playerStatusEffects.find(e => e.type === "dodging");
+    if (dodgeEffect) {
+        const dodgeSuccess = Math.random() < (dodgeEffect.chance || 0.3);
         if (dodgeSuccess) {
             addLog(`💨 You successfully dodged ${state.enemy.name}'s attack!`);
             updateCombatLog();

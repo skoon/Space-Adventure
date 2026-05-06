@@ -94,6 +94,14 @@ export function loadGame() {
         state.log = saveData.log || [];
         state.playerStatusEffects = saveData.playerStatusEffects || [];
         state.enemyStatusEffects = saveData.enemyStatusEffects || [];
+        
+        // Retroactive skill points setup
+        state.character.unlockedSkills = state.character.unlockedSkills || [];
+        if (state.character.skillPoints === undefined) {
+            // Retroactively grant 1 point per level above 1
+            const expectedPoints = Math.max(0, state.character.level - 1);
+            state.character.skillPoints = expectedPoints;
+        }
 
         // Clear notifications
         state.levelUpNotification = null;

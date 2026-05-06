@@ -64,7 +64,9 @@ describe('Character System', () => {
             attack: 10,
             defense: 5,
             maxEnergy: 50,
-            energy: 50
+            energy: 50,
+            skillPoints: 0,
+            unlockedSkills: []
         };
 
         // Gain 50 XP (no level up)
@@ -78,6 +80,7 @@ describe('Character System', () => {
         expect(mockState.character.level).toBe(2);
         expect(mockState.character.xp).toBe(0); // 100 absorbed
         expect(mockState.character.maxHp).toBe(110); // +10
+        expect(mockState.character.skillPoints).toBe(1); // +1 SP
         expect(mockUi.showLevelUpNotification).toHaveBeenCalled();
     });
 

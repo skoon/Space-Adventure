@@ -29,7 +29,8 @@ export {
     showSettingsModal,
     showLevelUpNotification, hideLevelUpNotification, 
     showVictoryMessage, showSaveMessage, 
-    showDialog, hideDialog
+    showDialog, hideDialog,
+    showSkillsUI, closeSkillsUI, renderSkillTree
 };
 
 // State object reference
@@ -206,6 +207,12 @@ function updateCharacterInfo() {
         if (elements.characterRaceRole) elements.characterRaceRole.textContent = raceRole;
         renderCache.character.raceRole = raceRole;
     }
+    
+    // Update SP
+    const spEl = document.getElementById("characterSkillPoints");
+    if (spEl) {
+        spEl.textContent = `SP: ${char.skillPoints || 0}`;
+    }
 }
 
 function updateStats() {
@@ -322,3 +329,92 @@ export function startGame() {
     state.gameState = "characterCreation";
     showScreen("creation");
 }
+
+/**
+ * Show the Skills Modal
+ */
+export function showSkillsUI() {
+    const modal = document.getElementById('skillsModal');
+    if (modal) {
+        renderSkillTree();
+        modal.classList.remove('hidden');
+    }
+}
+
+/**
+ * Close the Skills Modal
+ */
+export function closeSkillsUI() {
+    const modal = document.getElementById('skillsModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+/**
+ * Render the Skill Tree
+ */
+export async function renderSkillTree() {
+    if (!state.character) return;
+    
+    // Dynamically import skills module to prevent circular dependencies
+    const skillsModule = await import('./skills.js');
+    const SKILL_TREES = skillsModule.SKILL_TREES;
+    const hasSkill = skillsModule.hasSkill;
+    const unlockSkill = skillsModule.unlockSkill;
+    
+    const role = state.character.role;
+    const tree = SKILL_TREES[role];
+    
+    const container = document.getElementById('skillTreeContainer');
+    const spDisplay = document.getElementById('skillsSpDisplay');
+    const roleDesc = document.getElementById('skillsRoleDesc');
+    
+    if (!container || !tree) return;
+    
+    spDisplay.textContent = state.character.skillPoints || 0;
+    if (roleDesc) roleDesc.textContent = `${role} Talents`;
+    
+    container.innerHTML = '';
+    
+    tree.forEach(skill => {
+        const isUnlocked = hasSkill(skill.id);
+        const canUnlock = !isUnlocked && (!skill.requires || hasSkill(skill.requires));
+        const lackSp = state.character.skillPoints < skill.cost;
+        
+        let statusClass = "border-gray-600 bg-gray-800 opacity-50";
+        if (isUnlocked) statusClass = "border-green-500 bg-green-900/40";
+        else if (canUnlock && !lackSp) statusClass = "border-yellow-500 bg-yellow-900/40 cursor-pointer hover:bg-yellow-800/60";
+        else if (canUnlock && lackSp) statusClass = "border-red-500 bg-red-900/20";
+        
+        const node = document.createElement('div');
+        node.className = `p-4 border-2 rounded-lg transition-all flex items-start gap-4 ${statusClass}`;
+        
+        node.innerHTML = `
+            <div class="text-4xl">${skill.icon}</div>
+            <div class="flex-grow">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-bold ${isUnlocked ? 'text-green-400' : 'text-blue-300'}">${skill.name}</h3>
+                    <span class="text-sm font-bold ${isUnlocked ? 'text-green-400' : 'text-yellow-400'}">${isUnlocked ? 'UNLOCKED' : `Cost: ${skill.cost} SP`}</span>
+                </div>
+                <p class="text-sm text-gray-300 mt-1">${skill.description}</p>
+                ${skill.requires && !hasSkill(skill.requires) ? `<p class="text-xs text-red-400 mt-1">Requires previous tier skill.</p>` : ''}
+            </div>
+        `;
+        
+        if (canUnlock && !lackSp) {
+            node.onclick = () => {
+                const res = unlockSkill(skill.id);
+                if (res.success) {
+                    renderSkillTree();
+                    updateUI();
+                } else {
+                    addLog(res.message);
+                }
+            };
+        }
+        
+        container.appendChild(node);
+    });
+}
+

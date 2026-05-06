@@ -72,6 +72,8 @@ export function createCharacter(event) {
             armor: null,
             accessory: null
         },
+        skillPoints: 0,
+        unlockedSkills: [],
         inventory: [],
         activeQuests: {},
         completedQuests: [],
@@ -114,6 +116,10 @@ export function gainXp(amount) {
         state.character.defense += statIncreases.defense;
         state.character.maxEnergy += 10;
         state.character.energy = state.character.maxEnergy;
+        
+        // Award 1 skill point per level
+        state.character.skillPoints = (state.character.skillPoints || 0) + 1;
+        state.character.unlockedSkills = state.character.unlockedSkills || [];
 
         showLevelUpNotification(state.character.level, statIncreases);
         addLog(`🎉 LEVEL UP! You reached Level ${state.character.level}!`);

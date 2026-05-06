@@ -11,6 +11,8 @@ let addLog, updateCombatLog, updateCombatUI, updateUI;
 let enemyTurn;
 let items;
 
+import { getPassiveBonus } from './skills.js';
+
 /**
  * Initialize the inventory module with required dependencies
  */
@@ -106,7 +108,8 @@ export function useCombatItem(itemName) {
 
     // Apply effect
     if (item.effect === "heal") {
-        const healAmount = item.value || 0;
+        const healMultiplier = 1 + getPassiveBonus('healMultiplier');
+        const healAmount = Math.floor((item.value || 0) * healMultiplier);
         const oldHp = state.character.hp;
         state.character.hp = Math.min(state.character.maxHp, state.character.hp + healAmount);
         const healed = state.character.hp - oldHp;

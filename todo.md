@@ -34,18 +34,18 @@
 
 ### Boss Battles
 
-- [ ] **Unique Boss Enemies** - Special enemies with multiple phases
-- [ ] **Boss Mechanics** - Special attack patterns and abilities
-- [ ] **Boss Rewards** - Unique loot and higher XP from bosses
-- [ ] **Boss Health Bars** - Enhanced visual display for boss encounters
+- [x] **Unique Boss Enemies** - Special enemies with multiple phases
+- [x] **Boss Mechanics** - Special attack patterns and abilities
+- [x] **Boss Rewards** - Unique loot and higher XP from bosses
+- [x] **Boss Health Bars** - Enhanced visual display for boss encounters
 
 ## 📈 Progression & Character Development
 
 ### Skill Tree System
 
-- [ ] **Unlockable Abilities** - Skills specific to each role
-- [ ] **Stat Upgrades** - Permanent stat boosts on level up
-- [ ] **Passive Bonuses** - Unlock passive abilities (e.g., +10% crit chance)
+- [x] **Unlockable Abilities** - Skills specific to each role
+- [x] **Stat Upgrades** - Permanent stat boosts on level up
+- [x] **Passive Bonuses** - Unlock passive abilities (e.g., +10% crit chance)
 
 ### Equipment System
 
