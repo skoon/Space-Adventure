@@ -29,8 +29,7 @@ export {
     showSettingsModal,
     showLevelUpNotification, hideLevelUpNotification, 
     showVictoryMessage, showSaveMessage, 
-    showDialog, hideDialog,
-    showSkillsUI, closeSkillsUI, renderSkillTree
+    showDialog, hideDialog
 };
 
 // State object reference

@@ -260,6 +260,7 @@ export function updateCombatUI() {
 
     // Update special ability button
     const specialButton = document.getElementById("specialAbilityButton");
+    if (specialButton) {
         let energyCost = 30;
         let abilityName = "⭐ Special";
         
