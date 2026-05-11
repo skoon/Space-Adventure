@@ -35,7 +35,7 @@ export function getLocationDetails(locationId) {
  */
 export function getUnlockedLocations() {
     const engineLevel = state.character?.ship?.engineLevel || 1;
-    return Object.values(locations).filter(loc => engineLevel >= (loc.engineLevelReq || 1));
+    return Object.values(locations).filter(loc => loc.unlocked !== false && engineLevel >= (loc.engineLevelReq || 1));
 }
 
 /**
@@ -47,6 +47,11 @@ export function travelTo(locationId) {
 
     if (state.gameState === "combat") {
         addLog("❌ Cannot travel while in combat!");
+        return false;
+    }
+
+    if (location.unlocked === false) {
+        addLog(`❌ Cannot travel to ${location.name}. Functionality locked.`);
         return false;
     }
 

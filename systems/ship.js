@@ -149,7 +149,7 @@ export function upgradeModule(moduleId) {
 
 // Hooks
 export function getMedbayHealAmount() {
-    if (!state.character || !state.character.ship) return 0;
+    if (!state || !state.character || !state.character.ship) return 0;
     const level = state.character.ship.medbayLevel;
     if (level === 1) return 10;
     if (level === 2) return 25;
@@ -158,7 +158,7 @@ export function getMedbayHealAmount() {
 }
 
 export function getScannerBonus() {
-    if (!state.character || !state.character.ship) return 0;
+    if (!state || !state.character || !state.character.ship) return 0;
     const level = state.character.ship.scannerLevel;
     // Return extra weight for good events
     if (level === 1) return 10; // +10% weight
@@ -168,6 +168,6 @@ export function getScannerBonus() {
 }
 
 export function getEngineLevel() {
-    if (!state.character || !state.character.ship) return 1;
+    if (!state || !state.character || !state.character.ship) return 1;
     return state.character.ship.engineLevel;
 }
