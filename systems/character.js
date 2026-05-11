@@ -79,7 +79,13 @@ export function createCharacter(event) {
         completedQuests: [],
         credits: 100,
         pendingOrders: [],  // Photon Prime orders awaiting pickup
-        knownRecipes: {}    // Unlockable crafting recipes
+        knownRecipes: {},   // Unlockable crafting recipes
+        ship: {
+            engineLevel: 1, // 1: Inner planets, 2: Outer planets, 3: Deep space
+            medbayLevel: 0, // Heals after combat/travel
+            cargoLevel: 0,  // Could increase stack sizes
+            scannerLevel: 0 // Boosts good random events
+        }
     };
 
     state.gameState = "exploring";

@@ -417,3 +417,116 @@ export async function renderSkillTree() {
     });
 }
 
+/**
+ * Show Ship Hub UI
+ */
+export function showShipUI() {
+    const modal = document.getElementById('shipHubModal');
+    if (modal) {
+        renderShipModules();
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+    }
+}
+
+/**
+ * Close Ship Hub UI
+ */
+export function closeShipUI() {
+    const modal = document.getElementById('shipHubModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+}
+
+/**
+ * Render Ship Modules
+ */
+export async function renderShipModules() {
+    if (!state.character || !state.character.ship) return;
+    
+    const shipModule = await import('./ship.js');
+    const modules = shipModule.shipModules;
+    const getUpgradeCost = shipModule.getUpgradeCost;
+    const canAffordUpgrade = shipModule.canAffordUpgrade;
+    
+    const container = document.getElementById('shipModulesContainer');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    Object.values(modules).forEach(mod => {
+        const currentLevel = state.character.ship[mod.id + 'Level'];
+        const isMaxLevel = currentLevel >= mod.maxLevel;
+        const cost = getUpgradeCost(mod.id, currentLevel);
+        const canAfford = cost ? canAffordUpgrade(cost) : false;
+        
+        let costHtml = '';
+        if (!isMaxLevel && cost) {
+            costHtml = `<div class="text-xs mt-2 text-yellow-400">Upgrade Cost: ${cost.credits} Credits`;
+            if (Object.keys(cost.materials).length > 0) {
+                costHtml += `, ${Object.entries(cost.materials).map(([k, v]) => `${v}x ${k}`).join(', ')}`;
+            }
+            costHtml += `</div>`;
+        }
+        
+        const node = document.createElement('div');
+        node.className = `p-4 border border-cyan-800 rounded bg-slate-900/50 mb-2`;
+        
+        let buttonHtml = '';
+        if (isMaxLevel) {
+            buttonHtml = `<button class="px-4 py-1 bg-gray-600 text-gray-300 rounded cursor-not-allowed text-xs font-bold" disabled>MAX LEVEL</button>`;
+        } else {
+            const btnClass = canAfford 
+                ? "bg-cyan-600 hover:bg-cyan-500 text-white" 
+                : "bg-gray-600 text-gray-400 cursor-not-allowed";
+            buttonHtml = `<button class="px-4 py-1 rounded text-xs font-bold transition-colors ${btnClass}" ${!canAfford ? 'disabled' : ''}>UPGRADE</button>`;
+        }
+        
+        node.innerHTML = `
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="font-bold text-cyan-300 text-lg">${mod.name} <span class="text-sm text-cyan-600">LVL ${currentLevel}</span></h3>
+                    <p class="text-gray-400 mt-1">${mod.descriptions[currentLevel] || mod.descriptions[mod.descriptions.length - 1]}</p>
+                    ${costHtml}
+                </div>
+                <div>
+                    ${buttonHtml}
+                </div>
+            </div>
+        `;
+        
+        if (!isMaxLevel && canAfford) {
+            const btn = node.querySelector('button');
+            btn.onclick = () => {
+                if (shipModule.upgradeModule(mod.id)) {
+                    renderShipModules();
+                }
+            };
+        }
+        
+        container.appendChild(node);
+    });
+}
+
+/**
+ * Play Travel Animation
+ */
+export function playTravelAnimation(callback) {
+    const overlay = document.getElementById('travelAnimationOverlay');
+    if (!overlay) {
+        if (callback) callback();
+        return;
+    }
+    
+    overlay.classList.remove('hidden');
+    overlay.style.display = 'flex';
+    
+    // Play for 2 seconds
+    setTimeout(() => {
+        overlay.classList.add('hidden');
+        overlay.style.display = 'none';
+        if (callback) callback();
+    }, 2000);
+}

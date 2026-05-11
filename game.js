@@ -17,6 +17,7 @@ import { initLocations, travelTo, getLocationDetails, getUnlockedLocations } fro
 import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem, claimAllOrders } from './systems/shop.js';
 import { initCrafting, craftItem, discoverRecipe, getKnownRecipes, canCraft } from './systems/crafting.js';
 import { initSettings, getDifficulty, setDifficulty } from './systems/settings.js';
+import { initShip, upgradeModule } from './systems/ship.js';
 
 import { locations } from './data/locations.js';
 import { enemies, bosses } from './data/enemies.js';
@@ -277,6 +278,12 @@ function initializeGame() {
     ui: { addLog, updateUI }
   });
 
+  // Initialize Ship
+  initShip({
+    ...deps,
+    ui: { addLog, updateUI }
+  });
+
   // Initialize Settings
   initSettings();
 }
@@ -338,3 +345,4 @@ window.hideLevelUpNotification = hideLevelUpNotification;
 window.setDifficulty = setDifficulty;
 window.getDifficulty = getDifficulty;
 window.showSettingsModal = showSettingsModal;
+window.upgradeModule = upgradeModule;

@@ -7,8 +7,9 @@
 let state;
 
 // Dependencies
-let addLog, updateUI;
+let addLog, updateUI, playTravelAnimation;
 let locations;
+import { getMedbayHealAmount } from './ship.js';
 
 /**
  * Initialize the locations module
@@ -19,6 +20,7 @@ export function initLocations(deps) {
 
     addLog = deps.ui.addLog;
     updateUI = deps.ui.updateUI;
+    playTravelAnimation = deps.ui.playTravelAnimation;
 }
 
 /**
@@ -32,7 +34,8 @@ export function getLocationDetails(locationId) {
  * Get all unlocked locations
  */
 export function getUnlockedLocations() {
-    return Object.values(locations).filter(loc => loc.unlocked);
+    const engineLevel = state.character?.ship?.engineLevel || 1;
+    return Object.values(locations).filter(loc => engineLevel >= (loc.engineLevelReq || 1));
 }
 
 /**
@@ -47,8 +50,9 @@ export function travelTo(locationId) {
         return false;
     }
 
-    if (!location.unlocked) {
-        addLog(`❌ Cannot travel to ${location.name}. Functionality locked.`);
+    const engineLevel = state.character?.ship?.engineLevel || 1;
+    if (engineLevel < (location.engineLevelReq || 1)) {
+        addLog(`❌ Cannot travel to ${location.name}. Engine Level ${location.engineLevelReq} required.`);
         return false;
     }
 
@@ -66,10 +70,30 @@ export function travelTo(locationId) {
         addLog(`Paid ${cost} credits for transport.`);
     }
 
-    state.currentLocation = locationId;
+    // Trigger travel animation and logic
+    if (playTravelAnimation) {
+        playTravelAnimation(() => completeTravel(location));
+    } else {
+        completeTravel(location);
+    }
+
+    return true;
+}
+
+function completeTravel(location) {
+    state.currentLocation = location.id;
     addLog(`🚀 Traveling to ${location.name}...`);
     addLog(`ARRIVAL: ${location.description}`);
+    
+    // Trigger medbay healing
+    if (state.character && state.character.ship) {
+        const heal = getMedbayHealAmount();
+        if (heal > 0 && state.character.hp < state.character.maxHp) {
+            const oldHp = state.character.hp;
+            state.character.hp = Math.min(state.character.maxHp, state.character.hp + heal);
+            addLog(`🩺 Medbay healed you for ${state.character.hp - oldHp} HP during travel.`);
+        }
+    }
 
     updateUI();
-    return true;
 }

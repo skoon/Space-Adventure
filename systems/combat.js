@@ -680,10 +680,20 @@ export function winCombat() {
         showVictoryMessage(`Victory! ${enemyName} defeated!`);
     }
 
-    state.gameState = "exploring";
-    showScreen("exploring");
-    updateUI();
-    simulateExploration();
+    // Trigger medbay healing
+    import('./ship.js').then(m => {
+        const heal = m.getMedbayHealAmount();
+        if (heal > 0 && state.character.hp < state.character.maxHp) {
+            const oldHp = state.character.hp;
+            state.character.hp = Math.min(state.character.maxHp, state.character.hp + heal);
+            addLog(`🩺 Medbay healed you for ${state.character.hp - oldHp} HP after combat.`);
+        }
+        
+        state.gameState = "exploring";
+        showScreen("exploring");
+        updateUI();
+        simulateExploration();
+    });
 }
 
 /**

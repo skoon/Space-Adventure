@@ -102,6 +102,16 @@ export function loadGame() {
             const expectedPoints = Math.max(0, state.character.level - 1);
             state.character.skillPoints = expectedPoints;
         }
+        
+        // Retroactive ship setup
+        if (!state.character.ship) {
+            state.character.ship = {
+                engineLevel: 1,
+                medbayLevel: 0,
+                cargoLevel: 0,
+                scannerLevel: 0
+            };
+        }
 
         // Clear notifications
         state.levelUpNotification = null;

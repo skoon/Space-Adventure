@@ -48,11 +48,24 @@ export function initEvents(dependencies) {
 /**
  * Generate a random event based on weights
  */
+import { getScannerBonus } from './ship.js';
+
 /**
  * Generate a random event based on weights and location
  */
 export function generateRandomEvent(locationId) {
-    const roll = Math.random();
+    let roll = Math.random();
+    
+    // Scanner Bonus: Chance to reroll Combat or Hazards into Loot or Restore
+    const scannerBonus = getScannerBonus();
+    if (scannerBonus > 0) {
+        if (roll >= 0.40 && roll < 0.65) { // Combat
+            if (Math.random() * 100 < scannerBonus) {
+                roll = 0.65 + Math.random() * 0.15; // Reroll into Loot
+            }
+        }
+    }
+
     const location = deps.data.locations[locationId];
     
     // 5% Recipe Discovery
