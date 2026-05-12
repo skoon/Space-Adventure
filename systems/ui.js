@@ -125,7 +125,9 @@ function updateTheme() {
  * Show screen based on game state
  */
 export function showScreen(screenName) {
-    Object.values(deps.dom.screens).forEach(screen => screen.classList.remove("active-screen"));
+    Object.values(deps.dom.screens).forEach(screen => {
+        if (screen) screen.classList.remove("active-screen");
+    });
     if (deps.dom.screens[screenName]) {
         deps.dom.screens[screenName].classList.add("active-screen");
     }
@@ -170,6 +172,51 @@ export function updateUI() {
     const craftingModal = document.getElementById('craftingModal');
     if (craftingModal) {
         updateCraftingUI();
+    }
+    
+    // Update Derelict UI if active
+    if (state.gameState === "derelict" && state.derelict) {
+        updateDerelictUI();
+    }
+}
+
+function updateDerelictUI() {
+    const oxText = document.getElementById('derelictOxygenText');
+    const oxBar = document.getElementById('derelictOxygenBar');
+    const roomsText = document.getElementById('derelictRoomsText');
+    const lootList = document.getElementById('derelictLootList');
+
+    if (oxText && state.derelict) {
+        oxText.textContent = `${state.derelict.oxygen}/${state.derelict.maxOxygen}`;
+        const pct = (state.derelict.oxygen / state.derelict.maxOxygen) * 100;
+        oxBar.style.width = `${pct}%`;
+        
+        if (pct <= 25) {
+            oxBar.classList.replace('bg-cyan-500', 'bg-red-500');
+            oxText.classList.replace('text-cyan-400', 'text-red-500');
+            oxText.classList.add('animate-pulse');
+        } else {
+            oxBar.classList.replace('bg-red-500', 'bg-cyan-500');
+            oxText.classList.replace('text-red-500', 'text-cyan-400');
+            oxText.classList.remove('animate-pulse');
+        }
+        
+        roomsText.textContent = state.derelict.roomsExplored;
+        
+        // Render Loot
+        if (lootList) {
+            lootList.innerHTML = '';
+            if (state.derelict.currentLoot.length === 0) {
+                lootList.innerHTML = '<span class="text-gray-500 italic">No cargo secured yet.</span>';
+            } else {
+                state.derelict.currentLoot.forEach(item => {
+                    const span = document.createElement('span');
+                    span.className = 'bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-600';
+                    span.textContent = item;
+                    lootList.appendChild(span);
+                });
+            }
+        }
     }
 }
 
@@ -529,4 +576,12 @@ export function playTravelAnimation(callback) {
         overlay.style.display = 'none';
         if (callback) callback();
     }, 2000);
+}
+
+/**
+ * Show Derelict Screen
+ */
+export function showDerelictScreen() {
+    showScreen("derelict");
+    updateDerelictUI();
 }

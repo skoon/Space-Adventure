@@ -570,8 +570,12 @@ export function enemyTurn() {
                 state.character.ap = state.character.maxAp || 3;
                 if (state.character.hp <= 0) {
                     addLog("You have been defeated...");
-                    state.gameState = "defeat";
-                    showScreen("defeat");
+                    if (state.derelict && state.derelict.active) {
+                        import('./derelict.js').then(m => m.failRun());
+                    } else {
+                        state.gameState = "defeat";
+                        showScreen("defeat");
+                    }
                 } else {
                     processStatusEffects();
                 }
@@ -624,8 +628,12 @@ export function enemyTurn() {
 
     if (state.character.hp <= 0) {
         addLog("You have been defeated...");
-        state.gameState = "defeat";
-        showScreen("defeat");
+        if (state.derelict && state.derelict.active) {
+            import('./derelict.js').then(m => m.failRun());
+        } else {
+            state.gameState = "defeat";
+            showScreen("defeat");
+        }
     } else {
         // Start of player's new turn
         processStatusEffects();
@@ -689,10 +697,16 @@ export function winCombat() {
             addLog(`🩺 Medbay healed you for ${state.character.hp - oldHp} HP after combat.`);
         }
         
-        state.gameState = "exploring";
-        showScreen("exploring");
-        updateUI();
-        simulateExploration();
+        if (state.derelict && state.derelict.active) {
+            state.gameState = "derelict";
+            showScreen("derelict");
+            updateUI();
+        } else {
+            state.gameState = "exploring";
+            showScreen("exploring");
+            updateUI();
+            simulateExploration();
+        }
     });
 }
 

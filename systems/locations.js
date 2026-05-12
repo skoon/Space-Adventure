@@ -77,9 +77,26 @@ export function travelTo(locationId) {
 
     // Trigger travel animation and logic
     if (playTravelAnimation) {
-        playTravelAnimation(() => completeTravel(location));
+        playTravelAnimation(() => {
+            import('./ship.js').then(ship => {
+                const scannerBonus = ship.getScannerBonus() || 0;
+                // Base 15% chance + Scanner Bonus / 2 (max 25% extra)
+                if (Math.random() * 100 < 15 + (scannerBonus / 2)) {
+                    import('./derelict.js').then(m => m.startDerelictRun(location));
+                } else {
+                    completeTravel(location);
+                }
+            });
+        });
     } else {
-        completeTravel(location);
+        import('./ship.js').then(ship => {
+            const scannerBonus = ship.getScannerBonus() || 0;
+            if (Math.random() * 100 < 15 + (scannerBonus / 2)) {
+                import('./derelict.js').then(m => m.startDerelictRun(location));
+            } else {
+                completeTravel(location);
+            }
+        });
     }
 
     return true;

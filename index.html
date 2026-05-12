@@ -482,6 +482,57 @@
           </div>
         </div>
 
+        <!-- Derelict Screen -->
+        <div id="derelictScreen" class="screen game-ui">
+          <div class="flex flex-col h-full bg-gray-900 border border-red-900 rounded-lg p-4 relative overflow-hidden">
+            <!-- Pulsing red danger background -->
+            <div class="absolute inset-0 bg-red-900 opacity-10 animate-pulse pointer-events-none"></div>
+            
+            <h2 class="text-3xl font-bold text-red-500 mb-2 text-center cyber-glow-text tracking-widest uppercase">
+              ⚠️ DERELICT VESSEL
+            </h2>
+            <p class="text-center text-gray-400 mb-4 text-sm">Life support offline. Immediate danger detected.</p>
+            
+            <div class="grid grid-cols-2 gap-4 mb-4 relative z-10">
+              <div class="bg-black/50 p-3 rounded border border-red-800">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-gray-300 font-bold">OXYGEN RESERVE</span>
+                  <span id="derelictOxygenText" class="text-cyan-400 font-bold">10/10</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-3">
+                  <div id="derelictOxygenBar" class="bg-cyan-500 h-3 rounded-full transition-all duration-300" style="width: 100%"></div>
+                </div>
+              </div>
+              <div class="bg-black/50 p-3 rounded border border-gray-700 flex flex-col justify-center items-center">
+                <span class="text-gray-400 text-sm">DEPTH / ROOMS</span>
+                <span id="derelictRoomsText" class="text-2xl text-white font-bold">0</span>
+              </div>
+            </div>
+
+            <div class="flex-grow bg-black/80 border border-gray-700 rounded p-3 mb-4 overflow-y-auto custom-scrollbar-cyan relative z-10">
+              <h3 class="text-yellow-500 font-bold mb-2 border-b border-gray-700 pb-1">SECURED CARGO</h3>
+              <div id="derelictLootList" class="flex flex-wrap gap-2 text-sm">
+                <!-- Loot items will go here -->
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mt-auto relative z-10">
+              <button
+                onclick="exploreRoom()"
+                class="py-3 px-4 bg-red-800 hover:bg-red-700 text-white rounded font-bold transition-colors shadow-[0_0_10px_rgba(153,27,27,0.5)] border border-red-600 uppercase tracking-wider"
+              >
+                Explore Deeper (-1 O₂)
+              </button>
+              <button
+                onclick="escapeShip()"
+                class="py-3 px-4 bg-blue-700 hover:bg-blue-600 text-white rounded font-bold transition-colors shadow-[0_0_10px_rgba(29,78,216,0.5)] border border-blue-500 uppercase tracking-wider"
+              >
+                Escape to Ship
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Combat Screen -->
         <div id="combatScreen" class="screen game-ui">
           <div class="flex flex-col h-full">

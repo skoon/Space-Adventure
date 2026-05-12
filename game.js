@@ -18,6 +18,7 @@ import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem,
 import { initCrafting, craftItem, discoverRecipe, getKnownRecipes, canCraft } from './systems/crafting.js';
 import { initSettings, getDifficulty, setDifficulty } from './systems/settings.js';
 import { initShip, upgradeModule } from './systems/ship.js';
+import { initDerelict, startDerelictRun, exploreRoom, escapeShip, failRun } from './systems/derelict.js';
 
 import { locations } from './data/locations.js';
 import { enemies, bosses } from './data/enemies.js';
@@ -284,6 +285,15 @@ function initializeGame() {
     ui: { addLog, updateUI }
   });
 
+  // Initialize Derelict
+  initDerelict({
+    ...deps,
+    ui: { addLog, updateUI, showScreen },
+    character: { gainXp },
+    quests: { checkQuestProgress },
+    combat: { encounterEnemy }
+  });
+
   // Initialize Settings
   initSettings();
 }
@@ -346,3 +356,7 @@ window.setDifficulty = setDifficulty;
 window.getDifficulty = getDifficulty;
 window.showSettingsModal = showSettingsModal;
 window.upgradeModule = upgradeModule;
+
+// Derelict functions
+window.exploreRoom = exploreRoom;
+window.escapeShip = escapeShip;
