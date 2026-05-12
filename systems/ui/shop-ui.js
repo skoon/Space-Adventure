@@ -81,12 +81,8 @@ export function updateShopUI() {
     const buyContainer = document.getElementById("shopBuyContainer");
     if (buyContainer && currentShopTab === 'buy') {
         buyContainer.innerHTML = "";
-        // List specific items for sale
-        const itemsForSale = [
-            "Energy Cell", "Nano Stimpack",
-            "Kevlar Vest", "Titanium Plating",
-            "Plasma Rifle", "Laser Blade", "Shield Generator", "Targeting HUD"
-        ];
+        // List all items for sale
+        const itemsForSale = Object.keys(items);
 
         itemsForSale.forEach(itemName => {
             const item = items[itemName];
