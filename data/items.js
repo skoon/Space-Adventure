@@ -6,6 +6,21 @@ export const items = {
   "Data Chip": { type: "material", category: "material", description: "Contains encrypted data.", price: 150, stackable: true },
   "Scrap Metal": { type: "material", category: "material", description: "Useful for crafting.", price: 20, stackable: true },
   "Rusty Pipe": { type: "material", category: "material", description: "An old metal pipe.", price: 10, stackable: true },
+  "Titanium Ingot": { type: "material", category: "material", description: "An ingot of Titanium.", price: 600, stackable: true },
+  "Plasma Core": { type: "material", category: "material", description: "A core of plasma.", price: 1200, stackable: true },
+  "Circuit Board": { type: "material", category: "material", description: "A circuit board.", price: 300, stackable: true },
+  "Bio-Gel": { type: "material", category: "material", description: "A gel that heals wounds.", price: 200, stackable: true },
+  "Nanites": { type: "material", category: "material", description: "Nanites that heal wounds.", price: 200, stackable: true },
+  "Laser Capacitor": { type: "material", category: "material", description: "A capacitor that stores energy.", price: 400, stackable: true },
+  "Robotic Arm": { type: "material", category: "material", description: "A robotic arm.", price: 500, stackable: true },
+  "Hydraulic Press": { type: "material", category: "material", description: "A hydraulic press.", price: 1000, stackable: true }, 
+  "Tungsten Ore": { type: "material", category: "material", description: "An ingot of Tungsten.", price: 600, stackable: true },
+  "Carbon Nanotubes": { type: "material", category: "material", description: "A bundle of carbon nanotubes.", price: 800, stackable: true },
+  "Quantum Chip": { type: "material", category: "material", description: "A chip that stores quantum data.", price: 1500, stackable: true },
+  "Rare Earth Elements": { type: "material", category: "material", description: "Rare earth elements used in advanced technology.", price: 1000, stackable: true },  
+  "Industrial Compressor": { type: "material", category: "material", description: "An industrial compressor for compressing materials.", price: 1200, stackable: true },  
+  "Medical Synthesizer": { type: "material", category: "material", description: "A medical synthesizer for creating medical supplies.", price: 1500, stackable: true },
+  
 
   // Weapons
   "Plasma Rifle": { type: "weapon", category: "equipment", stats: { attack: 5 }, description: "A powerful energy weapon.", price: 500, stackable: false },
