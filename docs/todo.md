@@ -71,6 +71,14 @@
 - [x] **Location-Specific Loot** - Area-specific items and rewards
 - [x] **Travel System** - UI for selecting destinations
 
+### Deep Space Dungeons (Derelict Ships)
+
+- [x] **Distress Signals** - 10% chance to encounter a derelict ship during travel
+- [x] **Survival / Life Support** - Limited oxygen supply acts as a strict turn/exploration limit
+- [x] **Procedural Room Exploration** - Explore rooms with random outcomes (Combat, Loot, Hazards, Empty)
+- [x] **Risk vs. Reward scaling** - Deeper exploration increases hazard damage and enemy strength but increases high-tier loot chances
+- [x] **Emergency Recall & Escape** - Choose to escape with accumulated loot at any time, or pass out on 0 oxygen and lose all secured loot and take 25% max HP damage
+
 ### Quest System
 
 - [x] **Main Story Quests** - Primary narrative objectives
@@ -92,7 +100,7 @@
 
 - [x] **Item Combination** - Combine materials to create items
 - [x] **Recipe Discovery** - Find and unlock crafting recipes
-- [u] **Equipment Upgrades** - Enhance existing equipment
+- [ ] **Equipment Upgrades** - Enhance existing equipment
 - [x] **Crafting UI** - Interface for crafting operations
 
 ### Shop/Trading System
@@ -108,7 +116,6 @@
 - [x] **Item Stacking** - Stack consumables with quantities
 - [x] **Item Categories** - Organize by type (weapons, consumables, etc.)
 - [x] **Item Tooltips** - Detailed information on hover
-- [ ] **Item Comparison** - Compare equipment stats
 - [ ] **Item Comparison** - Compare equipment stats
 
 ## 🎯 Game Systems
@@ -191,10 +198,10 @@
 
 ### Code Quality
 
-- [ ] **Component Refactoring** - Break down large components
+- [x] **Component Refactoring** - Modularized large UI elements (Inventory, Crafting, Travel, Shop, Settings, Quests, Notifications, Logging) into separate files under `systems/ui/` with `systems/ui.js` coordinating
 - [ ] **Type Safety** - Add TypeScript or PropTypes
 - [ ] **Error Handling** - Better error boundaries and handling
-- [ ] **Testing** - Unit tests for game logic
+- [x] **Testing** - Comprehensive unit testing suite implemented using Jest, with test files covering character progression, combat, crafting, inventory, location travel, shop mechanics, skill tree upgrades, and UI render state
 
 ## 📝 Notes
 
