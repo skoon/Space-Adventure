@@ -24,8 +24,8 @@ export const shipModules = {
         ],
         costs: [
             { credits: 0, materials: {} }, // Level 1 (base)
-            { credits: 500, materials: { "Titanium": 2, "Energy Cell": 1 } }, // Level 1 -> 2
-            { credits: 1500, materials: { "Titanium": 5, "Plasma Core": 1 } } // Level 2 -> 3
+            { credits: 500, materials: { "Titanium Ingot": 2, "Energy Cell": 1 } }, // Level 1 -> 2
+            { credits: 1500, materials: { "Titanium Ingot": 5, "Plasma Core": 1 } } // Level 2 -> 3
         ]
     },
     medbay: {
@@ -39,9 +39,9 @@ export const shipModules = {
             "Regenerative nanites. Heals 50 HP after combat/travel."
         ],
         costs: [
-            { credits: 200, materials: { "Biogel": 2 } }, // Level 0 -> 1
-            { credits: 800, materials: { "Biogel": 5, "Energy Cell": 2 } }, // Level 1 -> 2
-            { credits: 2000, materials: { "Biogel": 10, "Plasma Core": 1 } } // Level 2 -> 3
+            { credits: 200, materials: { "Bio-Gel": 2 } }, // Level 0 -> 1
+            { credits: 800, materials: { "Bio-Gel": 5, "Energy Cell": 2 } }, // Level 1 -> 2
+            { credits: 2000, materials: { "Bio-Gel": 10, "Plasma Core": 1 } } // Level 2 -> 3
         ]
     },
     cargo: {
@@ -55,9 +55,9 @@ export const shipModules = {
             "Pocket dimension. Near limitless storage."
         ],
         costs: [
-            { credits: 300, materials: { "Titanium": 3 } },
-            { credits: 1000, materials: { "Titanium": 8, "Energy Cell": 2 } },
-            { credits: 2500, materials: { "Titanium": 15, "Plasma Core": 2 } }
+            { credits: 300, materials: { "Titanium Ingot": 3 } },
+            { credits: 1000, materials: { "Titanium Ingot": 8, "Energy Cell": 2 } },
+            { credits: 2500, materials: { "Titanium Ingot": 15, "Plasma Core": 2 } }
         ]
     },
     scanner: {

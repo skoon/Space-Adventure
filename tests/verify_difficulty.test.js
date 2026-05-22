@@ -1,6 +1,6 @@
-const { initCombat, encounterEnemy } = require('../systems/combat.js');
-const { initEvents, handleEvent } = require('../systems/events.js');
-const { initSettings, setDifficulty, getDifficulty } = require('../systems/settings.js');
+import { initCombat, encounterEnemy } from '../systems/combat.js';
+import { initEvents, handleEvent } from '../systems/events.js';
+import { initSettings, setDifficulty, getDifficulty } from '../systems/settings.js';
 
 // Mock dependencies
 const mockState = {
@@ -37,15 +37,31 @@ const deps = {
 
 describe('Difficulty Settings', () => {
     beforeAll(() => {
+        // Mock standard localStorage
+        Object.defineProperty(window, 'localStorage', {
+            value: {
+                getItem: jest.fn(() => null),
+                setItem: jest.fn(),
+                removeItem: jest.fn(),
+                clear: jest.fn()
+            },
+            writable: true
+        });
+
         initSettings();
         initCombat(deps);
         initEvents(deps);
     });
 
     beforeEach(() => {
+        jest.clearAllMocks();
         mockState.character.hp = 100;
+        mockState.character.maxHp = 100;
+        mockState.character.defense = 0;
+        mockState.character.level = 1;
         mockUi.addLog.mockClear();
         mockUi.updateUI.mockClear();
+        setDifficulty('normal'); // Always reset to normal before each test
     });
 
     test('Easy Mode scales enemy stats down', () => {
@@ -98,7 +114,7 @@ describe('Difficulty Settings', () => {
         // Damage 20 * 0.5 = 10.
         expect(mockState.character.hp).toBe(90);
 
-        // Reset
+        // Reset hp
         mockState.character.hp = 100;
         
         // Hard
