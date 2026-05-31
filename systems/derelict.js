@@ -22,6 +22,10 @@ export function initDerelict(dependencies) {
  * Start a new derelict run
  */
 export function startDerelictRun(destination) {
+    if (!state) {
+        console.error("Derelict system not initialized: state is undefined");
+        return;
+    }
     const maxOxygen = 10 + Math.floor(Math.random() * 6); // 10-15 Oxygen
     
     state.derelict = {

@@ -66,6 +66,11 @@ describe('Location System', () => {
         mockState.character.credits = 100;
         mockState.currentLocation = 'terra_prime';
         initLocations(mockDeps);
+        jest.spyOn(Math, 'random').mockReturnValue(0.99);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     test('TRAVEL: Should allow travel if unlocked and enough credits', () => {
