@@ -73,9 +73,13 @@ describe('Location System', () => {
         jest.restoreAllMocks();
     });
 
-    test('TRAVEL: Should allow travel if unlocked and enough credits', () => {
+    test('TRAVEL: Should allow travel if unlocked and enough credits', async () => {
         const success = travelTo('xylo_delta');
         expect(success).toBe(true);
+        
+        // Wait for asynchronous dynamic imports and callbacks to finish
+        await new Promise(resolve => setTimeout(resolve, 50));
+        
         expect(mockState.currentLocation).toBe('xylo_delta');
         expect(mockState.character.credits).toBe(50); // 100 - 50
         expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('Paid 50 credits'));
