@@ -21,7 +21,6 @@ const EVENT_TYPES = {
     RESTORE: 'restore',
     HAZARD: 'hazard',
     NPC: 'npc',
-    TRAVEL: 'travel',
     DROPBOX: 'dropbox',  // Photon Prime delivery drop box
     RECIPE: 'recipe'     // Crafting recipe discovery
 };
@@ -81,13 +80,8 @@ export function generateRandomEvent(locationId) {
         }
     }
 
-    // 3% Travel Event (Transport Device) - Rare!
-    if (roll < 0.08) {
-        return { type: EVENT_TYPES.TRAVEL };
-    }
-
     // 10% Drop Box Event (only if pending orders exist)
-    if (roll < 0.18 && state.character?.pendingOrders?.length > 0) {
+    if (roll < 0.15 && state.character?.pendingOrders?.length > 0) {
         return { type: EVENT_TYPES.DROPBOX };
     }
 
@@ -286,32 +280,6 @@ export function handleEvent(event) {
             triggerNPCEvent();
             break;
 
-        case EVENT_TYPES.TRAVEL:
-            showDialog(
-                "Working Transport Device",
-                "You stumble upon an ancient but functional transport device. It seems capable of taking you to another world. Do you want to use it?",
-                [
-                    {
-                        text: "Travel",
-                        action: () => {
-                            // Close dialog first
-                            if (typeof hideDialog === 'function') hideDialog(); // Accessing hidden global or import? No, showDialog handles closing usually.
-
-                            // We need to verify if showTravelScreen exists on the ui object we captured
-                            if (ui && ui.showTravelScreen) {
-                                ui.showTravelScreen();
-                            } else {
-                                addLog("Travel system error: UI not ready.");
-                            }
-                        }
-                    },
-                    {
-                        text: "Leave it",
-                        action: () => addLog("You decided not to risk using the device.")
-                    }
-                ]
-            );
-            break;
 
         case EVENT_TYPES.DROPBOX:
             triggerDropBoxEvent();

@@ -69,7 +69,7 @@
 - [x] **Location-Specific Enemies** - Different enemy types per location
 - [x] **Location-Specific Events** - Unique random events per area
 - [x] **Location-Specific Loot** - Area-specific items and rewards
-- [x] **Travel System** - UI for selecting destinations
+- [x] **Travel System** - Integrated planetary travel into the Ship Hub (replacing random transport device encounters)
 
 ### Deep Space Dungeons (Derelict Ships)
 

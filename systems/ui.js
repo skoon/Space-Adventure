@@ -592,6 +592,33 @@ export async function renderShipModules() {
         
         container.appendChild(node);
     });
+
+    // Render Planetary Travel Navigation Card
+    const engineLevel = state.character.ship.engineLevel || 1;
+    let reachText = "local system nodes (Terra Prime, Norkon Outpost)";
+    if (engineLevel === 2) {
+        reachText = "outer star systems (Xylo Delta)";
+    } else if (engineLevel >= 3) {
+        reachText = "deep space anomalies (Nebula Outpost)";
+    }
+
+    const navNode = document.createElement('div');
+    navNode.className = `p-4 border border-cyan-800 rounded bg-slate-900/50 mb-2 mt-4`;
+    navNode.innerHTML = `
+        <div class="flex justify-between items-start flex-col sm:flex-row gap-4">
+            <div>
+                <h3 class="font-bold text-cyan-300 text-lg">🌌 Sector Navigation Map</h3>
+                <p class="text-gray-400 mt-1">Initiate planetary transit. Current engines allow travel to ${reachText}.</p>
+            </div>
+            <div class="flex items-center sm:self-center">
+                <button onclick="import('./systems/ui.js').then((m) => { m.closeShipUI(); m.showTravelScreen(); })" 
+                        class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-bold transition-colors shadow-[0_0_10px_rgba(6,182,212,0.4)] whitespace-nowrap">
+                    LAUNCH MAP
+                </button>
+            </div>
+        </div>
+    `;
+    container.appendChild(navNode);
 }
 
 /**

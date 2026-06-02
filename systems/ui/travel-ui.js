@@ -98,6 +98,11 @@ export function showTravelScreen() {
                  if (travelTo(loc.id)) {
                      const travelModal = document.getElementById("travelScreen");
                      if (travelModal) travelModal.classList.add("hidden");
+                     const shipModal = document.getElementById("shipHubModal");
+                     if (shipModal) {
+                         shipModal.classList.add("hidden");
+                         shipModal.style.display = "none";
+                     }
                      updateUI(); // Ensure UI updates to reflect new location immediately
                  }
              };
@@ -147,6 +152,11 @@ export function travelToLocation(locId) {
     if (travelTo(locId)) {
         const travelModal = document.getElementById("travelScreen");
         if (travelModal) travelModal.classList.add("hidden");
+        const shipModal = document.getElementById("shipHubModal");
+        if (shipModal) {
+            shipModal.classList.add("hidden");
+            shipModal.style.display = "none";
+        }
         updateUI();
     }
 }

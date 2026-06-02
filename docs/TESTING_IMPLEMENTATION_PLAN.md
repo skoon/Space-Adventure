@@ -33,6 +33,12 @@
 - [x] **Quests**
 - [x] **Exploration**
 - [x] **Save/Load**
+- [x] **Item Rarity System** (`systems/rarity.js`)
+    - [x] Test rarity tier weight rolling
+    - [x] Test stats scaling and parsing
+- [x] **Attributes Manual Allocation** (`systems/ui/attributes-ui.js`)
+    - [x] Test point distribution logic and role recommendations
+    - [x] Test button visual notifications
 
 ## 4. Execution
-- [x] Run `npm test` to verify all tests pass. (All 18 tests passed)
+- [x] Run `npm test` to verify all tests pass. (All tests passing)
