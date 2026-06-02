@@ -3,6 +3,8 @@
  * Handles buying and selling items
  */
 
+import { rollRarity } from './rarity.js';
+
 // State object reference
 let state;
 
@@ -36,8 +38,12 @@ export function buyItem(itemName) {
     }
 
     state.character.credits -= price;
-    state.inventory.push(itemName);
-    addLog(`💰 Bought ${itemName} for ${price} credits.`);
+    const finalItem = rollRarity(itemName, 0.02);
+    state.inventory.push(finalItem);
+    if (finalItem !== itemName) {
+        addLog(`🎉 Lucky! Your purchased ${itemName} was upgraded to ${finalItem}!`);
+    }
+    addLog(`💰 Bought ${finalItem} for ${price} credits.`);
     updateUI();
     return true;
 }
@@ -121,8 +127,12 @@ export function claimOrder(itemName) {
     if (idx === -1) return false;
 
     state.character.pendingOrders.splice(idx, 1);
-    state.inventory.push(itemName);
-    addLog(`📦 Collected ${itemName} from Photon Prime drop box!`);
+    const finalItem = rollRarity(itemName, 0.02);
+    state.inventory.push(finalItem);
+    if (finalItem !== itemName) {
+        addLog(`🎉 Lucky! Your delivery of ${itemName} was upgraded to ${finalItem}!`);
+    }
+    addLog(`📦 Collected ${finalItem} from Photon Prime drop box!`);
     updateUI();
     return true;
 }
@@ -136,13 +146,20 @@ export function claimAllOrders() {
     }
 
     const claimed = [...state.character.pendingOrders];
+    const finalClaimed = [];
     claimed.forEach(itemName => {
-        state.inventory.push(itemName);
+        const finalItem = rollRarity(itemName, 0.02);
+        state.inventory.push(finalItem);
+        finalClaimed.push(finalItem);
+        if (finalItem !== itemName) {
+            addLog(`🎉 Lucky! Your delivery of ${itemName} was upgraded to ${finalItem}!`);
+        }
+        addLog(`📦 Collected ${finalItem} from Photon Prime drop box!`);
     });
 
     state.character.pendingOrders = [];
     updateUI();
-    return claimed;
+    return finalClaimed;
 }
 
 /**

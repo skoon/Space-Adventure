@@ -81,8 +81,11 @@ export function updateShopUI() {
     const buyContainer = document.getElementById("shopBuyContainer");
     if (buyContainer && currentShopTab === 'buy') {
         buyContainer.innerHTML = "";
-        // List all items for sale
-        const itemsForSale = Object.keys(items);
+        // List all items for sale (exclude custom rarity items to avoid catalog pollution)
+        const itemsForSale = Object.keys(items).filter(itemName => {
+            const item = items[itemName];
+            return item && !item.rarity;
+        });
 
         itemsForSale.forEach(itemName => {
             const item = items[itemName];
@@ -123,11 +126,18 @@ export function updateShopUI() {
                 const count = counts[itemName];
                 const price = getItemSellPrice ? getItemSellPrice(itemName) : 0;
 
+                let textClass = "text-gray-200";
+                if (item && item.rarity) {
+                    if (item.rarity === "Rare") textClass = "text-blue-400 font-semibold";
+                    else if (item.rarity === "Epic") textClass = "text-purple-400 font-semibold";
+                    else if (item.rarity === "Legendary") textClass = "text-yellow-500 font-bold";
+                }
+
                 const card = document.createElement("div");
                 card.className = "bg-gray-700 p-3 rounded flex justify-between items-center";
                 card.innerHTML = `
                     <div>
-                        <div class="font-bold text-gray-200">${itemName} x${count}</div>
+                        <div class="font-bold ${textClass}">${itemName} x${count}</div>
                         <div class="text-xs text-gray-400">${item ? item.description : ''}</div>
                         <div class="text-green-500 font-mono mt-1">Sell: ${price} cr</div>
                     </div>

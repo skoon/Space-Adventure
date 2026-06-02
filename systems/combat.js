@@ -1,7 +1,5 @@
-/**
- * Combat System Module
- * Handles all combat-related functionality including player actions, enemy AI, and combat flow
- */
+import { rollRarity } from './rarity.js';
+import { items } from '../data/items.js';
 
 // State object that holds getters/setters
 let state;
@@ -314,7 +312,7 @@ export function playerAttack() {
     // Check for attack buffs
     const stats = getEffectiveStats();
     const passiveAttack = getPassiveBonus('attack');
-    const baseDamage = Math.max(0, (stats.attack + passiveAttack) - state.enemy.defense);
+    const baseDamage = Math.max(1, (stats.attack + passiveAttack) - state.enemy.defense);
     const damage = Math.floor(baseDamage * critMultiplier);
     state.enemy.hp -= damage;
     checkPhaseTransition();
@@ -556,9 +554,10 @@ export function enemyTurn() {
     if (state.enemy.isBoss && state.enemy.specialAttacks) {
         for (let sp of state.enemy.specialAttacks) {
             if (Math.random() < sp.chance) {
-                let spDamage = Math.max(0, Math.floor(state.enemy.attack * sp.damageMultiplier) - effectiveDefense);
+                const minSpDamage = Math.max(2, Math.floor(state.enemy.attack * sp.damageMultiplier * 0.15));
+                let spDamage = Math.max(minSpDamage, Math.floor(state.enemy.attack * sp.damageMultiplier) - effectiveDefense);
                 if (isBlocking) {
-                    spDamage = Math.floor(spDamage * 0.5);
+                    spDamage = Math.max(1, Math.floor(spDamage * 0.5));
                     addLog(`🛡️ You blocked ${state.enemy.name}'s special attack, reducing damage!`);
                 }
                 state.character.hp -= spDamage;
@@ -586,10 +585,11 @@ export function enemyTurn() {
         }
     }
 
-    let damage = Math.max(0, state.enemy.attack - effectiveDefense);
+    const minDamage = Math.max(1, Math.floor(state.enemy.attack * 0.15));
+    let damage = Math.max(minDamage, state.enemy.attack - effectiveDefense);
 
     if (isBlocking) {
-        damage = Math.floor(damage * 0.5); // 50% damage reduction
+        damage = Math.max(1, Math.floor(damage * 0.5)); // 50% damage reduction, minimum 1
         addLog(`🛡️ You blocked ${state.enemy.name}'s attack, reducing damage!`);
         updateCombatLog();
     }
@@ -662,6 +662,7 @@ export function winCombat() {
     // Loot Logic
     const dropTable = state.enemy.drops || ["Energy Cell", "Alien Crystal", "Data Chip"];
     const loot = dropTable[Math.floor(Math.random() * dropTable.length)];
+    const finalLoot = rollRarity(loot, isBoss ? 0.15 : 0);
 
     // Clear enemy immediately to prevent further interactions
     state.enemy = null;
@@ -674,12 +675,24 @@ export function winCombat() {
     checkQuestProgress("kill", enemyName, 1);
     
     // Inventory & Credits
-    state.inventory.push(loot);
+    state.inventory.push(finalLoot);
     state.character.credits = (state.character.credits || 0) + creditsGained;
 
     // Log
     addLog(`You defeated the ${enemyName}!`);
-    addLog(`You gained ${xpGained} XP, ${creditsGained} credits and found a ${loot}.`);
+    addLog(`You gained ${xpGained} XP, ${creditsGained} credits and found a ${finalLoot}.`);
+
+    // Equipment Drop Chance (20% normal, 50% boss)
+    const equipDropChance = isBoss ? 0.50 : 0.20;
+    if (Math.random() < equipDropChance) {
+        const equipmentPool = Object.keys(items).filter(k => ["weapon", "armor", "accessory"].includes(items[k].type));
+        if (equipmentPool.length > 0) {
+            const randomEquip = equipmentPool[Math.floor(Math.random() * equipmentPool.length)];
+            const rolledEquip = rollRarity(randomEquip, isBoss ? 0.25 : 0.05);
+            state.inventory.push(rolledEquip);
+            addLog(`🎁 Lucky! You found a rare equipment drop: ${rolledEquip}!`);
+        }
+    }
 
     // Show victory message
     if (isBoss) {

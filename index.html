@@ -470,10 +470,19 @@
                   ✨ Skills & Talents
                 </button>
                 <button
+                  id="attributesBtn"
+                  onclick="
+                    import('./systems/ui.js').then((m) => m.showStatsAllocationUI())
+                  "
+                  class="py-2 px-4 bg-teal-600 hover:bg-teal-700 border border-transparent rounded font-bold transition-colors shadow-[0_0_10px_rgba(20,184,166,0.5)]"
+                >
+                  📊 Attributes
+                </button>
+                <button
                   onclick="
                     import('./systems/ui.js').then((m) => m.showShipUI())
                   "
-                  class="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 rounded font-bold transition-colors shadow-[0_0_10px_rgba(99,102,241,0.5)] col-span-2"
+                  class="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 rounded font-bold transition-colors shadow-[0_0_10px_rgba(99,102,241,0.5)]"
                 >
                   🚀 Ship Hub
                 </button>
@@ -1046,6 +1055,94 @@
             onclick="
               import('./systems/ui.js').then((m) => m.closeSkillsUI())
             "
+            class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Attributes Modal -->
+    <div
+      id="attributesModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-gray-800 border-2 border-teal-500 rounded-lg max-w-lg w-full p-6 relative shadow-[0_0_20px_rgba(20,184,166,0.5)]"
+      >
+        <button
+          onclick="import('./systems/ui.js').then((m) => m.closeStatsAllocationUI())"
+          class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold"
+        >
+          &times;
+        </button>
+
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <h2 class="text-3xl font-bold text-teal-400">📊 Attributes</h2>
+            <p class="text-sm text-gray-400 italic">
+              Allocate your training points to enhance your capabilities.
+            </p>
+          </div>
+          <div class="text-xl text-yellow-400 font-bold">
+            Stat Points: <span id="attributesPointsDisplay">0</span>
+          </div>
+        </div>
+
+        <div id="attributesRoleRecommendation" class="mb-4 p-3 bg-gray-900 border border-gray-700 rounded text-sm text-cyan-300">
+          <!-- Recommendation injected here -->
+        </div>
+
+        <div class="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+          <!-- HP Allocation Row -->
+          <div class="flex justify-between items-center bg-gray-900 p-3 rounded border border-gray-700">
+            <div>
+              <div class="font-bold text-white flex items-center gap-2">❤️ Health Points (HP)</div>
+              <div class="text-xs text-gray-400">Increases maximum health by 5. Current: <span id="allocCurrentMaxHp" class="font-bold text-cyan-400">0</span></div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button onclick="import('./systems/ui.js').then((m) => m.allocateStat('maxHp'))" class="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white rounded font-bold transition-colors">+</button>
+            </div>
+          </div>
+
+          <!-- Energy Allocation Row -->
+          <div class="flex justify-between items-center bg-gray-900 p-3 rounded border border-gray-700">
+            <div>
+              <div class="font-bold text-white flex items-center gap-2">⚡ Energy</div>
+              <div class="text-xs text-gray-400">Increases maximum energy by 5. Current: <span id="allocCurrentMaxEnergy" class="font-bold text-cyan-400">0</span></div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button onclick="import('./systems/ui.js').then((m) => m.allocateStat('maxEnergy'))" class="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white rounded font-bold transition-colors">+</button>
+            </div>
+          </div>
+
+          <!-- Attack Allocation Row -->
+          <div class="flex justify-between items-center bg-gray-900 p-3 rounded border border-gray-700">
+            <div>
+              <div class="font-bold text-white flex items-center gap-2">⚔️ Attack (ATK)</div>
+              <div class="text-xs text-gray-400">Increases base attack power by 1. Current: <span id="allocCurrentAttack" class="font-bold text-cyan-400">0</span></div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button onclick="import('./systems/ui.js').then((m) => m.allocateStat('attack'))" class="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white rounded font-bold transition-colors">+</button>
+            </div>
+          </div>
+
+          <!-- Defense Allocation Row -->
+          <div class="flex justify-between items-center bg-gray-900 p-3 rounded border border-gray-700">
+            <div>
+              <div class="font-bold text-white flex items-center gap-2">🛡️ Defense (DEF)</div>
+              <div class="text-xs text-gray-400">Increases base defense rating by 1. Current: <span id="allocCurrentDefense" class="font-bold text-cyan-400">0</span></div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button onclick="import('./systems/ui.js').then((m) => m.allocateStat('defense'))" class="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white rounded font-bold transition-colors">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 text-center">
+          <button
+            onclick="import('./systems/ui.js').then((m) => m.closeStatsAllocationUI())"
             class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
           >
             Close

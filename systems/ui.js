@@ -18,6 +18,8 @@ import {
     showDialog, hideDialog 
 } from './ui/notifications.js';
 
+import { initAttributesUI, showStatsAllocationUI, closeStatsAllocationUI, allocateStat, updateAttributesBtnGlow } from './ui/attributes-ui.js';
+
 // Re-export for external use
 export { 
     addLog, updateMissionLog, updateCombatLog,
@@ -29,8 +31,11 @@ export {
     showSettingsModal,
     showLevelUpNotification, hideLevelUpNotification, 
     showVictoryMessage, showSaveMessage, 
-    showDialog, hideDialog
+    showDialog, hideDialog,
+    showStatsAllocationUI, closeStatsAllocationUI, allocateStat
 };
+
+import { items } from '../data/items.js';
 
 // State object reference
 let state;
@@ -85,6 +90,7 @@ export function initUI(dependencies) {
     initInventoryUI(deps, { inventory: null }, updateUI);
     initCraftingUI(deps);
     initSettingsUI(deps, showDialog);
+    initAttributesUI(deps, updateUI);
 
     // Initialize Difficulty Selector (Start Screen)
     const difficultySelect = document.getElementById("difficultySelect");
@@ -168,6 +174,7 @@ export function updateUI() {
     updateMissionLog();
     updateEquipment();
     updateLocationDisplay();
+    updateAttributesBtnGlow();
     
     const craftingModal = document.getElementById('craftingModal');
     if (craftingModal) {
@@ -254,10 +261,16 @@ function updateCharacterInfo() {
         renderCache.character.raceRole = raceRole;
     }
     
-    // Update SP
+    // Update SP & Attribute Points
     const spEl = document.getElementById("characterSkillPoints");
     if (spEl) {
-        spEl.textContent = `SP: ${char.skillPoints || 0}`;
+        const skillPts = char.skillPoints || 0;
+        const statPts = char.statPoints || 0;
+        let text = `SP: ${skillPts}`;
+        if (statPts > 0) {
+            text += ` | Attribute Points: ${statPts}`;
+        }
+        spEl.textContent = text;
     }
 }
 
@@ -328,26 +341,50 @@ function updateBars() {
     if (hpBar) hpBar.style.width = `${hpPercentage}%`;
 }
 
+function styleEquipmentSlot(elementId, itemName) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    
+    if (!itemName) {
+        el.textContent = "Empty";
+        el.className = "text-gray-500 font-bold";
+        return;
+    }
+    
+    el.textContent = itemName;
+    const item = items[itemName];
+    if (item && item.rarity) {
+        if (item.rarity === "Rare") {
+            el.className = "text-blue-400 font-bold";
+        } else if (item.rarity === "Epic") {
+            el.className = "text-purple-400 font-bold";
+        } else if (item.rarity === "Legendary") {
+            el.className = "text-yellow-500 font-bold";
+        } else {
+            el.className = "text-gray-200 font-bold";
+        }
+    } else {
+        el.className = "text-gray-200 font-bold";
+    }
+}
+
 function updateEquipment() {
     if (!state.character || !state.character.equipment) return;
     
     const equip = state.character.equipment;
     
     if (renderCache.equipment.weapon !== equip.weapon) {
-        const weaponEl = document.getElementById("equipWeapon");
-        if (weaponEl) weaponEl.textContent = equip.weapon || "Empty";
+        styleEquipmentSlot("equipWeapon", equip.weapon);
         renderCache.equipment.weapon = equip.weapon;
     }
     
     if (renderCache.equipment.armor !== equip.armor) {
-        const armorEl = document.getElementById("equipArmor");
-        if (armorEl) armorEl.textContent = equip.armor || "Empty";
+        styleEquipmentSlot("equipArmor", equip.armor);
         renderCache.equipment.armor = equip.armor;
     }
     
     if (renderCache.equipment.accessory !== equip.accessory) {
-        const accessoryEl = document.getElementById("equipAccessory");
-        if (accessoryEl) accessoryEl.textContent = equip.accessory || "Empty";
+        styleEquipmentSlot("equipAccessory", equip.accessory);
         renderCache.equipment.accessory = equip.accessory;
     }
 }

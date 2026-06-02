@@ -15,9 +15,9 @@ export function showLevelUpNotification(level, statIncreases) {
     if (notification) {
         notification.style.display = "flex";
         document.getElementById("levelUpLevel").textContent = level;
-        document.getElementById("levelUpHp").textContent = `+${statIncreases.maxHp} Max HP`;
-        document.getElementById("levelUpAttack").textContent = `+${statIncreases.attack} Attack`;
-        document.getElementById("levelUpDefense").textContent = `+${statIncreases.defense} Defense`;
+        document.getElementById("levelUpHp").textContent = `+${statIncreases.maxHp || 5} Max HP & Energy`;
+        document.getElementById("levelUpAttack").textContent = `+${statIncreases.statPoints || 5} Attribute Points`;
+        document.getElementById("levelUpDefense").textContent = `+1 Skill Point`;
 
         // Auto-dismiss after 5 seconds
         setTimeout(() => {

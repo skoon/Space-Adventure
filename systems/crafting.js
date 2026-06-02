@@ -3,6 +3,8 @@
  * Handles recipe management and item creation
  */
 
+import { rollRarity } from './rarity.js';
+
 let state;
 let addLog, updateUI;
 let items;
@@ -50,8 +52,13 @@ export function craftItem(recipeId) {
     }
     
     // Add crafted item
-    state.inventory.push(recipe.creates);
-    addLog(`✨ Crafted ${recipe.creates}!`);
+    const finalItem = rollRarity(recipe.creates, 0.15); // crafting has a higher baseline for upgrades!
+    state.inventory.push(finalItem);
+    if (finalItem !== recipe.creates) {
+        addLog(`🎉 Masterwork! Your crafted ${recipe.creates} turned out as a ${finalItem}!`);
+    } else {
+        addLog(`✨ Crafted ${recipe.creates}!`);
+    }
     updateUI();
     return true;
 }

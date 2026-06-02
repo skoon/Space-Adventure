@@ -3,6 +3,8 @@
  * Handles game persistence, save/load, import/export
  */
 
+import { restoreSavedRarityItems } from './rarity.js';
+
 // State object reference
 let state;
 
@@ -94,6 +96,9 @@ export function loadGame() {
         state.log = saveData.log || [];
         state.playerStatusEffects = saveData.playerStatusEffects || [];
         state.enemyStatusEffects = saveData.enemyStatusEffects || [];
+
+        // Restore dynamic rarity items in catalog
+        restoreSavedRarityItems(state.inventory, state.character?.equipment);
         
         // Retroactive skill points setup
         state.character.unlockedSkills = state.character.unlockedSkills || [];
@@ -101,6 +106,11 @@ export function loadGame() {
             // Retroactively grant 1 point per level above 1
             const expectedPoints = Math.max(0, state.character.level - 1);
             state.character.skillPoints = expectedPoints;
+        }
+        
+        // Retroactive stat points setup
+        if (state.character.statPoints === undefined) {
+            state.character.statPoints = 0;
         }
         
         // Retroactive ship setup

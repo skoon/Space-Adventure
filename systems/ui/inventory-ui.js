@@ -104,11 +104,42 @@ export function updateHealButton() {
  */
 export function createInventoryItemButton(itemName, count, item) {
     const button = document.createElement("button");
-    button.className = "inventory-item relative group w-full text-left bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded p-2 mb-1 flex justify-between items-center";
+    
+    let borderClass = "border-gray-600";
+    let textClass = "text-gray-200";
+    let bgHoverClass = "hover:bg-gray-600";
+    let bgClass = "bg-gray-700";
+    let glowClass = "";
+    let tooltipHeaderColor = "text-yellow-400";
+    
+    if (item && item.rarity) {
+        if (item.rarity === "Rare") {
+            borderClass = "border-blue-500/50";
+            textClass = "text-blue-300 font-semibold";
+            bgClass = "bg-blue-950/20";
+            bgHoverClass = "hover:bg-blue-900/30";
+            tooltipHeaderColor = "text-blue-400";
+        } else if (item.rarity === "Epic") {
+            borderClass = "border-purple-500/50";
+            textClass = "text-purple-300 font-semibold";
+            bgClass = "bg-purple-950/20";
+            bgHoverClass = "hover:bg-purple-900/30";
+            tooltipHeaderColor = "text-purple-400";
+        } else if (item.rarity === "Legendary") {
+            borderClass = "border-yellow-500/50";
+            textClass = "text-yellow-400 font-bold";
+            bgClass = "bg-yellow-950/20";
+            bgHoverClass = "hover:bg-yellow-900/30";
+            glowClass = "shadow-[0_0_8px_rgba(234,179,8,0.25)]";
+            tooltipHeaderColor = "text-yellow-500";
+        }
+    }
+    
+    button.className = `inventory-item relative group w-full text-left ${bgClass} ${bgHoverClass} border ${borderClass} rounded p-2 mb-1 flex justify-between items-center ${glowClass}`;
     
     // Display name with count
     const nameSpan = document.createElement('span');
-    nameSpan.className = "text-sm text-gray-200";
+    nameSpan.className = `text-sm ${textClass}`;
     nameSpan.textContent = itemName;
     button.appendChild(nameSpan);
     
@@ -135,7 +166,7 @@ export function createInventoryItemButton(itemName, count, item) {
         }
     });
 
-    let tooltipHtml = `<div class="font-bold text-yellow-400 text-sm border-b border-gray-700 pb-1 mb-1">${itemName}</div>`;
+    let tooltipHtml = `<div class="font-bold ${tooltipHeaderColor} text-sm border-b border-gray-700 pb-1 mb-1">${itemName}</div>`;
     tooltipHtml += `<div class="text-xs text-gray-400 mb-1 italic">${item?.type || 'Item'}</div>`;
     tooltipHtml += `<div class="text-xs text-gray-300">${item?.description || 'No description'}</div>`;
     

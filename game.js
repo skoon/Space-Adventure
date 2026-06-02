@@ -11,7 +11,7 @@ import { initCharacter, createCharacter, gainXp, getCharacterAvatar, useHealItem
 import { initExploration, simulateExploration, travelDeeper } from './systems/exploration.js';
 import { initEvents, generateRandomEvent, handleEvent } from './systems/events.js';
 import { initSaveLoad, saveGame, loadGame, exportGame, importGame, autoSave, initializeSaveSystem } from './systems/saveload.js';
-import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog, showTravelScreen, showSettingsModal } from './systems/ui.js';
+import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog, showTravelScreen, showSettingsModal, showStatsAllocationUI, closeStatsAllocationUI, allocateStat } from './systems/ui.js';
 import { initInventory, openCombatItemMenu, closeCombatItemMenu, useCombatItem } from './systems/inventory.js';
 import { initLocations, travelTo, getLocationDetails, getUnlockedLocations } from './systems/locations.js';
 import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem, claimAllOrders } from './systems/shop.js';
@@ -367,3 +367,8 @@ window.upgradeModule = upgradeModule;
 // Derelict functions
 window.exploreRoom = exploreRoom;
 window.escapeShip = escapeShip;
+
+// Stat allocation functions
+window.showStatsAllocationUI = showStatsAllocationUI;
+window.closeStatsAllocationUI = closeStatsAllocationUI;
+window.allocateStat = allocateStat;

@@ -79,7 +79,9 @@ describe('Character System', () => {
         gainXp(50);
         expect(mockState.character.level).toBe(2);
         expect(mockState.character.xp).toBe(0); // 100 absorbed
-        expect(mockState.character.maxHp).toBe(110); // +10
+        expect(mockState.character.maxHp).toBe(105); // +5
+        expect(mockState.character.maxEnergy).toBe(55); // +5
+        expect(mockState.character.statPoints).toBe(5); // +5 Stat Points
         expect(mockState.character.skillPoints).toBe(1); // +1 SP
         expect(mockUi.showLevelUpNotification).toHaveBeenCalled();
     });

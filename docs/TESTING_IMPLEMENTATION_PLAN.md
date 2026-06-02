@@ -30,9 +30,9 @@
     - [x] Test buying items
     - [x] Test selling items
     - [x] Test price calculations
-- [ ] **Quests**
-- [ ] **Exploration**
-- [ ] **Save/Load**
+- [x] **Quests**
+- [x] **Exploration**
+- [x] **Save/Load**
 
 ## 4. Execution
 - [x] Run `npm test` to verify all tests pass. (All 18 tests passed)

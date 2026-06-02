@@ -52,14 +52,14 @@
 - [x] **Weapons** - Equip weapons that modify attack stats
 - [x] **Armor** - Equip armor that modifies defense stats
 - [x] **Accessories** - Rings, amulets with special bonuses
-- [ ] **Item Rarity System** - Common, Rare, Epic, Legendary tiers
+- [x] **Item Rarity System** - Common, Rare, Epic, Legendary tiers
 - [x] **Equipment UI** - Visual equipment slots and management
 
 ### Stat Points on Level Up
 
-- [ ] **Manual Stat Allocation** - Players choose where to allocate points
-- [ ] **Stat Point UI** - Interface for distributing points
-- [ ] **Stat Point Recommendations** - Suggestions based on role
+- [x] **Manual Stat Allocation** - Players choose where to allocate points
+- [x] **Stat Point UI** - Interface for distributing points
+- [x] **Stat Point Recommendations** - Suggestions based on role
 
 ## 🌍 World & Exploration
 

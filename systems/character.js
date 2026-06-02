@@ -74,6 +74,7 @@ export function createCharacter(event) {
         },
         skillPoints: 0,
         unlockedSkills: [],
+        statPoints: 0,
         inventory: [],
         activeQuests: {},
         completedQuests: [],
@@ -111,24 +112,23 @@ export function gainXp(amount) {
 
         // Stat increases
         const statIncreases = {
-            maxHp: 10,
-            attack: 2,
-            defense: 1
+            maxHp: 5,
+            maxEnergy: 5,
+            statPoints: 5
         };
 
         state.character.maxHp += statIncreases.maxHp;
         state.character.hp = state.character.maxHp; // Full heal on level up
-        state.character.attack += statIncreases.attack;
-        state.character.defense += statIncreases.defense;
-        state.character.maxEnergy += 10;
+        state.character.maxEnergy += statIncreases.maxEnergy;
         state.character.energy = state.character.maxEnergy;
         
-        // Award 1 skill point per level
+        // Award 5 stat points and 1 skill point per level
+        state.character.statPoints = (state.character.statPoints || 0) + 5;
         state.character.skillPoints = (state.character.skillPoints || 0) + 1;
         state.character.unlockedSkills = state.character.unlockedSkills || [];
 
         showLevelUpNotification(state.character.level, statIncreases);
-        addLog(`🎉 LEVEL UP! You reached Level ${state.character.level}!`);
+        addLog(`🎉 LEVEL UP! You reached Level ${state.character.level}! You gained 5 Attribute points!`);
     }
 
     updateUI();

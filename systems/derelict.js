@@ -1,7 +1,5 @@
-/**
- * Deep Space Derelicts System Module
- * Handles the logic for exploring derelict ships during travel
- */
+import { rollRarity } from './rarity.js';
+import { items } from '../data/items.js';
 
 let state;
 let deps;
@@ -112,6 +110,20 @@ function triggerCombat() {
 }
 
 function findLoot() {
+    // Add a chance to find random equipment (scaled with rooms explored)
+    const equipmentChance = 0.05 + (state.derelict.roomsExplored * 0.03);
+    if (Math.random() < equipmentChance) {
+        const equipmentPool = Object.keys(items).filter(k => ["weapon", "armor", "accessory"].includes(items[k].type));
+        if (equipmentPool.length > 0) {
+            const randomEquip = equipmentPool[Math.floor(Math.random() * equipmentPool.length)];
+            const bonusChance = 0.05 + (state.derelict.roomsExplored * 0.05);
+            const rolledEquip = rollRarity(randomEquip, bonusChance);
+            state.derelict.currentLoot.push(rolledEquip);
+            addLog(`📦 You secured an anomalies-infused equipment: ${rolledEquip}!`);
+            return;
+        }
+    }
+
     // Base items
     const baseLoot = ["Scrap Metal", "Energy Cell", "Data Chip", "Rusty Pipe"];
     // High tier items (Higher chance with depth)
