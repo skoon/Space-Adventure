@@ -270,12 +270,16 @@ main {
 }
 
 .quest-log-content {
-  background-color: var(--card-background);
-  border: 2px solid #f59e0b;
-  border-radius: 0.5rem;
+  background: rgba(10, 15, 30, 0.92) !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+  border-radius: 8px !important;
   padding: 1.5rem;
   max-width: 28rem;
   margin: 1rem;
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.25), inset 0 0 25px rgba(2, 6, 23, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  position: relative;
+  overflow: hidden;
 }
 
 @keyframes pulse {
@@ -817,4 +821,92 @@ button {
 .dashboard-card-glow-amber:hover {
   box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
   border-color: rgba(245, 158, 11, 0.8) !important;
+}
+
+/* Cyber Modal Theme Layouts */
+.cyber-modal-cyan {
+  background: rgba(10, 15, 30, 0.92) !important;
+  border: 1px solid rgba(6, 182, 212, 0.4) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 35px rgba(6, 182, 212, 0.25), inset 0 0 25px rgba(2, 6, 23, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.cyber-modal-amber {
+  background: rgba(10, 15, 30, 0.92) !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 35px rgba(245, 158, 11, 0.25), inset 0 0 25px rgba(2, 6, 23, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.cyber-modal-teal {
+  background: rgba(10, 15, 30, 0.92) !important;
+  border: 1px solid rgba(20, 184, 166, 0.4) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 35px rgba(20, 184, 166, 0.25), inset 0 0 25px rgba(2, 6, 23, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+/* Glowing corner brackets for Amber and Teal overlays */
+.cyber-panel-amber {
+  position: relative;
+  overflow: hidden;
+}
+
+.cyber-panel-amber::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border-top: 2px solid #f59e0b;
+  border-left: 2px solid #f59e0b;
+  z-index: 5;
+  box-shadow: -2px -2px 5px rgba(245, 158, 11, 0.5);
+}
+
+.cyber-panel-amber::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  border-bottom: 2px solid #f59e0b;
+  border-right: 2px solid #f59e0b;
+  z-index: 5;
+  box-shadow: 2px 2px 5px rgba(245, 158, 11, 0.5);
+}
+
+.cyber-panel-teal {
+  position: relative;
+  overflow: hidden;
+}
+
+.cyber-panel-teal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border-top: 2px solid #14b8a6;
+  border-left: 2px solid #14b8a6;
+  z-index: 5;
+  box-shadow: -2px -2px 5px rgba(20, 184, 166, 0.5);
+}
+
+.cyber-panel-teal::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  border-bottom: 2px solid #14b8a6;
+  border-right: 2px solid #14b8a6;
+  z-index: 5;
+  box-shadow: 2px 2px 5px rgba(20, 184, 166, 0.5);
 }
