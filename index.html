@@ -181,322 +181,204 @@
 
         <!-- Exploring Screen -->
         <div id="exploringScreen" class="screen game-ui">
-          <div class="flex flex-col h-full">
-            <div class="flex-grow overflow-y-auto p-4">
-              <div class="flex justify-between items-center mb-4 gap-2">
-                <!-- Location Header -->
-                <div
-                  class="flex-grow bg-gray-900 border-2 border-blue-500 rounded p-2 text-center shadow-lg relative overflow-hidden"
-                >
-                  <div
-                    class="absolute inset-0 bg-blue-500 opacity-10 animate-pulse"
-                  ></div>
-                  <h2
-                    class="text-xl md:text-2xl font-bold text-blue-300 relative z-10 tracking-widest uppercase"
-                  >
-                    LOCATION:
-                    <span id="currentLocationDisplay" class="text-white"
-                      >UNKNOWN SECTOR</span
-                    >
-                  </h2>
-                </div>
-                <!-- Settings Button -->
-                <button
-                  id="settingsBtn"
-                  class="bg-gray-800 border-2 border-gray-500 rounded p-2 text-2xl hover:bg-gray-700 hover:border-gray-400 transition-colors shadow-lg h-full flex items-center justify-center w-16"
-                  onclick="showSettingsModal()"
-                  title="Settings"
-                >
-                  ⚙️
-                </button>
-              </div>
-
-              <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-                <div
-                  class="lg:col-span-2 cyber-panel p-4 rounded-lg shadow-[0_0_15px_rgba(6,182,212,0.3)] border-2 border-cyan-800 bg-gray-900/40 backdrop-blur-md"
-                >
-                  <div
-                    class="cyber-header-bar mb-4 text-center text-cyan-400 font-bold uppercase tracking-widest border-b-2 border-cyan-800 pb-1 cyber-glow-text"
-                  >
-                    Personnel Record
+          <div class="flex flex-col h-full bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
+            
+            <!-- Row 1: Command HUD (3 Columns) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 items-stretch">
+              
+              <!-- Column 1: Personnel Vitals -->
+              <div class="bg-gray-900/60 border border-cyan-800/60 rounded-lg p-3 flex items-center gap-4 dashboard-card-glow-cyan">
+                <div id="playerAvatar" class="text-4xl p-2 bg-gray-800 rounded border border-gray-700 flex-shrink-0"></div>
+                <div class="flex-grow min-w-0">
+                  <div class="flex justify-between items-center mb-1">
+                    <h2 id="characterName" class="text-base font-bold text-cyan-400 truncate"></h2>
+                    <span id="characterLevel" class="text-[10px] font-mono text-cyan-600 bg-cyan-950/50 px-2 py-0.5 rounded border border-cyan-900/50"></span>
                   </div>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Left Column: Stats & Equipment -->
-                    <div>
-                      <div class="flex items-center gap-3 mb-3">
-                        <div id="playerAvatar" class="text-4xl"></div>
-                        <div>
-                          <h2
-                            id="characterName"
-                            class="text-xl font-bold text-blue-400"
-                          ></h2>
-                          <div
-                            id="characterRaceRole"
-                            class="text-sm text-gray-400"
-                          ></div>
-                          <div
-                            id="characterLevel"
-                            class="text-sm text-gray-400"
-                          ></div>
-                          <div
-                            id="characterSkillPoints"
-                            class="text-sm text-yellow-400 font-bold mb-1"
-                          ></div>
-                          <div id="characterStats" class="flex gap-2">
-                            <div>
-                              HP: <span id="characterHp"></span>/<span
-                                id="characterMaxHp"
-                              ></span>
-                            </div>
-                            <div>
-                              Energy: <span id="characterEnergy"></span>/<span
-                                id="characterMaxEnergy"
-                              ></span>
-                            </div>
-                            <div>
-                              AP: <span id="characterAp" class="text-yellow-400"></span>/<span id="characterMaxAp"></span>
-                            </div>
-                            <div>
-                              Credits:
-                              <span
-                                id="characterCredits"
-                                class="text-yellow-400"
-                                >0</span
-                              >
-                            </div>
-                            <div>ATK: <span id="characterAtk"></span></div>
-                            <div>DEF: <span id="characterDef"></span></div>
-                            <div>
-                              📦 Orders:
-                              <span
-                                id="characterPendingOrders"
-                                class="text-yellow-400"
-                                >0</span
-                              >
-                            </div>
-                          </div>
-                          <div
-                            class="quest-terminal-container mt-2"
-                            onclick="toggleQuestLog()"
-                            title="Open Quest Log"
-                          >
-                            <div class="terminal-frame shadow-[0_0_10px_rgba(59,130,246,0.3)]">
-                              <div class="terminal-screen crt-cyan">
-                                <div class="terminal-header text-blue-400">SYS.LOG</div>
-                                <div class="terminal-content text-cyan-300">
-                                  <span>> ACCESS QUESTS</span>
-                                  <span class="blink text-cyan-400">_</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="mt-3 border-t border-gray-700 pt-2">
-                            <h3 class="text-sm font-bold text-gray-400 mb-1">
-                              Equipment
-                            </h3>
-                            <div class="grid grid-cols-3 gap-2 text-xs">
-                              <div
-                                class="bg-gray-900 p-2 rounded text-center"
-                                title="Weapon"
-                              >
-                                <span class="block text-gray-500"
-                                  >⚔️ Weapon</span
-                                >
-                                <span
-                                  id="equipWeapon"
-                                  class="text-yellow-400 font-bold"
-                                  >Empty</span
-                                >
-                                <button
-                                  onclick="unequipItem('weapon')"
-                                  class="text-red-400 hover:text-red-300 ml-1"
-                                  title="Unequip"
-                                >
-                                  ×
-                                </button>
-                              </div>
-                              <div
-                                class="bg-gray-900 p-2 rounded text-center"
-                                title="Armor"
-                              >
-                                <span class="block text-gray-500"
-                                  >🛡️ Armor</span
-                                >
-                                <span
-                                  id="equipArmor"
-                                  class="text-yellow-400 font-bold"
-                                  >Empty</span
-                                >
-                                <button
-                                  onclick="unequipItem('armor')"
-                                  class="text-red-400 hover:text-red-300 ml-1"
-                                  title="Unequip"
-                                >
-                                  ×
-                                </button>
-                              </div>
-                              <div
-                                class="bg-gray-900 p-2 rounded text-center"
-                                title="Accessory"
-                              >
-                                <span class="block text-gray-500"
-                                  >💍 Accessory</span
-                                >
-                                <span
-                                  id="equipAccessory"
-                                  class="text-yellow-400 font-bold"
-                                  >Empty</span
-                                >
-                                <button
-                                  onclick="unequipItem('accessory')"
-                                  class="text-red-400 hover:text-red-300 ml-1"
-                                  title="Unequip"
-                                >
-                                  ×
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="space-y-2">
-                        <div>
-                          <div class="flex justify-between text-sm mb-1">
-                            <span
-                              >HP: <span id="playerHp"></span>/<span
-                                id="playerMaxHp"
-                              ></span
-                            ></span>
-                            <span>Level: <span id="playerLevel"></span></span>
-                          </div>
-                          <div class="w-full bg-gray-800 rounded-full h-2 mb-2 shadow-[inset_0_0_5px_rgba(0,0,0,0.5)]">
-                            <div
-                              id="hpBar"
-                              class="bg-blue-500 h-2 rounded-full transition-all shadow-[0_0_8px_rgba(59,130,246,0.8)]"
-                              style="width: 100%"
-                            ></div>
-                          </div>
-                          <div class="flex justify-between text-sm mb-1">
-                            <span
-                              >XP: <span id="playerXp"></span>/<span
-                                id="xpToNext"
-                              ></span
-                            ></span>
-                          </div>
-                          <div class="w-full bg-gray-800 rounded-full h-2 shadow-[inset_0_0_5px_rgba(0,0,0,0.5)]">
-                            <div
-                              id="xpBar"
-                              class="bg-cyan-500 h-2 rounded-full transition-all shadow-[0_0_8px_rgba(6,182,212,0.8)]"
-                              style="width: 0%"
-                            ></div>
-                          </div>
-                        </div>
-                      </div>
+                  <div id="characterRaceRole" class="text-[10px] text-gray-400 mb-2 font-mono"></div>
+                  
+                  <!-- HP & XP meters -->
+                  <div class="space-y-1.5 text-[11px]">
+                    <div class="flex justify-between font-mono text-gray-300">
+                      <span>HP: <span id="playerHp"></span>/<span id="playerMaxHp"></span></span>
                     </div>
-
-                    <!-- Right Column: Scrolling Inventory -->
-                    <div
-                      class="bg-gray-900 p-3 rounded-lg border border-gray-700 h-full flex flex-col max-h-[300px]"
-                    >
-                      <div
-                        class="text-sm font-bold text-gray-400 mb-2 border-b border-gray-700 pb-1"
-                      >
-                        Inventory
-                      </div>
-                      <div
-                        id="inventory"
-                        class="flex flex-wrap gap-2 overflow-y-auto flex-grow content-start"
-                      ></div>
+                    <div class="w-full bg-gray-800 rounded-full h-2 shadow-[inset_0_0_4px_rgba(0,0,0,0.5)]">
+                      <div id="hpBar" class="bg-blue-500 h-2 rounded-full transition-all shadow-[0_0_6px_rgba(59,130,246,0.6)]" style="width: 100%"></div>
+                    </div>
+                    <div class="flex justify-between font-mono text-gray-300">
+                      <span>XP: <span id="playerXp"></span>/<span id="xpToNext"></span></span>
+                    </div>
+                    <div class="w-full bg-gray-800 rounded-full h-1.5 shadow-[inset_0_0_4px_rgba(0,0,0,0.5)]">
+                      <div id="xpBar" class="bg-cyan-500 h-1.5 rounded-full transition-all shadow-[0_0_6px_rgba(6,182,212,0.6)]" style="width: 0%"></div>
                     </div>
                   </div>
                 </div>
-
-                <div
-                  class="lg:col-span-1 bg-gray-900/60 backdrop-blur-sm p-4 rounded-lg shadow-[0_0_10px_rgba(6,182,212,0.2)] border border-cyan-800/50 h-full"
-                >
-                  <h2 class="text-xl font-bold text-cyan-400 mb-2 cyber-glow-text">
-                    Mission Log
-                  </h2>
-                  <div
-                    id="missionLog"
-                    class="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar-cyan text-sm"
-                  ></div>
+              </div>
+              
+              <!-- Column 2: Location HUD -->
+              <div class="bg-gray-900/60 border border-blue-800/60 rounded-lg p-3 flex flex-col justify-between dashboard-card-glow-blue relative overflow-hidden">
+                <div class="absolute inset-0 bg-blue-500/5 pointer-events-none animate-pulse"></div>
+                <div class="relative z-10 flex justify-between items-start">
+                  <div>
+                    <span class="text-[10px] text-blue-500 font-bold uppercase tracking-widest font-mono">Current Sector</span>
+                    <h2 id="currentLocationDisplay" class="text-base font-bold text-white tracking-wide uppercase mt-0.5">UNKNOWN SECTOR</h2>
+                  </div>
+                  <button id="settingsBtn" class="bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white border border-gray-700 rounded p-1.5 transition-all text-xs" onclick="showSettingsModal()" title="Settings">
+                    ⚙️
+                  </button>
+                </div>
+                <div class="relative z-10 flex justify-between items-center border-t border-gray-800/80 pt-2 mt-2">
+                  <div id="characterSkillPoints" class="text-[10px] text-yellow-400 font-mono font-bold"></div>
+                  <!-- Quick Quest Toggle Button -->
+                  <button onclick="toggleQuestLog()" class="px-3 py-1 bg-cyan-950 border border-cyan-800 text-cyan-400 hover:bg-cyan-900 rounded font-bold text-[10px] tracking-wider transition-colors uppercase font-mono shadow-[0_0_6px_rgba(6,182,212,0.2)]">
+                    📜 SYS.LOG
+                  </button>
                 </div>
               </div>
+              
+              <!-- Column 3: Combat / Status Stats -->
+              <div class="bg-gray-900/60 border border-amber-800/60 rounded-lg p-3 dashboard-card-glow-amber flex flex-col justify-between">
+                <div>
+                  <div class="text-[10px] text-amber-500 font-bold uppercase tracking-widest font-mono mb-2">Systems Status</div>
+                  <div class="grid grid-cols-2 gap-2 text-[11px] font-mono text-gray-300">
+                    <div class="bg-black/30 border border-gray-800/50 p-1.5 rounded flex justify-between items-center">
+                      <span class="text-gray-500">ATK</span>
+                      <span id="characterAtk" class="font-bold text-white"></span>
+                    </div>
+                    <div class="bg-black/30 border border-gray-800/50 p-1.5 rounded flex justify-between items-center">
+                      <span class="text-gray-500">DEF</span>
+                      <span id="characterDef" class="font-bold text-white"></span>
+                    </div>
+                    <div class="bg-black/30 border border-gray-800/50 p-1.5 rounded flex justify-between items-center">
+                      <span class="text-gray-500">AP</span>
+                      <span class="font-bold text-yellow-400"><span id="characterAp"></span>/<span id="characterMaxAp"></span></span>
+                    </div>
+                    <div class="bg-black/30 border border-gray-800/50 p-1.5 rounded flex justify-between items-center">
+                      <span class="text-gray-500">CR</span>
+                      <span id="characterCredits" class="font-bold text-yellow-400">0</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center border-t border-gray-800/80 pt-2 mt-2 text-[11px] font-mono text-gray-300">
+                  <span class="text-gray-500">📦 Pending Orders</span>
+                  <span id="characterPendingOrders" class="font-bold text-yellow-400">0</span>
+                </div>
+              </div>
+              
             </div>
-
-            <div class="bg-gray-900 p-4 border-t border-gray-700">
-              <div class="grid grid-cols-3 gap-4">
-                <button
-                  onclick="travelDeeper()"
-                  class="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors"
-                >
+            
+            <!-- Row 2: Operations Console (2 Columns) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 items-stretch">
+              
+              <!-- Column 1: Operations Console (Tabs) -->
+              <div class="cyber-panel p-4 rounded-lg border border-cyan-800 bg-gray-900/40 backdrop-blur-md flex flex-col min-h-[340px]">
+                
+                <!-- Tab Headers -->
+                <div class="flex gap-2 border-b border-cyan-900/60 pb-2 mb-3 text-xs font-mono">
+                  <button id="tabCargoGear" onclick="switchOperationsTab('cargo')" class="py-1 px-3 border-b-2 border-cyan-500 text-cyan-400 font-bold transition-all">
+                    [ 🎒 CARGO & GEAR ]
+                  </button>
+                  <button id="tabCrewSkills" onclick="switchOperationsTab('crew')" class="py-1 px-3 border-b-2 border-transparent text-gray-400 hover:text-gray-300 font-bold transition-all">
+                    [ 👥 CREW & SKILLS ]
+                  </button>
+                </div>
+                
+                <!-- Panel 1: Cargo & Gear -->
+                <div id="panelCargoGear" class="flex-grow flex flex-col md:flex-row gap-4">
+                  <!-- Equipment Section (Left) -->
+                  <div class="md:w-1/3 flex flex-col justify-between">
+                    <div>
+                      <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-mono mb-2">Equipped Items</div>
+                      <div class="space-y-2 text-[11px]">
+                        <div class="bg-black/30 border border-gray-800 p-2 rounded text-center relative" title="Weapon">
+                          <span class="block text-[9px] text-gray-500">⚔️ Weapon</span>
+                          <span id="equipWeapon" class="text-yellow-400 font-bold block truncate mt-1">Empty</span>
+                          <button onclick="unequipItem('weapon')" class="absolute top-1 right-2 text-red-500 hover:text-red-400 font-bold text-xs">×</button>
+                        </div>
+                        <div class="bg-black/30 border border-gray-800 p-2 rounded text-center relative" title="Armor">
+                          <span class="block text-[9px] text-gray-500">🛡️ Armor</span>
+                          <span id="equipArmor" class="text-yellow-400 font-bold block truncate mt-1">Empty</span>
+                          <button onclick="unequipItem('armor')" class="absolute top-1 right-2 text-red-500 hover:text-red-400 font-bold text-xs">×</button>
+                        </div>
+                        <div class="bg-black/30 border border-gray-800 p-2 rounded text-center relative" title="Accessory">
+                          <span class="block text-[9px] text-gray-500">💍 Accessory</span>
+                          <span id="equipAccessory" class="text-yellow-400 font-bold block truncate mt-1">Empty</span>
+                          <button onclick="unequipItem('accessory')" class="absolute top-1 right-2 text-red-500 hover:text-red-400 font-bold text-xs">×</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Inventory Grid (Right) -->
+                  <div class="md:w-2/3 flex flex-col">
+                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-mono mb-2">Cargo Hold</div>
+                    <div id="inventory" class="flex flex-wrap gap-2 overflow-y-auto flex-grow max-h-[220px] content-start custom-scrollbar-cyan"></div>
+                  </div>
+                </div>
+                
+                <!-- Panel 2: Crew & Skills (Hidden by default) -->
+                <div id="panelCrewSkills" class="flex-grow hidden flex-col gap-3 text-xs" style="display: none;">
+                  <!-- Active Companion Info -->
+                  <div class="bg-black/30 border border-gray-800 p-3 rounded flex items-center gap-3">
+                    <div id="quickCompanionAvatar" class="text-3xl p-1 bg-gray-800 border border-gray-700 rounded">👤</div>
+                    <div class="flex-grow">
+                      <div class="flex justify-between items-center">
+                        <h4 id="quickCompanionName" class="font-bold text-white">No active crew deployed</h4>
+                        <span id="quickCompanionLevel" class="text-[10px] text-cyan-400 font-mono"></span>
+                      </div>
+                      <p id="quickCompanionSkill" class="text-gray-400 mt-1"></p>
+                    </div>
+                  </div>
+                  <!-- Skills Summary -->
+                  <div class="flex-grow flex flex-col mt-2">
+                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-mono mb-2">Unlocked Passive Subroutines</div>
+                    <div id="quickSkillsList" class="grid grid-cols-2 gap-2 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar-cyan text-gray-400">
+                      <!-- Rendered skill list -->
+                    </div>
+                  </div>
+                </div>
+                
+              </div>
+              
+              <!-- Column 2: Mission Log Screen -->
+              <div class="lg:col-span-1 bg-gray-900/60 border border-cyan-800/50 rounded-lg p-4 shadow-[0_0_15px_rgba(6,182,212,0.1)] flex flex-col min-h-[340px]">
+                <h2 class="text-xs font-bold text-cyan-400 mb-2 tracking-widest uppercase font-mono">>> Operations Log <<</h2>
+                <div id="missionLog" class="max-h-[240px] overflow-y-auto pr-2 custom-scrollbar-cyan text-xs font-mono text-cyan-300/90 space-y-1 flex-grow"></div>
+              </div>
+              
+            </div>
+            
+            <!-- Row 3: Action Console (Bottom Panel) -->
+            <div class="bg-gray-900/50 border border-gray-800 rounded-lg p-3 shadow-inner">
+              <div class="grid grid-cols-3 gap-3">
+                <button onclick="travelDeeper()" class="py-2 px-3 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-800 text-purple-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(168,85,247,0.15)]">
                   Travel Deeper
                 </button>
-                <button
-                  onclick="encounterBoss()"
-                  class="py-2 px-4 bg-red-600 hover:bg-red-700 rounded font-bold transition-colors shadow-[0_0_10px_rgba(239,68,68,0.5)]"
-                >
+                <button onclick="encounterBoss()" class="py-2 px-3 bg-red-950/60 hover:bg-red-900/80 border border-red-800 text-red-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(239,68,68,0.15)]">
                   💀 Challenge Boss
                 </button>
-                <button
-                  onclick="useHealItem()"
-                  id="healButton"
-                  class="heal-button disabled-button"
-                  disabled
-                >
+                <button onclick="useHealItem()" id="healButton" class="py-2 px-3 bg-gray-900 text-gray-500 rounded font-bold border border-gray-800 cursor-not-allowed text-xs uppercase tracking-wider font-mono" disabled>
                   Use Heal Item
                 </button>
-                <button
-                  onclick="import('./systems/ui.js').then((m) => m.showShop())"
-                  class="py-2 px-4 bg-yellow-600 hover:bg-yellow-700 rounded font-bold transition-colors"
-                >
+                <button onclick="import('./systems/ui.js').then((m) => m.showShop())" class="py-2 px-3 bg-yellow-950/60 hover:bg-yellow-900/80 border border-yellow-800 text-yellow-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono">
                   🛒 Trade / Shop
                 </button>
-                <button
-                  onclick="
-                    import('./systems/ui.js').then((m) => m.showCraftingUI())
-                  "
-                  class="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors"
-                >
+                <button onclick="import('./systems/ui.js').then((m) => m.showCraftingUI())" class="py-2 px-3 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-800 text-purple-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono">
                   🔨 Crafting
                 </button>
-                <button
-                  onclick="
-                    import('./systems/ui.js').then((m) => m.showSkillsUI())
-                  "
-                  class="py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded font-bold transition-colors shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-                >
+                <button onclick="import('./systems/ui.js').then((m) => m.showSkillsUI())" class="py-2 px-3 bg-blue-950/60 hover:bg-blue-900/80 border border-blue-800 text-blue-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(59,130,246,0.15)]">
                   ✨ Skills & Talents
                 </button>
-                <button
-                  id="attributesBtn"
-                  onclick="
-                    import('./systems/ui.js').then((m) => m.showStatsAllocationUI())
-                  "
-                  class="py-2 px-4 bg-teal-600 hover:bg-teal-700 border border-transparent rounded font-bold transition-colors shadow-[0_0_10px_rgba(20,184,166,0.5)]"
-                >
+                <button id="attributesBtn" onclick="import('./systems/ui.js').then((m) => m.showStatsAllocationUI())" class="py-2 px-3 bg-teal-950/60 hover:bg-teal-900/80 border border-teal-800 text-teal-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono">
                   📊 Attributes
                 </button>
-                <button
-                  onclick="
-                    import('./systems/ui.js').then((m) => m.showShipUI())
-                  "
-                  class="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 rounded font-bold transition-colors shadow-[0_0_10px_rgba(99,102,241,0.5)]"
-                >
+                <button onclick="import('./systems/ui.js').then((m) => m.showShipUI())" class="py-2 px-3 bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-800 text-indigo-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(99,102,241,0.15)]">
                   🚀 Ship Hub
                 </button>
-                <button
-                  id="achievementsBtn"
-                  onclick="
-                    import('./systems/ui.js').then((m) => m.showAchievementsUI())
-                  "
-                  class="py-2 px-4 bg-amber-600 hover:bg-amber-700 border border-transparent rounded font-bold transition-colors shadow-[0_0_10px_rgba(245,158,11,0.5)]"
-                >
+                <button id="achievementsBtn" onclick="import('./systems/ui.js').then((m) => m.showAchievementsUI())" class="py-2 px-3 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-800 text-amber-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(245,158,11,0.15)]">
                   🏆 Achievements
                 </button>
               </div>
             </div>
+            
           </div>
         </div>
 

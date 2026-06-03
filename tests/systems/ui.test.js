@@ -1,5 +1,5 @@
 
-import { initUI, updateUI } from '../../systems/ui.js';
+import { initUI, updateUI, switchOperationsTab, updateQuickCrewPanel } from '../../systems/ui.js';
 
 describe('UI System', () => {
     let mockState;
@@ -143,5 +143,95 @@ describe('UI System', () => {
         expect(mockDeps.dom.inventoryElement.innerHTML).not.toBe(initialHTML);
         // Should have search count 2 or similar
         // Our implementation adds buttons.
+    });
+
+    test('switchOperationsTab toggles active classes and visibility', () => {
+        // Create elements
+        const tabCargo = document.createElement('button');
+        tabCargo.id = 'tabCargoGear';
+        const tabCrew = document.createElement('button');
+        tabCrew.id = 'tabCrewSkills';
+        const panelCargo = document.createElement('div');
+        panelCargo.id = 'panelCargoGear';
+        const panelCrew = document.createElement('div');
+        panelCrew.id = 'panelCrewSkills';
+        
+        document.body.appendChild(tabCargo);
+        document.body.appendChild(tabCrew);
+        document.body.appendChild(panelCargo);
+        document.body.appendChild(panelCrew);
+        
+        // Swapping to crew
+        switchOperationsTab('crew');
+        expect(panelCargo.classList.contains('hidden')).toBe(true);
+        expect(panelCargo.style.display).toBe('none');
+        expect(panelCrew.classList.contains('hidden')).toBe(false);
+        expect(panelCrew.style.display).toBe('flex');
+        expect(tabCrew.className).toContain('border-cyan-500');
+        expect(tabCargo.className).toContain('border-transparent');
+        
+        // Swapping back to cargo
+        switchOperationsTab('cargo');
+        expect(panelCargo.classList.contains('hidden')).toBe(false);
+        expect(panelCargo.style.display).toBe('flex');
+        expect(panelCrew.classList.contains('hidden')).toBe(true);
+        expect(panelCrew.style.display).toBe('none');
+        expect(tabCargo.className).toContain('border-cyan-500');
+        expect(tabCrew.className).toContain('border-transparent');
+        
+        // Cleanup
+        document.body.removeChild(tabCargo);
+        document.body.removeChild(tabCrew);
+        document.body.removeChild(panelCargo);
+        document.body.removeChild(panelCrew);
+    });
+
+    test('updateQuickCrewPanel renders active companion and skills correctly', async () => {
+        // Create elements
+        const avatarEl = document.createElement('div');
+        avatarEl.id = 'quickCompanionAvatar';
+        const nameEl = document.createElement('div');
+        nameEl.id = 'quickCompanionName';
+        const levelEl = document.createElement('div');
+        levelEl.id = 'quickCompanionLevel';
+        const skillEl = document.createElement('div');
+        skillEl.id = 'quickCompanionSkill';
+        const skillsListEl = document.createElement('div');
+        skillsListEl.id = 'quickSkillsList';
+        
+        document.body.appendChild(avatarEl);
+        document.body.appendChild(nameEl);
+        document.body.appendChild(levelEl);
+        document.body.appendChild(skillEl);
+        document.body.appendChild(skillsListEl);
+        
+        // Setup mock companion and skill state
+        mockState.activeCompanion = 'vance';
+        mockState.companions = {
+            vance: { unlocked: true, level: 2, trust: 50 }
+        };
+        mockState.character.unlockedSkills = ['warrior_toughness'];
+        mockState.character.role = 'Warrior';
+        
+        await updateQuickCrewPanel();
+        
+        expect(avatarEl.textContent).toBe('🦾');
+        expect(nameEl.textContent).toContain('Vance');
+        expect(levelEl.textContent).toBe('LVL 2 (50 Trust)');
+        expect(skillEl.textContent).toContain('Shield Generator');
+        expect(skillsListEl.innerHTML).toContain('Toughness');
+        
+        // Setup mock companion to none
+        mockState.activeCompanion = null;
+        await updateQuickCrewPanel();
+        
+        expect(nameEl.textContent).toBe('No active crew deployed');
+        
+        // Cleanup
+        document.body.removeChild(avatarEl);
+        document.body.removeChild(nameEl);
+        document.body.removeChild(levelEl);
+        document.body.removeChild(skillEl);
+        document.body.removeChild(skillsListEl);
     });
 });

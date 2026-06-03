@@ -45,6 +45,7 @@ import { items } from '../data/items.js';
 // State object reference
 let state;
 let deps; // Store dependencies globally for the module
+let currentOperationsTab = 'cargo';
 
 // Render Cache
 const renderCache = {
@@ -86,6 +87,7 @@ export function initUI(dependencies) {
     renderCache.stats = { hp: null, maxHp: null, xp: null, xpToNext: null, credits: null, attack: null, defense: null };
     renderCache.equipment = { weapon: null, armor: null, accessory: null };
     renderCache.orders = 0;
+    currentOperationsTab = 'cargo';
 
     // Initialize Sub-modules
     initLogger(deps, { log: { length: 0, lastEntry: null } });
@@ -144,6 +146,9 @@ export function showScreen(screenName) {
     if (deps.dom.screens[screenName]) {
         deps.dom.screens[screenName].classList.add("active-screen");
     }
+    if (screenName === 'exploring') {
+        switchOperationsTab('cargo');
+    }
 }
 
 /**
@@ -196,6 +201,11 @@ export function updateUI() {
         import('./ui/companions-ui.js').then(m => m.renderCompanionsTab());
     }
     
+    // Update active operations tab if needed
+    if (currentOperationsTab === 'crew') {
+        updateQuickCrewPanel();
+    }
+
     // Update Derelict UI if active
     if (state.gameState === "derelict" && state.derelict) {
         updateDerelictUI();
@@ -696,5 +706,114 @@ export function switchShipTab(tab) {
         systemsPanel.classList.add('hidden');
         systemsPanel.style.display = 'none';
         import('./ui/companions-ui.js').then(m => m.renderCompanionsTab());
+    }
+}
+
+/**
+ * Switch between Cargo & Gear and Crew & Skills tabs in the exploring screen
+ */
+export function switchOperationsTab(tab) {
+    currentOperationsTab = tab;
+    const tabCargo = document.getElementById('tabCargoGear');
+    const tabCrew = document.getElementById('tabCrewSkills');
+    const panelCargo = document.getElementById('panelCargoGear');
+    const panelCrew = document.getElementById('panelCrewSkills');
+    
+    if (tab === 'cargo') {
+        if (tabCargo) {
+            tabCargo.className = "py-1 px-3 border-b-2 border-cyan-500 text-cyan-400 font-bold transition-all";
+        }
+        if (tabCrew) {
+            tabCrew.className = "py-1 px-3 border-b-2 border-transparent text-gray-400 hover:text-gray-300 font-bold transition-all";
+        }
+        if (panelCargo) {
+            panelCargo.classList.remove('hidden');
+            panelCargo.style.display = 'flex';
+        }
+        if (panelCrew) {
+            panelCrew.classList.add('hidden');
+            panelCrew.style.display = 'none';
+        }
+    } else if (tab === 'crew') {
+        if (tabCargo) {
+            tabCargo.className = "py-1 px-3 border-b-2 border-transparent text-gray-400 hover:text-gray-300 font-bold transition-all";
+        }
+        if (tabCrew) {
+            tabCrew.className = "py-1 px-3 border-b-2 border-cyan-500 text-cyan-400 font-bold transition-all";
+        }
+        if (panelCargo) {
+            panelCargo.classList.add('hidden');
+            panelCargo.style.display = 'none';
+        }
+        if (panelCrew) {
+            panelCrew.classList.remove('hidden');
+            panelCrew.style.display = 'flex';
+        }
+        updateQuickCrewPanel();
+    }
+}
+
+/**
+ * Update quick status info for active crew and unlocked passive subroutines
+ */
+export async function updateQuickCrewPanel() {
+    if (!state || !state.character) return;
+    
+    // Dynamic imports to prevent circular dependencies
+    const companionsModule = await import('./companions.js');
+    const skillsModule = await import('./skills.js');
+    
+    // 1. Update companion UI
+    const activeCompanion = companionsModule.getActiveCompanion();
+    const avatarEl = document.getElementById('quickCompanionAvatar');
+    const nameEl = document.getElementById('quickCompanionName');
+    const levelEl = document.getElementById('quickCompanionLevel');
+    const skillEl = document.getElementById('quickCompanionSkill');
+    
+    if (avatarEl && nameEl && levelEl && skillEl) {
+        if (activeCompanion) {
+            avatarEl.textContent = activeCompanion.avatar || "👤";
+            nameEl.textContent = `${activeCompanion.name} - ${activeCompanion.role}`;
+            levelEl.textContent = `LVL ${activeCompanion.level} (${activeCompanion.trust} Trust)`;
+            skillEl.textContent = `Ability: ${activeCompanion.abilityName} - ${activeCompanion.abilityDesc}`;
+        } else {
+            avatarEl.textContent = "👤";
+            nameEl.textContent = "No active crew deployed";
+            levelEl.textContent = "";
+            skillEl.textContent = "Deploy a companion in the Ship Hub to receive assistance.";
+        }
+    }
+    
+    // 2. Update skills list
+    const skillsListEl = document.getElementById('quickSkillsList');
+    if (skillsListEl) {
+        skillsListEl.innerHTML = '';
+        const role = state.character.role;
+        const tree = skillsModule.SKILL_TREES[role] || [];
+        
+        let hasAnySkill = false;
+        tree.forEach(skill => {
+            if (skillsModule.hasSkill(skill.id)) {
+                hasAnySkill = true;
+                const item = document.createElement('div');
+                item.className = "bg-cyan-950/30 border border-cyan-900/50 p-2 rounded flex items-center gap-2";
+                item.innerHTML = `
+                    <span class="text-base">${skill.icon || '✨'}</span>
+                    <div class="min-w-0 flex-grow">
+                        <div class="font-bold text-cyan-400 truncate text-[11px]">${skill.name}</div>
+                        <div class="text-[9px] text-gray-400 truncate" title="${skill.description}">${skill.description}</div>
+                    </div>
+                `;
+                skillsListEl.appendChild(item);
+            }
+        });
+        
+        if (!hasAnySkill) {
+            skillsListEl.innerHTML = `
+                <div class="col-span-2 text-center text-gray-600 py-4 italic text-[11px]">
+                    No passive subroutines unlocked yet.
+                </div>
+            `;
+        }
     }
 }
