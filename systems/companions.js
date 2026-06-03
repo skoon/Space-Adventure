@@ -77,15 +77,16 @@ export const COMPANIONS = {
  */
 export function initCompanions(deps) {
     state = deps.state;
+    if (!state) return;
     addLog = deps.ui.addLog;
     updateUI = deps.ui.updateUI;
 
-    // Set up initial state structures if missing
-    state.companions = state.companions || {
-        vance: { unlocked: false, trust: 0, level: 1, talkedSinceLastAction: false },
-        lyra: { unlocked: false, trust: 0, level: 1, talkedSinceLastAction: false },
-        apex: { unlocked: false, trust: 0, level: 1, talkedSinceLastAction: false }
-    };
+    // Set up initial state structures key-by-key to support partially populated structures
+    state.companions = state.companions || {};
+    if (!state.companions.vance) state.companions.vance = { unlocked: false, trust: 0, level: 1, talkedSinceLastAction: false };
+    if (!state.companions.lyra) state.companions.lyra = { unlocked: false, trust: 0, level: 1, talkedSinceLastAction: false };
+    if (!state.companions.apex) state.companions.apex = { unlocked: false, trust: 0, level: 1, talkedSinceLastAction: false };
+    
     state.activeCompanion = state.activeCompanion || null;
 }
 
@@ -93,19 +94,19 @@ export function initCompanions(deps) {
  * Recruit a companion
  */
 export function recruitCompanion(id) {
-    if (!COMPANIONS[id] || !state.companions[id]) return false;
+    if (!state || !state.companions || !COMPANIONS[id] || !state.companions[id]) return false;
     
     const cost = COMPANIONS[id].dialogues.recruitCost;
     if (state.character.credits < cost) {
-        addLog("⚠️ Insufficient credits to recruit this companion.");
+        if (addLog) addLog("⚠️ Insufficient credits to recruit this companion.");
         return false;
     }
 
     state.character.credits -= cost;
     state.companions[id].unlocked = true;
     state.activeCompanion = id; // Set as active automatically on recruit
-    addLog(`🎉 ${COMPANIONS[id].name} has joined your crew as active companion!`);
-    updateUI();
+    if (addLog) addLog(`🎉 ${COMPANIONS[id].name} has joined your crew as active companion!`);
+    if (updateUI) updateUI();
     return true;
 }
 
@@ -113,7 +114,7 @@ export function recruitCompanion(id) {
  * Get active companion object
  */
 export function getActiveCompanion() {
-    if (!state.activeCompanion) return null;
+    if (!state || !state.activeCompanion || !state.companions) return null;
     return {
         ...COMPANIONS[state.activeCompanion],
         ...state.companions[state.activeCompanion]
@@ -124,16 +125,17 @@ export function getActiveCompanion() {
  * Switch the active companion
  */
 export function setActiveCompanion(id) {
+    if (!state || !state.companions) return false;
     if (id === null) {
         state.activeCompanion = null;
-        addLog("You dismissed your active companion.");
-        updateUI();
+        if (addLog) addLog("You dismissed your active companion.");
+        if (updateUI) updateUI();
         return true;
     }
     if (!COMPANIONS[id] || !state.companions[id] || !state.companions[id].unlocked) return false;
     state.activeCompanion = id;
-    addLog(`${COMPANIONS[id].name} is now your active companion!`);
-    updateUI();
+    if (addLog) addLog(`${COMPANIONS[id].name} is now your active companion!`);
+    if (updateUI) updateUI();
     return true;
 }
 
@@ -141,7 +143,7 @@ export function setActiveCompanion(id) {
  * Add trust points to a companion
  */
 export function addTrust(id, points) {
-    if (!state.companions[id]) return;
+    if (!state || !state.companions || !state.companions[id]) return;
     
     const record = state.companions[id];
     const oldLevel = record.level || 1;
@@ -157,11 +159,11 @@ export function addTrust(id, points) {
     record.level = newLevel;
 
     if (newLevel > oldLevel) {
-        addLog(`📈 TRUST UP! Your bond with ${COMPANIONS[id].name} has grown to Level ${newLevel}!`);
+        if (addLog) addLog(`📈 TRUST UP! Your bond with ${COMPANIONS[id].name} has grown to Level ${newLevel}!`);
         if (newLevel === 3 && COMPANIONS[id].dialogues.maxTrust) {
-            addLog(`💬 ${COMPANIONS[id].name}: "${COMPANIONS[id].dialogues.maxTrust}"`);
+            if (addLog) addLog(`💬 ${COMPANIONS[id].name}: "${COMPANIONS[id].dialogues.maxTrust}"`);
         } else if (COMPANIONS[id].dialogues.trustUp) {
-            addLog(`💬 ${COMPANIONS[id].name}: "${COMPANIONS[id].dialogues.trustUp}"`);
+            if (addLog) addLog(`💬 ${COMPANIONS[id].name}: "${COMPANIONS[id].dialogues.trustUp}"`);
         }
     }
 }
@@ -170,7 +172,7 @@ export function addTrust(id, points) {
  * Talk to a companion for flavor text and a small trust boost (once per travel/combat)
  */
 export function talkToCompanion(id) {
-    if (!COMPANIONS[id] || !state.companions[id] || !state.companions[id].unlocked) return "No data.";
+    if (!state || !state.companions || !COMPANIONS[id] || !state.companions[id] || !state.companions[id].unlocked) return "No data.";
     
     const record = state.companions[id];
     const data = COMPANIONS[id];
@@ -180,7 +182,7 @@ export function talkToCompanion(id) {
     if (!record.talkedSinceLastAction) {
         record.talkedSinceLastAction = true;
         addTrust(id, 5);
-        updateUI();
+        if (updateUI) updateUI();
     }
     
     return dialogue;
@@ -190,11 +192,11 @@ export function talkToCompanion(id) {
  * Gift an item from the player's inventory to a companion
  */
 export function giftToCompanion(id, itemName) {
-    if (!state.companions[id] || !state.companions[id].unlocked) return false;
+    if (!state || !state.companions || !state.companions[id] || !state.companions[id].unlocked) return false;
     
     const index = state.inventory.indexOf(itemName);
     if (index === -1) {
-        addLog(`⚠️ You do not have ${itemName} in your inventory.`);
+        if (addLog) addLog(`⚠️ You do not have ${itemName} in your inventory.`);
         return false;
     }
 
@@ -207,8 +209,8 @@ export function giftToCompanion(id, itemName) {
     const trustGain = isPreferred ? 25 : 10;
 
     addTrust(id, trustGain);
-    addLog(`You gifted ${itemName} to ${compData.name}. (+${trustGain} Trust)`);
-    updateUI();
+    if (addLog) addLog(`You gifted ${itemName} to ${compData.name}. (+${trustGain} Trust)`);
+    if (updateUI) updateUI();
     return true;
 }
 
@@ -216,17 +218,17 @@ export function giftToCompanion(id, itemName) {
  * Gift credits to a companion
  */
 export function giftCreditsToCompanion(id, amount) {
-    if (!state.companions[id] || !state.companions[id].unlocked) return false;
+    if (!state || !state.companions || !state.companions[id] || !state.companions[id].unlocked) return false;
     if (state.character.credits < amount) {
-        addLog("⚠️ Insufficient credits to gift.");
+        if (addLog) addLog("⚠️ Insufficient credits to gift.");
         return false;
     }
 
     state.character.credits -= amount;
     const trustGain = Math.floor(amount / 10) || 1;
     addTrust(id, trustGain);
-    addLog(`You gifted ${amount} credits to ${COMPANIONS[id].name}. (+${trustGain} Trust)`);
-    updateUI();
+    if (addLog) addLog(`You gifted ${amount} credits to ${COMPANIONS[id].name}. (+${trustGain} Trust)`);
+    if (updateUI) updateUI();
     return true;
 }
 
@@ -234,7 +236,7 @@ export function giftCreditsToCompanion(id, amount) {
  * Reset talkedSinceLastAction for all unlocked companions (called on travel/combat)
  */
 export function resetCompanionTalkFlags() {
-    if (!state.companions) return;
+    if (!state || !state.companions) return;
     Object.keys(state.companions).forEach(id => {
         state.companions[id].talkedSinceLastAction = false;
     });

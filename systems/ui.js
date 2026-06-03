@@ -37,8 +37,7 @@ export {
     showVictoryMessage, showSaveMessage, 
     showDialog, hideDialog,
     showStatsAllocationUI, closeStatsAllocationUI, allocateStat,
-    showAchievementsUI, closeAchievementsUI,
-    switchShipTab
+    showAchievementsUI, closeAchievementsUI
 };
 
 import { items } from '../data/items.js';
@@ -98,7 +97,7 @@ export function initUI(dependencies) {
     initSettingsUI(deps, showDialog);
     initAttributesUI(deps, updateUI);
     initAchievementsUI(deps);
-    initCompanionsUI(deps);
+    initCompanionsUI(deps, { updateUI, showDialog });
 
     // Initialize Difficulty Selector (Start Screen)
     const difficultySelect = document.getElementById("difficultySelect");

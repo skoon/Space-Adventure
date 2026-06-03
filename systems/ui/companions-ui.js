@@ -8,10 +8,10 @@ import { COMPANIONS, getActiveCompanion, setActiveCompanion, recruitCompanion, t
 let state;
 let updateUI, showDialog;
 
-export function initCompanionsUI(deps) {
+export function initCompanionsUI(deps, callbacks = {}) {
     state = deps.state;
-    updateUI = deps.ui.updateUI;
-    showDialog = deps.ui.showDialog;
+    updateUI = callbacks.updateUI || (deps.ui && deps.ui.updateUI) || window.updateUI;
+    showDialog = callbacks.showDialog || (deps.ui && deps.ui.showDialog) || window.showDialog;
 }
 
 /**

@@ -147,10 +147,10 @@
 
 ### Companion/Party System
 
-- [ ] **Recruit NPCs** - Add companions to your party
-- [ ] **Companion Abilities** - Companions help in combat
-- [ ] **Relationship Mechanics** - Build relationships with companions
-- [ ] **Companion UI** - Manage party members
+- [x] **Recruit NPCs** - Add companions to your party
+- [x] **Companion Abilities** - Companions help in combat
+- [x] **Relationship Mechanics** - Build relationships with companions
+- [x] **Companion UI** - Manage party members
 
 ### Leaderboard/High Scores
 

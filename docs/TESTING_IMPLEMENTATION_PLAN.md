@@ -43,6 +43,12 @@
     - [x] Test upgrade level parsing and dynamic registering
     - [x] Test stat/price multipliers and max caps
     - [x] Test inventory/equipped upgrade execution and save/load recovery
+- [x] **Achievements System** (`systems/achievements.js`)
+    - [x] Test unlocks, rewards, and duplicate prevention
+    - [x] Test combat, leveling, crafting, and currency milestone checking
+- [x] **Companions & Party System** (`systems/companions.js`)
+    - [x] Test recruitment requirements and deployment toggles
+    - [x] Test trust scaling, chat dialogue, item/credit gifts, and combat abilities
 
 ## 4. Execution
 - [x] Run `npm test` to verify all tests pass. (All tests passing)
