@@ -1,5 +1,7 @@
 
 import { initUI, updateUI, switchOperationsTab, updateQuickCrewPanel } from '../../systems/ui.js';
+import { initCompanions } from '../../systems/companions.js';
+import { initSkills } from '../../systems/skills.js';
 
 describe('UI System', () => {
     let mockState;
@@ -187,6 +189,14 @@ describe('UI System', () => {
     });
 
     test('updateQuickCrewPanel renders active companion and skills correctly', async () => {
+        // Initialize state dependencies for sub-modules
+        mockDeps.ui = {
+            addLog: jest.fn(),
+            updateUI: jest.fn()
+        };
+        initCompanions(mockDeps);
+        initSkills(mockDeps);
+
         // Create elements
         const avatarEl = document.createElement('div');
         avatarEl.id = 'quickCompanionAvatar';
