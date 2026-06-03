@@ -4,6 +4,7 @@
  */
 
 import { rollRarity } from './rarity.js';
+import { checkAchievement } from './achievements.js';
 
 let state;
 let addLog, updateUI;
@@ -59,6 +60,11 @@ export function craftItem(recipeId) {
     } else {
         addLog(`✨ Crafted ${recipe.creates}!`);
     }
+    // Stats tracking and Achievement check
+    state.stats = state.stats || {};
+    state.stats.itemsCrafted = (state.stats.itemsCrafted || 0) + 1;
+    checkAchievement("craft");
+
     updateUI();
     return true;
 }

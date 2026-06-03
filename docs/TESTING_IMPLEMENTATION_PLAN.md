@@ -39,6 +39,10 @@
 - [x] **Attributes Manual Allocation** (`systems/ui/attributes-ui.js`)
     - [x] Test point distribution logic and role recommendations
     - [x] Test button visual notifications
+- [x] **Equipment Upgrade System** (`systems/upgrades.js`)
+    - [x] Test upgrade level parsing and dynamic registering
+    - [x] Test stat/price multipliers and max caps
+    - [x] Test inventory/equipped upgrade execution and save/load recovery
 
 ## 4. Execution
 - [x] Run `npm test` to verify all tests pass. (All tests passing)

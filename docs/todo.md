@@ -100,7 +100,7 @@
 
 - [x] **Item Combination** - Combine materials to create items
 - [x] **Recipe Discovery** - Find and unlock crafting recipes
-- [ ] **Equipment Upgrades** - Enhance existing equipment
+- [x] **Equipment Upgrades** - Enhance existing equipment
 - [x] **Crafting UI** - Interface for crafting operations
 
 ### Shop/Trading System
@@ -116,7 +116,7 @@
 - [x] **Item Stacking** - Stack consumables with quantities
 - [x] **Item Categories** - Organize by type (weapons, consumables, etc.)
 - [x] **Item Tooltips** - Detailed information on hover
-- [ ] **Item Comparison** - Compare equipment stats
+- [x] **Item Comparison** - Compare equipment stats
 
 ## 🎯 Game Systems
 
@@ -130,10 +130,10 @@
 
 ### Achievement System
 
-- [ ] **Achievement Tracking** - Track player milestones
-- [ ] **Achievement Rewards** - Unlock rewards for achievements
-- [ ] **Achievement Display** - UI showing all achievements
-- [ ] **Achievement Categories** - Combat, exploration, collection, etc.
+- [x] **Achievement Tracking** - Track player milestones
+- [x] **Achievement Rewards** - Unlock rewards for achievements
+- [x] **Achievement Display** - UI showing all achievements
+- [x] **Achievement Categories** - Combat, exploration, collection, etc.
 
 ### Difficulty Settings
 

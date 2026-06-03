@@ -1,5 +1,7 @@
 import { rollRarity } from './rarity.js';
 import { items } from '../data/items.js';
+import { checkAchievement } from './achievements.js';
+import { COMPANIONS, getCompanionAbilityValue, resetCompanionTalkFlags } from './companions.js';
 
 // State object that holds getters/setters
 let state;
@@ -111,6 +113,8 @@ export function encounterEnemy() {
 
     state.enemy = randomEnemy;
     state.character.ap = state.character.maxAp || 3;
+    state.companionCooldown = 0;
+    resetCompanionTalkFlags();
     state.playerStatusEffects = [];
     state.enemyStatusEffects = [];
     state.gameState = "combat";
@@ -146,6 +150,8 @@ export function encounterBoss() {
 
     state.enemy = boss;
     state.character.ap = state.character.maxAp || 3;
+    state.companionCooldown = 0;
+    resetCompanionTalkFlags();
     state.playerStatusEffects = [];
     state.enemyStatusEffects = [];
     state.gameState = "combat";
@@ -209,6 +215,28 @@ export function updateCombatUI() {
     if (itemBtn) {
         itemBtn.disabled = state.character.ap < 1;
         itemBtn.className = `py-3 px-4 bg-yellow-600 hover:bg-yellow-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < 1 ? "opacity-50 cursor-not-allowed" : ""}`;
+    }
+
+    const companionBtn = document.getElementById("combatCompanionBtn");
+    if (companionBtn) {
+        if (state.activeCompanion) {
+            const comp = COMPANIONS[state.activeCompanion];
+            const cooldown = state.companionCooldown || 0;
+            
+            companionBtn.disabled = cooldown > 0 || state.character.ap < 1;
+            
+            if (cooldown > 0) {
+                companionBtn.textContent = `⏳ ${comp.name} (${cooldown}t)`;
+                companionBtn.className = `py-3 px-4 bg-gray-750 text-gray-500 rounded font-bold transition-colors flex items-center justify-center gap-2 text-xs opacity-60 cursor-not-allowed border border-gray-700`;
+            } else {
+                companionBtn.textContent = `👥 ${comp.name} (1 AP)`;
+                companionBtn.className = `py-3 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded font-bold transition-colors flex items-center justify-center gap-2 text-xs ${state.character.ap < 1 ? "opacity-50 cursor-not-allowed" : ""}`;
+            }
+        } else {
+            companionBtn.disabled = true;
+            companionBtn.textContent = "👥 No Crew";
+            companionBtn.className = "py-3 px-4 bg-gray-800 text-gray-500 rounded font-bold flex items-center justify-center gap-2 text-xs opacity-50 cursor-not-allowed border border-gray-700";
+        }
     }
 
     // Status effects
@@ -625,6 +653,9 @@ export function enemyTurn() {
 
     // Reset AP for the new turn
     state.character.ap = state.character.maxAp || 3;
+    if (state.companionCooldown > 0) {
+        state.companionCooldown--;
+    }
 
     if (state.character.hp <= 0) {
         addLog("You have been defeated...");
@@ -673,6 +704,14 @@ export function winCombat() {
     // Rewards
     gainXp(xpGained);
     checkQuestProgress("kill", enemyName, 1);
+    
+    // Stats tracking and Achievement check
+    state.stats = state.stats || {};
+    state.stats.enemiesDefeated = (state.stats.enemiesDefeated || 0) + 1;
+    if (isBoss) {
+        state.stats.bossesDefeated = (state.stats.bossesDefeated || 0) + 1;
+    }
+    checkAchievement("combat");
     
     // Inventory & Credits
     state.inventory.push(finalLoot);
@@ -743,4 +782,60 @@ export function checkPhaseTransition() {
             updateCombatLog();
         }
     }
+}
+
+/**
+ * Trigger the active companion's tactical ability
+ */
+export function triggerCompanionAbility() {
+    if (!state.character || !state.enemy) return;
+    if (!state.activeCompanion) {
+        addLog("⚠️ You do not have a companion active.");
+        updateCombatLog();
+        return;
+    }
+    if (state.character.ap < 1) {
+        addLog("⚠️ Not enough Action Points (AP) to command companion.");
+        updateCombatLog();
+        return;
+    }
+    if ((state.companionCooldown || 0) > 0) {
+        addLog("⚠️ Companion ability is on cooldown.");
+        updateCombatLog();
+        return;
+    }
+
+    state.character.ap -= 1;
+    
+    const compRecord = state.companions[state.activeCompanion];
+    const compData = COMPANIONS[state.activeCompanion];
+    const level = compRecord.level || 1;
+    const value = getCompanionAbilityValue(state.activeCompanion, level);
+    
+    state.companionCooldown = compData.cooldown;
+
+    if (state.activeCompanion === "vance") {
+        state.playerStatusEffects = [
+            ...state.playerStatusEffects.filter(e => e.type !== "defenseBoost"),
+            { type: "defenseBoost", value: value, duration: 3 }
+        ];
+        addLog(`🛡️ [Companion] Vance activates Shield Generator! (+${value} DEF for 3 turns)`);
+    } else if (state.activeCompanion === "lyra") {
+        const oldHp = state.character.hp;
+        state.character.hp = Math.min(state.character.maxHp, state.character.hp + value);
+        addLog(`🩺 [Companion] Dr. Lyra uses Nano-Heal, restoring ${state.character.hp - oldHp} HP!`);
+    } else if (state.activeCompanion === "apex") {
+        state.enemy.hp -= value;
+        addLog(`🔫 [Companion] Apex fires a Precision Shot, dealing ${value} damage to ${state.enemy.name}!`);
+        checkPhaseTransition();
+        if (state.enemy.hp <= 0) {
+            winCombat();
+            updateCombatUI();
+            return;
+        }
+    }
+
+    updateCombatLog();
+    updateCombatUI();
+    updateUI();
 }

@@ -48,6 +48,7 @@ export function initEvents(dependencies) {
  * Generate a random event based on weights
  */
 import { getScannerBonus } from './ship.js';
+import { COMPANIONS } from './companions.js';
 
 /**
  * Generate a random event based on weights and location
@@ -349,6 +350,34 @@ function triggerDropBoxEvent() {
  * Trigger an NPC event (moved from exploration.js and enhanced)
  */
 function triggerNPCEvent() {
+    // Check for recruit encounters if any companion is still locked
+    const lockedCompanions = Object.keys(COMPANIONS).filter(id => !state.companions[id].unlocked);
+    if (lockedCompanions.length > 0 && Math.random() < 0.35) {
+        const companionId = lockedCompanions[Math.floor(Math.random() * lockedCompanions.length)];
+        const compData = COMPANIONS[companionId];
+        showDialog(
+            "Encounter",
+            `You meet a ${compData.role} named ${compData.name}.<br><br>"${compData.dialogues.recruit}"`,
+            [
+                {
+                    text: `Hire for ${compData.dialogues.recruitCost} cr`,
+                    action: () => {
+                        import('./companions.js').then(m => {
+                            m.recruitCompanion(companionId);
+                        });
+                    }
+                },
+                {
+                    text: "Decline",
+                    action: () => {
+                        addLog(`You declined to hire ${compData.name}.`);
+                    }
+                }
+            ]
+        );
+        return;
+    }
+
     // Check for quest NPCs first
     const availableQuests = Object.values(quests).filter(q =>
         !state.character.activeQuests[q.id] && !state.character.completedQuests.includes(q.id)

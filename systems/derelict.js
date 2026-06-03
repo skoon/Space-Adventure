@@ -1,5 +1,6 @@
 import { rollRarity } from './rarity.js';
 import { items } from '../data/items.js';
+import { checkAchievement } from './achievements.js';
 
 let state;
 let deps;
@@ -164,6 +165,11 @@ export function escapeShip() {
 
     addLog(`🚀 You escaped the derelict and returned to your ship with ${lootCount} items!`);
     
+    // Stats tracking and Achievement check
+    state.stats = state.stats || {};
+    state.stats.derelictsCompleted = (state.stats.derelictsCompleted || 0) + 1;
+    checkAchievement("derelict", { completed: true });
+
     finishRun();
 }
 

@@ -4,6 +4,7 @@
  */
 
 import { restoreSavedRarityItems } from './rarity.js';
+import { restoreSavedUpgradedItems } from './upgrades.js';
 
 // State object reference
 let state;
@@ -43,7 +44,12 @@ function getGameState() {
         enemy: state.enemy,
         log: state.log,
         playerStatusEffects: state.playerStatusEffects,
-        enemyStatusEffects: state.enemyStatusEffects
+        enemyStatusEffects: state.enemyStatusEffects,
+        achievements: state.achievements || [],
+        stats: state.stats || {},
+        companions: state.companions || {},
+        activeCompanion: state.activeCompanion || null,
+        companionCooldown: state.companionCooldown || 0
     };
 }
 
@@ -96,9 +102,27 @@ export function loadGame() {
         state.log = saveData.log || [];
         state.playerStatusEffects = saveData.playerStatusEffects || [];
         state.enemyStatusEffects = saveData.enemyStatusEffects || [];
+        state.achievements = saveData.achievements || [];
+        state.stats = saveData.stats || {};
+        state.companions = saveData.companions || {
+            vance: { unlocked: false, trust: 0, level: 1, talkedSinceLastAction: false },
+            lyra: { unlocked: false, trust: 0, level: 1, talkedSinceLastAction: false },
+            apex: { unlocked: false, trust: 0, level: 1, talkedSinceLastAction: false }
+        };
+        // Ensure all three companions exist even if loading a save with fewer
+        if (state.companions) {
+            if (!state.companions.vance) state.companions.vance = { unlocked: false, trust: 0, level: 1, talkedSinceLastAction: false };
+            if (!state.companions.lyra) state.companions.lyra = { unlocked: false, trust: 0, level: 1, talkedSinceLastAction: false };
+            if (!state.companions.apex) state.companions.apex = { unlocked: false, trust: 0, level: 1, talkedSinceLastAction: false };
+        }
+        state.activeCompanion = saveData.activeCompanion || null;
+        state.companionCooldown = saveData.companionCooldown || 0;
 
         // Restore dynamic rarity items in catalog
         restoreSavedRarityItems(state.inventory, state.character?.equipment);
+        
+        // Restore dynamic upgraded items in catalog
+        restoreSavedUpgradedItems(state.inventory, state.character?.equipment);
         
         // Retroactive skill points setup
         state.character.unlockedSkills = state.character.unlockedSkills || [];

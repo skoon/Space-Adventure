@@ -3,6 +3,8 @@
  * Handles equipment management and stat calculations
  */
 
+import { checkAchievement } from './achievements.js';
+
 // State object reference
 let state;
 
@@ -91,6 +93,12 @@ export function equipItem(itemName) {
     // Equip new item
     state.character.equipment[slot] = itemName;
     addLog(`Equipped ${itemName}.`);
+    
+    // Achievement check
+    if (item && item.rarity === "Legendary") {
+        checkAchievement("equip", { rarity: "Legendary" });
+    }
+
     updateUI();
 }
 

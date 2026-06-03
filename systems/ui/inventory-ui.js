@@ -170,7 +170,47 @@ export function createInventoryItemButton(itemName, count, item) {
     tooltipHtml += `<div class="text-xs text-gray-400 mb-1 italic">${item?.type || 'Item'}</div>`;
     tooltipHtml += `<div class="text-xs text-gray-300">${item?.description || 'No description'}</div>`;
     
-    if (item?.stats) {
+    if (item && ["weapon", "armor", "accessory"].includes(item.type)) {
+        tooltipHtml += '<div class="text-[10px] text-gray-500 font-bold uppercase mt-2 pt-1 border-t border-gray-800 tracking-wider">VS EQUIPPED:</div>';
+        
+        const slot = item.type;
+        const equippedItemName = state.character?.equipment?.[slot];
+        const equippedItem = equippedItemName ? items[equippedItemName] : null;
+
+        // Attack comparison
+        const baseAtk = item.stats?.attack || 0;
+        const equippedAtk = equippedItem?.stats?.attack || 0;
+        const atkDiff = baseAtk - equippedAtk;
+        let atkDiffHtml = '';
+        if (atkDiff > 0) {
+            atkDiffHtml = `<span class="text-green-400 font-bold">(+${atkDiff})</span>`;
+        } else if (atkDiff < 0) {
+            atkDiffHtml = `<span class="text-red-400 font-bold">(${atkDiff})</span>`;
+        } else {
+            atkDiffHtml = `<span class="text-gray-500">(+0)</span>`;
+        }
+        tooltipHtml += `<div class="text-xs text-gray-300 flex justify-between gap-4 mt-0.5">
+            <span>⚔️ ATK: ${baseAtk}</span>
+            <span>${atkDiffHtml}</span>
+        </div>`;
+
+        // Defense comparison
+        const baseDef = item.stats?.defense || 0;
+        const equippedDef = equippedItem?.stats?.defense || 0;
+        const defDiff = baseDef - equippedDef;
+        let defDiffHtml = '';
+        if (defDiff > 0) {
+            defDiffHtml = `<span class="text-green-400 font-bold">(+${defDiff})</span>`;
+        } else if (defDiff < 0) {
+            defDiffHtml = `<span class="text-red-400 font-bold">(${defDiff})</span>`;
+        } else {
+            defDiffHtml = `<span class="text-gray-500">(+0)</span>`;
+        }
+        tooltipHtml += `<div class="text-xs text-gray-300 flex justify-between gap-4 mt-0.5">
+            <span>🛡️ DEF: ${baseDef}</span>
+            <span>${defDiffHtml}</span>
+        </div>`;
+    } else if (item?.stats) {
         tooltipHtml += '<div class="text-xs text-green-400 mt-1 flex flex-col gap-0.5">';
         if (item.stats.attack) tooltipHtml += `<span>⚔️ ATK +${item.stats.attack}</span>`;
         if (item.stats.defense) tooltipHtml += `<span>🛡️ DEF +${item.stats.defense}</span>`;

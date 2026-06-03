@@ -426,7 +426,7 @@
             </div>
 
             <div class="bg-gray-900 p-4 border-t border-gray-700">
-              <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-3 gap-4">
                 <button
                   onclick="travelDeeper()"
                   class="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors"
@@ -485,6 +485,15 @@
                   class="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 rounded font-bold transition-colors shadow-[0_0_10px_rgba(99,102,241,0.5)]"
                 >
                   🚀 Ship Hub
+                </button>
+                <button
+                  id="achievementsBtn"
+                  onclick="
+                    import('./systems/ui.js').then((m) => m.showAchievementsUI())
+                  "
+                  class="py-2 px-4 bg-amber-600 hover:bg-amber-700 border border-transparent rounded font-bold transition-colors shadow-[0_0_10px_rgba(245,158,11,0.5)]"
+                >
+                  🏆 Achievements
                 </button>
               </div>
             </div>
@@ -661,18 +670,25 @@
             </div>
 
             <div class="bg-gray-900 p-4 border-t border-gray-700">
-              <div class="grid grid-cols-2 gap-4 mb-2">
+              <div class="grid grid-cols-3 gap-4 mb-2">
                 <button
                   onclick="playerAttack()"
-                  class="py-3 px-4 bg-red-600 hover:bg-red-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
+                  class="py-3 px-4 bg-red-600 hover:bg-red-700 rounded font-bold transition-colors flex items-center justify-center gap-2 text-sm text-center"
                 >
                   <span>⚔️</span> Attack (2 AP)
                 </button>
                 <button
                   onclick="playerBlock()"
-                  class="py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
+                  class="py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded font-bold transition-colors flex items-center justify-center gap-2 text-sm text-center"
                 >
                   <span>🛡️</span> Block (1 AP)
+                </button>
+                <button
+                  id="combatCompanionBtn"
+                  onclick="triggerCompanionAbility()"
+                  class="py-3 px-4 bg-teal-600 hover:bg-teal-700 rounded font-bold transition-colors flex items-center justify-center gap-2 text-sm text-center"
+                >
+                  <span>👥</span> Crew (1 AP)
                 </button>
               </div>
               <div class="grid grid-cols-3 gap-4 mb-2">
@@ -846,6 +862,42 @@
       </div>
     </div>
 
+    <!-- Achievements Modal -->
+    <div
+      id="achievementsModal"
+      class="quest-log-modal hidden"
+      style="display: none"
+    >
+      <div class="quest-log-content crt-container-amber">
+        <div class="terminal-screen crt-amber-large">
+          <div class="terminal-header flex justify-between items-center mb-4 border-b border-amber-800 pb-2">
+            <h2 class="text-2xl font-bold text-amber-500 tracking-widest cyber-glow-text">
+              >> SECTOR MILESTONES <<
+            </h2>
+            <button
+              onclick="import('./systems/ui.js').then((m) => m.closeAchievementsUI())"
+              class="text-amber-500 hover:text-amber-300 font-bold text-xl"
+            >
+              [X]
+            </button>
+          </div>
+
+          <div
+            id="achievementsList"
+            class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar-amber"
+          >
+            <!-- Achievements list will be injected here -->
+          </div>
+
+          <div
+            class="mt-4 text-xs text-amber-700 text-center border-t border-amber-900/50 pt-2"
+          >
+            TERMINAL_ID: ACH-8800 // SECTOR_READY
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Victory Message -->
     <div
       id="victoryMessage"
@@ -882,8 +934,24 @@
               [X]
             </button>
           </div>
-          <div id="shipModulesContainer" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar-cyan text-sm">
-            <!-- Modules injected here -->
+          <!-- Tab Headers -->
+          <div class="flex gap-4 mb-4 border-b border-cyan-800 pb-2 font-mono text-xs">
+            <button id="tabShipSystems" onclick="switchShipTab('systems')" class="py-2 px-4 border-b border-cyan-500 text-cyan-400 font-bold transition-all">
+              [ SHIP SYSTEMS ]
+            </button>
+            <button id="tabCrewQuarter" onclick="switchShipTab('crew')" class="py-2 px-4 border-b border-transparent text-gray-400 hover:text-gray-300 font-bold transition-all">
+              [ CREW QUARTER ]
+            </button>
+          </div>
+
+          <!-- Tab Panels -->
+          <div id="shipSystemsPanel" class="space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar-cyan text-sm">
+            <div id="shipModulesContainer" class="space-y-4">
+              <!-- Modules injected here -->
+            </div>
+          </div>
+          <div id="shipCrewPanel" class="space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar-cyan text-sm hidden" style="display: none;">
+            <!-- Crew/Companions injected here -->
           </div>
         </div>
       </div>

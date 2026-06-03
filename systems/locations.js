@@ -3,6 +3,8 @@
  * Handles location data and travel logic
  */
 
+import { checkAchievement } from './achievements.js';
+
 // State object reference
 let state;
 
@@ -116,6 +118,9 @@ function completeTravel(location) {
             addLog(`🩺 Medbay healed you for ${state.character.hp - oldHp} HP during travel.`);
         }
     }
+
+    // Achievement check
+    checkAchievement("travel", { locationId: location.id });
 
     updateUI();
 }

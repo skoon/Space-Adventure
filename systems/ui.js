@@ -19,6 +19,10 @@ import {
 } from './ui/notifications.js';
 
 import { initAttributesUI, showStatsAllocationUI, closeStatsAllocationUI, allocateStat, updateAttributesBtnGlow } from './ui/attributes-ui.js';
+import { initUpgrades } from './upgrades.js';
+import { checkAchievement } from './achievements.js';
+import { initAchievementsUI, showAchievementsUI, closeAchievementsUI } from './ui/achievements-ui.js';
+import { initCompanionsUI } from './ui/companions-ui.js';
 
 // Re-export for external use
 export { 
@@ -32,7 +36,9 @@ export {
     showLevelUpNotification, hideLevelUpNotification, 
     showVictoryMessage, showSaveMessage, 
     showDialog, hideDialog,
-    showStatsAllocationUI, closeStatsAllocationUI, allocateStat
+    showStatsAllocationUI, closeStatsAllocationUI, allocateStat,
+    showAchievementsUI, closeAchievementsUI,
+    switchShipTab
 };
 
 import { items } from '../data/items.js';
@@ -91,6 +97,8 @@ export function initUI(dependencies) {
     initCraftingUI(deps);
     initSettingsUI(deps, showDialog);
     initAttributesUI(deps, updateUI);
+    initAchievementsUI(deps);
+    initCompanionsUI(deps);
 
     // Initialize Difficulty Selector (Start Screen)
     const difficultySelect = document.getElementById("difficultySelect");
@@ -162,6 +170,9 @@ export function getStatusEffectIcon(type) {
 export function updateUI() {
     if (!state.character) return;
 
+    checkAchievement("level");
+    checkAchievement("credits");
+
     updateTheme();
     updateCharacterInfo();
     updateStats();
@@ -179,6 +190,11 @@ export function updateUI() {
     const craftingModal = document.getElementById('craftingModal');
     if (craftingModal) {
         updateCraftingUI();
+    }
+
+    const crewPanel = document.getElementById('shipCrewPanel');
+    if (crewPanel && !crewPanel.classList.contains('hidden') && crewPanel.style.display !== 'none') {
+        import('./ui/companions-ui.js').then(m => m.renderCompanionsTab());
     }
     
     // Update Derelict UI if active
@@ -507,9 +523,13 @@ export async function renderSkillTree() {
 export function showShipUI() {
     const modal = document.getElementById('shipHubModal');
     if (modal) {
-        renderShipModules();
         modal.classList.remove('hidden');
         modal.style.display = 'flex';
+        if (window.switchShipTab) {
+            window.switchShipTab('systems');
+        } else {
+            renderShipModules();
+        }
     }
 }
 
@@ -648,4 +668,34 @@ export function playTravelAnimation(callback) {
 export function showDerelictScreen() {
     showScreen("derelict");
     updateDerelictUI();
+}
+
+/**
+ * Switch between Ship Systems and Crew Quarter tabs inside Ship Hub Modal
+ */
+export function switchShipTab(tab) {
+    const tabSystems = document.getElementById('tabShipSystems');
+    const tabCrew = document.getElementById('tabCrewQuarter');
+    const systemsPanel = document.getElementById('shipSystemsPanel');
+    const crewPanel = document.getElementById('shipCrewPanel');
+    
+    if (!tabSystems || !tabCrew || !systemsPanel || !crewPanel) return;
+    
+    if (tab === 'systems') {
+        tabSystems.className = "py-2 px-4 border-b-2 border-cyan-500 text-cyan-400 font-bold transition-all text-sm";
+        tabCrew.className = "py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-gray-300 font-bold transition-all text-sm";
+        systemsPanel.classList.remove('hidden');
+        systemsPanel.style.display = 'block';
+        crewPanel.classList.add('hidden');
+        crewPanel.style.display = 'none';
+        renderShipModules();
+    } else if (tab === 'crew') {
+        tabCrew.className = "py-2 px-4 border-b-2 border-cyan-500 text-cyan-400 font-bold transition-all text-sm";
+        tabSystems.className = "py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-gray-300 font-bold transition-all text-sm";
+        crewPanel.classList.remove('hidden');
+        crewPanel.style.display = 'block';
+        systemsPanel.classList.add('hidden');
+        systemsPanel.style.display = 'none';
+        import('./ui/companions-ui.js').then(m => m.renderCompanionsTab());
+    }
 }

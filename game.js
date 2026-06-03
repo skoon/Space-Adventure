@@ -4,14 +4,14 @@
  */
 
 // Import all system modules
-import { initCombat, processStatusEffects, encounterEnemy, encounterBoss, updateCombatUI, playerAttack, playerBlock, playerDodge, useSpecialAbility, endPlayerTurn, enemyTurn, winCombat } from './systems/combat.js';
+import { initCombat, processStatusEffects, encounterEnemy, encounterBoss, updateCombatUI, playerAttack, playerBlock, playerDodge, useSpecialAbility, endPlayerTurn, enemyTurn, winCombat, triggerCompanionAbility } from './systems/combat.js';
 import { initQuests, acceptQuest, checkQuestProgress, applyQuestItem } from './systems/quests.js';
 import { initEquipment, getEffectiveStats, equipItem, unequipItem } from './systems/equipment.js';
 import { initCharacter, createCharacter, gainXp, getCharacterAvatar, useHealItem, restartGame } from './systems/character.js';
 import { initExploration, simulateExploration, travelDeeper } from './systems/exploration.js';
 import { initEvents, generateRandomEvent, handleEvent } from './systems/events.js';
 import { initSaveLoad, saveGame, loadGame, exportGame, importGame, autoSave, initializeSaveSystem } from './systems/saveload.js';
-import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog, showTravelScreen, showSettingsModal, showStatsAllocationUI, closeStatsAllocationUI, allocateStat } from './systems/ui.js';
+import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog, showTravelScreen, showSettingsModal, showStatsAllocationUI, closeStatsAllocationUI, allocateStat, showAchievementsUI, closeAchievementsUI, switchShipTab } from './systems/ui.js';
 import { initInventory, openCombatItemMenu, closeCombatItemMenu, useCombatItem } from './systems/inventory.js';
 import { initLocations, travelTo, getLocationDetails, getUnlockedLocations } from './systems/locations.js';
 import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem, claimAllOrders } from './systems/shop.js';
@@ -20,6 +20,9 @@ import { initSettings, getDifficulty, setDifficulty } from './systems/settings.j
 import { initShip, upgradeModule } from './systems/ship.js';
 import { initDerelict, startDerelictRun, exploreRoom, escapeShip, failRun } from './systems/derelict.js';
 import { initSkills } from './systems/skills.js';
+import { initUpgrades } from './systems/upgrades.js';
+import { initAchievements } from './systems/achievements.js';
+import { initCompanions } from './systems/companions.js';
 
 import { locations } from './data/locations.js';
 import { enemies, bosses } from './data/enemies.js';
@@ -301,6 +304,24 @@ function initializeGame() {
     ui: { addLog, updateUI }
   });
 
+  // Initialize Upgrades
+  initUpgrades({
+    ...deps,
+    ui: { addLog, updateUI }
+  });
+
+  // Initialize Achievements
+  initAchievements({
+    ...deps,
+    ui: { addLog, updateUI, showDialog }
+  });
+
+  // Initialize Companions
+  initCompanions({
+    ...deps,
+    ui: { addLog, updateUI }
+  });
+
   // Initialize Settings
   initSettings();
 }
@@ -372,3 +393,9 @@ window.escapeShip = escapeShip;
 window.showStatsAllocationUI = showStatsAllocationUI;
 window.closeStatsAllocationUI = closeStatsAllocationUI;
 window.allocateStat = allocateStat;
+window.showAchievementsUI = showAchievementsUI;
+window.closeAchievementsUI = closeAchievementsUI;
+
+// Companion functions
+window.triggerCompanionAbility = triggerCompanionAbility;
+window.switchShipTab = switchShipTab;
