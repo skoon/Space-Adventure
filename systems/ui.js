@@ -23,6 +23,7 @@ import { initUpgrades } from './upgrades.js';
 import { checkAchievement } from './achievements.js';
 import { initAchievementsUI, showAchievementsUI, closeAchievementsUI } from './ui/achievements-ui.js';
 import { initCompanionsUI } from './ui/companions-ui.js';
+import { initCyberneticsUI } from './ui/cybernetics-ui.js';
 
 // Re-export for external use
 export { 
@@ -79,6 +80,7 @@ const renderCache = {
 export function initUI(dependencies) {
     // Store state object reference
     deps = dependencies;
+    deps.ui = { showDialog, addLog, updateUI };
     console.log("initUI called", deps);
     state = deps.state;
 
@@ -100,6 +102,7 @@ export function initUI(dependencies) {
     initAttributesUI(deps, updateUI);
     initAchievementsUI(deps);
     initCompanionsUI(deps, { updateUI, showDialog });
+    initCyberneticsUI(deps);
 
     // Initialize Difficulty Selector (Start Screen)
     const difficultySelect = document.getElementById("difficultySelect");
@@ -199,6 +202,11 @@ export function updateUI() {
     const crewPanel = document.getElementById('shipCrewPanel');
     if (crewPanel && !crewPanel.classList.contains('hidden') && crewPanel.style.display !== 'none') {
         import('./ui/companions-ui.js').then(m => m.renderCompanionsTab());
+    }
+    
+    const cyberPanel = document.getElementById('shipCyberneticsPanel');
+    if (cyberPanel && !cyberPanel.classList.contains('hidden') && cyberPanel.style.display !== 'none') {
+        import('./ui/cybernetics-ui.js').then(m => m.renderCyberneticsTab());
     }
     
     // Update active operations tab if needed
@@ -685,27 +693,46 @@ export function showDerelictScreen() {
 export function switchShipTab(tab) {
     const tabSystems = document.getElementById('tabShipSystems');
     const tabCrew = document.getElementById('tabCrewQuarter');
+    const tabCybernetics = document.getElementById('tabCybernetics');
     const systemsPanel = document.getElementById('shipSystemsPanel');
     const crewPanel = document.getElementById('shipCrewPanel');
+    const cyberneticsPanel = document.getElementById('shipCyberneticsPanel');
     
-    if (!tabSystems || !tabCrew || !systemsPanel || !crewPanel) return;
+    if (!tabSystems || !tabCrew || !tabCybernetics || !systemsPanel || !crewPanel || !cyberneticsPanel) return;
     
     if (tab === 'systems') {
         tabSystems.className = "py-2 px-4 border-b-2 border-cyan-500 text-cyan-400 font-bold transition-all text-sm";
         tabCrew.className = "py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-gray-300 font-bold transition-all text-sm";
+        tabCybernetics.className = "py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-gray-300 font-bold transition-all text-sm";
         systemsPanel.classList.remove('hidden');
         systemsPanel.style.display = 'block';
         crewPanel.classList.add('hidden');
         crewPanel.style.display = 'none';
+        cyberneticsPanel.classList.add('hidden');
+        cyberneticsPanel.style.display = 'none';
         renderShipModules();
     } else if (tab === 'crew') {
         tabCrew.className = "py-2 px-4 border-b-2 border-cyan-500 text-cyan-400 font-bold transition-all text-sm";
         tabSystems.className = "py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-gray-300 font-bold transition-all text-sm";
+        tabCybernetics.className = "py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-gray-300 font-bold transition-all text-sm";
         crewPanel.classList.remove('hidden');
         crewPanel.style.display = 'block';
         systemsPanel.classList.add('hidden');
         systemsPanel.style.display = 'none';
+        cyberneticsPanel.classList.add('hidden');
+        cyberneticsPanel.style.display = 'none';
         import('./ui/companions-ui.js').then(m => m.renderCompanionsTab());
+    } else if (tab === 'cybernetics') {
+        tabCybernetics.className = "py-2 px-4 border-b-2 border-cyan-500 text-cyan-400 font-bold transition-all text-sm";
+        tabSystems.className = "py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-gray-300 font-bold transition-all text-sm";
+        tabCrew.className = "py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-gray-300 font-bold transition-all text-sm";
+        cyberneticsPanel.classList.remove('hidden');
+        cyberneticsPanel.style.display = 'block';
+        systemsPanel.classList.add('hidden');
+        systemsPanel.style.display = 'none';
+        crewPanel.classList.add('hidden');
+        crewPanel.style.display = 'none';
+        import('./ui/cybernetics-ui.js').then(m => m.renderCyberneticsTab());
     }
 }
 

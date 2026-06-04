@@ -113,6 +113,12 @@ export function encounterEnemy() {
 
     state.enemy = randomEnemy;
     state.character.ap = state.character.maxAp || 3;
+    if (state.character.cybernetics && state.character.cybernetics.arms === 'reflex_boosters') {
+        if (Math.random() < 0.35) {
+            state.character.ap += 1;
+            addLog("🦾 CYBERNETICS: Reflex Boosters activated! Started combat with +1 AP.");
+        }
+    }
     state.companionCooldown = 0;
     resetCompanionTalkFlags();
     state.playerStatusEffects = [];
@@ -150,6 +156,12 @@ export function encounterBoss() {
 
     state.enemy = boss;
     state.character.ap = state.character.maxAp || 3;
+    if (state.character.cybernetics && state.character.cybernetics.arms === 'reflex_boosters') {
+        if (Math.random() < 0.35) {
+            state.character.ap += 1;
+            addLog("🦾 CYBERNETICS: Reflex Boosters activated! Started combat with +1 AP.");
+        }
+    }
     state.companionCooldown = 0;
     resetCompanionTalkFlags();
     state.playerStatusEffects = [];
@@ -335,7 +347,10 @@ export function playerAttack() {
     const passiveCrit = getPassiveBonus('critChance');
     const critChance = (state.character.role === "Rogue" ? 0.25 : 0.15) + passiveCrit;
     const isCritical = Math.random() < critChance;
-    const critMultiplier = isCritical ? 2 : 1;
+    let critMultiplier = isCritical ? 2 : 1;
+    if (isCritical && state.character.cybernetics && state.character.cybernetics.head === 'targeting_matrix') {
+        critMultiplier += 0.5;
+    }
 
     // Check for attack buffs
     const stats = getEffectiveStats();
@@ -420,9 +435,13 @@ export function playerDodge() {
     }
 
     const passiveDodge = getPassiveBonus('dodgeChance');
+    let dodgeChance = 0.3 + passiveDodge;
+    if (state.character.cybernetics && state.character.cybernetics.nervous === 'synaptic_accelerator') {
+        dodgeChance += 0.15;
+    }
     state.playerStatusEffects = [
         ...state.playerStatusEffects.filter(e => e.type !== "dodging"),
-        { type: "dodging", chance: 0.3 + passiveDodge, duration: 1 }
+        { type: "dodging", chance: dodgeChance, duration: 1 }
     ];
 
     addLog("💨 You prepare to dodge the next attack!");
@@ -475,14 +494,22 @@ export function useSpecialAbility() {
 
     if (state.character.role === "Warrior") {
         if (hasSkill('warrior_whirlwind')) {
-            const damage = Math.max(0, effectiveAttack - state.enemy.defense);
+            let mult = 1.0;
+            if (state.character.cybernetics && state.character.cybernetics.head === 'targeting_matrix') {
+                mult += 0.5;
+            }
+            const damage = Math.floor(Math.max(0, effectiveAttack - state.enemy.defense) * mult);
             state.enemy.hp -= damage;
             state.character.ap += 1; // Refund 1 AP
             addLog(`🌪️ WHIRLWIND! You slash through the enemy for ${damage} damage and regain 1 AP!`);
         } else {
             // Power Strike - 1.5x damage
             const baseDamage = Math.max(0, effectiveAttack - state.enemy.defense);
-            const damage = Math.floor(baseDamage * 1.5);
+            let mult = 1.5;
+            if (state.character.cybernetics && state.character.cybernetics.head === 'targeting_matrix') {
+                mult += 0.5;
+            }
+            const damage = Math.floor(baseDamage * mult);
             state.enemy.hp -= damage;
             addLog(`⚔️ POWER STRIKE! You unleash a devastating blow for ${damage} damage!`);
         }
@@ -494,14 +521,22 @@ export function useSpecialAbility() {
     } else if (state.character.role === "Rogue") {
         if (hasSkill('rogue_shadowstrike')) {
             const baseDamage = Math.max(0, effectiveAttack - state.enemy.defense);
-            const damage = Math.floor(baseDamage * 2.0);
+            let mult = 2.0;
+            if (state.character.cybernetics && state.character.cybernetics.head === 'targeting_matrix') {
+                mult += 0.5;
+            }
+            const damage = Math.floor(baseDamage * mult);
             state.enemy.hp -= damage;
             state.enemyStatusEffects.push({ type: "poison", damage: 8, duration: 3 });
             addLog(`🌑 SHADOW STRIKE! You deal ${damage} damage and poison the enemy!`);
         } else {
             // Guaranteed Critical Hit - 2.5x damage
             const baseDamage = Math.max(0, effectiveAttack - state.enemy.defense);
-            const damage = Math.floor(baseDamage * 2.5);
+            let mult = 2.5;
+            if (state.character.cybernetics && state.character.cybernetics.head === 'targeting_matrix') {
+                mult += 0.5;
+            }
+            const damage = Math.floor(baseDamage * mult);
             state.enemy.hp -= damage;
             addLog(`🗡️ ASSASSINATE! You strike a critical weak point for ${damage} damage!`);
         }
@@ -513,7 +548,11 @@ export function useSpecialAbility() {
     } else if (state.character.role === "Scientist") {
         if (hasSkill('sci_overload')) {
             const baseDamage = Math.max(0, effectiveAttack - state.enemy.defense);
-            const damage = Math.floor(baseDamage * 2.0);
+            let mult = 2.0;
+            if (state.character.cybernetics && state.character.cybernetics.head === 'targeting_matrix') {
+                mult += 0.5;
+            }
+            const damage = Math.floor(baseDamage * mult);
             state.enemy.hp -= damage;
             state.enemyStatusEffects.push({ type: "defenseBreak", value: Math.floor(state.enemy.defense / 2), duration: 2 });
             addLog(`💥 OVERLOAD! You deal ${damage} damage and shatter their defense!`);
@@ -588,6 +627,18 @@ export function enemyTurn() {
                     spDamage = Math.max(1, Math.floor(spDamage * 0.5));
                     addLog(`🛡️ You blocked ${state.enemy.name}'s special attack, reducing damage!`);
                 }
+                
+                // Sub-dermal Plating absorption
+                if (state.character.cybernetics && state.character.cybernetics.torso === 'subdermal_plating' && state.character.energy > 0) {
+                    let absorbAmount = Math.floor(spDamage * 0.15);
+                    if (absorbAmount > 0) {
+                        absorbAmount = Math.min(absorbAmount, state.character.energy);
+                        spDamage -= absorbAmount;
+                        state.character.energy -= absorbAmount;
+                        addLog(`🛡️ CYBERNETICS: Sub-dermal Plating converted ${absorbAmount} damage into energy drain.`);
+                    }
+                }
+                
                 state.character.hp -= spDamage;
                 addLog(`💀 ${sp.msg} It hits you for ${spDamage} damage!`);
                 updateCombatLog();
@@ -620,6 +671,17 @@ export function enemyTurn() {
         damage = Math.max(1, Math.floor(damage * 0.5)); // 50% damage reduction, minimum 1
         addLog(`🛡️ You blocked ${state.enemy.name}'s attack, reducing damage!`);
         updateCombatLog();
+    }
+
+    // Sub-dermal Plating absorption
+    if (state.character.cybernetics && state.character.cybernetics.torso === 'subdermal_plating' && state.character.energy > 0) {
+        let absorbAmount = Math.floor(damage * 0.15);
+        if (absorbAmount > 0) {
+            absorbAmount = Math.min(absorbAmount, state.character.energy);
+            damage -= absorbAmount;
+            state.character.energy -= absorbAmount;
+            addLog(`🛡️ CYBERNETICS: Sub-dermal Plating converted ${absorbAmount} damage into energy drain.`);
+        }
     }
 
     state.character.hp -= damage;

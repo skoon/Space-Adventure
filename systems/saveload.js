@@ -147,6 +147,16 @@ export function loadGame() {
             };
         }
 
+        // Retroactive cybernetics setup
+        if (state.character && !state.character.cybernetics) {
+            state.character.cybernetics = {
+                head: null,
+                arms: null,
+                torso: null,
+                nervous: null
+            };
+        }
+
         // Clear notifications
         state.levelUpNotification = null;
         state.victoryMessage = null;

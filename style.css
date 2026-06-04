@@ -910,3 +910,36 @@ button {
   z-index: 5;
   box-shadow: 2px 2px 5px rgba(20, 184, 166, 0.5);
 }
+
+/* Cybernetic Augmentation Clinic Styles */
+#shipCyberneticsPanel {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.cyber-slot-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.cyber-slot-card:hover {
+  border-color: rgba(6, 182, 212, 0.6);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.15);
+  transform: translateY(-2px);
+}
+
+.cybernetic-glow-pulse {
+  animation: cyberPulse 2s infinite alternate;
+}
+
+@keyframes cyberPulse {
+  0% {
+    text-shadow: 0 0 4px rgba(6, 182, 212, 0.4);
+    box-shadow: 0 0 5px rgba(6, 182, 212, 0.1);
+  }
+  100% {
+    text-shadow: 0 0 12px rgba(6, 182, 212, 0.8);
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+  }
+}
+
