@@ -10,6 +10,7 @@
 - [x] Character portrait/avatar
 - [x] Victory screen after boss defeats
 - [x] Fix "startGame is not defined" error (Duplicate applyQuestItem in systems/quests.js)
+- [x] **Cybernetic Augmentation Clinic** - Progression layer with 4 cyber slots (Head, Arms, Torso, Nervous System), active combat benefits (Reflex Boosters, Sub-dermal Plating, Targeting Matrix, Synaptic Accelerator), and credit/material surgical requirements.
 
 ## 🎮 Combat Enhancements
 
@@ -38,6 +39,29 @@
 - [x] **Boss Mechanics** - Special attack patterns and abilities
 - [x] **Boss Rewards** - Unique loot and higher XP from bosses
 - [x] **Boss Health Bars** - Enhanced visual display for boss encounters
+- [ ] **Remove "Challenge Boss" UI Button** - Tie boss battles directly to the quest progression/events instead of an ad-hoc button
+  - [ ] Remove the `encounterBoss()` button from the Action Console in [index.html](file:///d:/source/Roogames/Space%20Adventure/index.html#L355-L357).
+  - [ ] Integrate boss-encounter triggers at the final stage of narrative quests in `systems/quests.js`.
+
+### Tactical Combat 2.0 (Planned)
+
+- [ ] **Elemental Synergies & Combos** - Implement Thermal, Cryo, Plasma, and Corrosive damage types and combo-chain triggers
+  - [ ] Update `systems/combat.js` to support new damage types: `Thermal`, `Cryo`, `Plasma`, `Corrosive`.
+  - [ ] Add active status effects to characters/enemies: `Burning` (damage-over-time), `Frozen` (speed/AP debuff), `Electrified` (susceptible to shock), `Melted` (reduced armor/defense).
+  - [ ] Implement combo-trigger logic in `systems/combat.js` damage calculation (e.g., if target has `Frozen`, physical damage deals 2x "Shatter" bonus; if `Electrified`, plasma damage inflicts 1-turn stun).
+  - [ ] Update Combat UI to display active elemental debuffs with distinct icons or color coding.
+- [ ] **Stagger & Break Gauges** - Add posture/shield break gauges to enemies, causing temporary stun and vulnerability
+  - [ ] Add `breakMax` and `breakCurrent` fields to enemy objects in `systems/combat.js` and stats initialization.
+  - [ ] Define "Stagger Damage" values for all standard attacks, special abilities, and explosive items (e.g., Warrior's Power Strike deals high Stagger; standard attack deals low Stagger).
+  - [ ] Implement Break condition: when `breakCurrent` reaches 0, apply `Broken` status effect for 1 turn (stunned, receives 2x damage).
+  - [ ] Render a secondary "Break Shield" gauge below enemy health bars in the Combat UI.
+- [ ] **Role Combat Stances** - Add active stances (Vanguard/Berserker, Shadow/Skirmisher, Overclock/Disruption) that cost AP to toggle
+  - [ ] Implement stance-switching action in `systems/combat.js` that costs 1 AP.
+  - [ ] Define active state modifiers in player statistics based on current stance:
+    - Warrior: `Vanguard` (+DEF, auto-taunts enemies to protect companions) vs. `Berserker` (+Stagger damage, -DEF).
+    - Rogue: `Shadow` (Stealth, 100% crit chance on next attack, disables block/dodge) vs. `Skirmisher` (reduces item/movement AP cost by 1).
+    - Scientist: `Support Overclock` (+1 AP regeneration for player & companions) vs. `Disruption Mode` (attacks apply random elemental debuff).
+  - [ ] Update Combat UI with Stance selection buttons (disabled when AP is 0) and display active stance indicators on character portraits.
 
 ## 📈 Progression & Character Development
 
@@ -71,6 +95,21 @@
 - [x] **Location-Specific Loot** - Area-specific items and rewards
 - [x] **Travel System** - Integrated planetary travel into the Ship Hub (replacing random transport device encounters)
 
+### Location-Specific Ecologies & Unique Threats (Planned)
+
+- [ ] **Thematic Enemy Types** - Unique enemies per planet with distinct mechanics (exploding fire elementals, freeze parasites, physical-immune shadow beasts)
+  - [ ] Design planet-specific rosters in `data/enemies.js` or equivalent system files.
+  - [ ] Implement `Inferno-IX` enemies: *Magma Elemental* (explodes on death dealing damage to player and applying `Burning` debuff), *Ashen Hulk* (high fire/plasma defense, weak to Cryo).
+  - [ ] Implement `Crio-Prime` enemies: *Frost parasite* (drains 1 AP on hit), *Cryo Drake* (freezes player on crit).
+  - [ ] Implement `Derelict Ships / Anomalies` enemies: *Eldritch Shade* (phases out; has 90% physical evasion, requires energy/elemental weapon to damage), *Security Sentinel* (hacks player shields, draining 10 shields per turn).
+- [ ] **Environmental Combat Modifiers** - Planet-specific hazards altering combat rules (high gravity altering AP cost, radiation draining energy, vacuum exhausting oxygen)
+  - [ ] Pass the active location/planet environment parameter into the combat initialization function.
+  - [ ] Apply environment-specific turn-start or turn-end hooks in `systems/combat.js`:
+    - `High Gravity`: Increases movement and melee attack AP cost by +1.
+    - `Solar Radiation`: Drains 5 Energy at the end of each player turn.
+    - `Vacuum (No Life Support)`: Constantly drains 1 unit of Oxygen per turn; running out drains 10% max HP per turn.
+  - [ ] Update the Combat UI to display active environmental modifiers with warning icons.
+
 ### Deep Space Dungeons (Derelict Ships)
 
 - [x] **Distress Signals** - 10% chance to encounter a derelict ship during travel
@@ -85,6 +124,29 @@
 - [x] **Side Quests** - Optional objectives with rewards
 - [x] **Quest Log UI** - Track active and completed quests
 - [x] **Quest Rewards** - XP, items, and story progression
+- [ ] **Branching Narrative Arcs** - Multi-stage story arcs with dialogue choice forks
+  - [ ] Refactor quest data structure in `systems/quests.js` to support multi-stage quests with state-dependent branch nodes.
+  - [ ] Create a quest progression state machine that updates based on player choices rather than just linear targets.
+  - [ ] Update the Quest Log UI to show branching outcomes and active path names.
+- [ ] **Context-Specific Quest Gating** - Gating quest availability based on location and travel state
+  - [ ] Implement planet-locked quest filters in `systems/quests.js` so certain missions can only be accepted when docked on their respective planets.
+  - [ ] Create travel-specific event hooks that can trigger emergency distress calls or derelict-boarding quests in the travel logic loop.
+- [ ] **Persistent Named NPCs** - Unique characters (Captain Vance, Sparky Mercer, Dr. Thorne, Envoy Nesta) with distinct personalities and backgrounds
+  - [ ] Create `systems/npcs.js` to store state for key recurring NPCs: Captain Valen Vance, Jax "Sparky" Mercer, Dr. Elyse Thorne, Envoy Nesta.
+  - [ ] Define personality tags, custom dialogue trees, and base greeting templates for each NPC.
+  - [ ] Integrate NPC interactions with planetary hubs, allowing players to visit them in specific buildings (e.g., Vance in Federation HQ, Sparky in the Garage).
+- [ ] **NPC Disposition & Memory System** - NPCs remember choices and track relationships, modifying dialogue and transaction rates
+  - [ ] Add `disposition` rating (numeric scale, e.g., -100 to +100) and `memoryFlags` array to each NPC's state in the save game data.
+  - [ ] Implement relationship change triggers (e.g., agreeing with Vance increases Federation reputation/disposition, but decreases Corsair Envoy disposition).
+  - [ ] Apply disposition impacts: high disposition lowers shop prices, unlocks secret quests, or grants companion recruitment; negative disposition sparks hostile dialogue or travel ambushes.
+- [ ] **Attribute & Role Checks** - Specific dialog options for roles or attribute thresholds (e.g., Scientist hacking, Rogue negotiating, Warrior intimidating)
+  - [ ] Create a dialogue choice evaluation engine in `systems/quests.js` that checks player stats/roles (e.g., `role === 'Scientist' && stats.intelligence >= 15`).
+  - [ ] Format dialogue choice UI to render check-dependent options: green/enabled for passed checks, greyed out/locked for failed ones (e.g., "[Hack Terminal] - Requires Scientist and INT 15").
+  - [ ] Write success/failure outcome paths for each skill check (e.g., failing a hack sounds alarms and starts combat; succeeding bypasses the combat phase).
+- [ ] **Dynamic Galactic Outcomes** - Major decisions that permanently reshape hubs, change NPC availability/prices, or unlock distinct branching endings
+  - [ ] Define global world-state flags in the game engine (e.g., `isBioDomeDestroyed`, `isPirateControlled`).
+  - [ ] Implement world-state triggers that alter planetary hub views: modify NPC lists, switch shop inventories, adjust local tax rates (prices), and change hub description texts.
+  - [ ] Implement end-game narrative slides that evaluate world flags and render one of multiple distinct branch endings.
 
 ### Random Events
 
