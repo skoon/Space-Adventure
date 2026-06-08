@@ -102,12 +102,18 @@ function processDialogQueue() {
 
     currentOptions.forEach(option => {
         const button = document.createElement("button");
-        button.className = "px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded font-bold text-white transition-colors";
         button.textContent = option.text;
-        button.onclick = () => {
-            if (option.action) option.action();
-            if (option.action !== hideDialog) hideDialog();
-        };
+        
+        if (option.disabled) {
+            button.className = "px-6 py-2 bg-gray-800 border border-gray-700 rounded font-bold text-gray-500 cursor-not-allowed opacity-50";
+            button.disabled = true;
+        } else {
+            button.className = "px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded font-bold text-white transition-colors";
+            button.onclick = () => {
+                if (option.action) option.action();
+                if (option.action !== hideDialog) hideDialog();
+            };
+        }
         optionsContainer.appendChild(button);
     });
 

@@ -80,28 +80,120 @@ export function travelTo(locationId) {
     // Trigger travel animation and logic
     if (playTravelAnimation) {
         playTravelAnimation(() => {
+            const ambushFaction = checkForAmbushFaction();
+            if (ambushFaction) {
+                triggerTravelAmbush(ambushFaction, location);
+            } else {
+                import('./ship.js').then(ship => {
+                    const scannerBonus = ship.getScannerBonus() || 0;
+                    // Base 15% chance + Scanner Bonus / 2 (max 25% extra)
+                    if (Math.random() * 100 < 15 + (scannerBonus / 2)) {
+                        import('./derelict.js').then(m => m.startDerelictRun(location));
+                    } else {
+                        completeTravel(location);
+                    }
+                });
+            }
+        });
+    } else {
+        const ambushFaction = checkForAmbushFaction();
+        if (ambushFaction) {
+            triggerTravelAmbush(ambushFaction, location);
+        } else {
             import('./ship.js').then(ship => {
                 const scannerBonus = ship.getScannerBonus() || 0;
-                // Base 15% chance + Scanner Bonus / 2 (max 25% extra)
                 if (Math.random() * 100 < 15 + (scannerBonus / 2)) {
                     import('./derelict.js').then(m => m.startDerelictRun(location));
                 } else {
                     completeTravel(location);
                 }
             });
-        });
-    } else {
-        import('./ship.js').then(ship => {
-            const scannerBonus = ship.getScannerBonus() || 0;
-            if (Math.random() * 100 < 15 + (scannerBonus / 2)) {
-                import('./derelict.js').then(m => m.startDerelictRun(location));
-            } else {
-                completeTravel(location);
-            }
-        });
+        }
     }
 
     return true;
+}
+
+function checkForAmbushFaction() {
+    if (!state.character || !state.character.factions) return null;
+    
+    // Check Corsairs
+    const corsairRep = state.character.factions.corsairs || 0;
+    if (corsairRep < -30) {
+        const chance = Math.abs(corsairRep) / 2; // up to 50% at -100 rep
+        if (Math.random() * 100 < chance) {
+            return 'corsairs';
+        }
+    }
+    
+    // Check Federation
+    const fedRep = state.character.factions.federation || 0;
+    if (fedRep < -30) {
+        const chance = Math.abs(fedRep) / 2;
+        if (Math.random() * 100 < chance) {
+            return 'federation';
+        }
+    }
+    
+    return null;
+}
+
+function triggerTravelAmbush(factionId, location) {
+    // 1. Complete the travel first so the player arrives at the location
+    completeTravel(location);
+
+    // 2. Define enemy templates
+    let enemyTemplate;
+    if (factionId === 'corsairs') {
+        enemyTemplate = {
+            name: "Void Corsair Reaver",
+            hp: 60,
+            maxHp: 60,
+            attack: 14,
+            defense: 4,
+            xp: 35,
+            drops: ["Scrap Metal", "Energy Cell"]
+        };
+    } else if (factionId === 'federation') {
+        enemyTemplate = {
+            name: "Federation Patrol Cruiser",
+            hp: 80,
+            maxHp: 80,
+            attack: 12,
+            defense: 7,
+            xp: 40,
+            drops: ["Circuit Board", "Quantum Chip"]
+        };
+    } else {
+        return;
+    }
+
+    // 3. Scale stats
+    const levelScale = 1 + (((state.character.level || 1) - 1) * 0.15);
+    const enemy = {
+        ...enemyTemplate,
+        hp: Math.floor(enemyTemplate.hp * levelScale),
+        maxHp: Math.floor(enemyTemplate.hp * levelScale),
+        attack: Math.floor(enemyTemplate.attack * levelScale)
+    };
+
+    // 4. Start combat
+    state.enemy = enemy;
+    state.character.ap = state.character.maxAp || 3;
+    state.companionCooldown = 0;
+    state.playerStatusEffects = [];
+    state.enemyStatusEffects = [];
+    state.gameState = "combat";
+
+    addLog(`🚨 AMBUSH! Hostile ${factionId === 'corsairs' ? 'Void Corsair' : 'Federation'} forces intercepted your ship in transit!`);
+
+    import('./ui.js').then(ui => {
+        ui.showScreen("combat");
+        ui.updateUI();
+        import('./combat.js').then(combat => {
+            if (combat.updateCombatUI) combat.updateCombatUI();
+        });
+    });
 }
 
 function completeTravel(location) {

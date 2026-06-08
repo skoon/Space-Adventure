@@ -86,6 +86,17 @@ export function createCharacter(event) {
             medbayLevel: 0, // Heals after combat/travel
             cargoLevel: 0,  // Could increase stack sizes
             scannerLevel: 0 // Boosts good random events
+        },
+        factions: {
+            federation: 0,
+            corsairs: 0,
+            syndicate: 0
+        },
+        npcs: {
+            vance: { disposition: 0, memoryFlags: [] },
+            mercer: { disposition: 0, memoryFlags: [] },
+            thorne: { disposition: 0, memoryFlags: [] },
+            nesta: { disposition: 0, memoryFlags: [] }
         }
     };
 

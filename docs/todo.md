@@ -39,9 +39,9 @@
 - [x] **Boss Mechanics** - Special attack patterns and abilities
 - [x] **Boss Rewards** - Unique loot and higher XP from bosses
 - [x] **Boss Health Bars** - Enhanced visual display for boss encounters
-- [ ] **Remove "Challenge Boss" UI Button** - Tie boss battles directly to the quest progression/events instead of an ad-hoc button
-  - [ ] Remove the `encounterBoss()` button from the Action Console in [index.html](file:///d:/source/Roogames/Space%20Adventure/index.html#L355-L357).
-  - [ ] Integrate boss-encounter triggers at the final stage of narrative quests in `systems/quests.js`.
+- [x] **Remove "Challenge Boss" UI Button** - Tie boss battles directly to the quest progression/events instead of an ad-hoc button
+  - [x] Remove the `encounterBoss()` button from the Action Console in [index.html](file:///d:/source/Roogames/Space%20Adventure/index.html#L355-L357).
+  - [x] Integrate boss-encounter triggers at the final stage of narrative quests in `systems/quests.js`.
 
 ### Tactical Combat 2.0 (Planned)
 
@@ -124,25 +124,25 @@
 - [x] **Side Quests** - Optional objectives with rewards
 - [x] **Quest Log UI** - Track active and completed quests
 - [x] **Quest Rewards** - XP, items, and story progression
-- [ ] **Branching Narrative Arcs** - Multi-stage story arcs with dialogue choice forks
-  - [ ] Refactor quest data structure in `systems/quests.js` to support multi-stage quests with state-dependent branch nodes.
-  - [ ] Create a quest progression state machine that updates based on player choices rather than just linear targets.
-  - [ ] Update the Quest Log UI to show branching outcomes and active path names.
-- [ ] **Context-Specific Quest Gating** - Gating quest availability based on location and travel state
-  - [ ] Implement planet-locked quest filters in `systems/quests.js` so certain missions can only be accepted when docked on their respective planets.
-  - [ ] Create travel-specific event hooks that can trigger emergency distress calls or derelict-boarding quests in the travel logic loop.
-- [ ] **Persistent Named NPCs** - Unique characters (Captain Vance, Sparky Mercer, Dr. Thorne, Envoy Nesta) with distinct personalities and backgrounds
-  - [ ] Create `systems/npcs.js` to store state for key recurring NPCs: Captain Valen Vance, Jax "Sparky" Mercer, Dr. Elyse Thorne, Envoy Nesta.
-  - [ ] Define personality tags, custom dialogue trees, and base greeting templates for each NPC.
-  - [ ] Integrate NPC interactions with planetary hubs, allowing players to visit them in specific buildings (e.g., Vance in Federation HQ, Sparky in the Garage).
-- [ ] **NPC Disposition & Memory System** - NPCs remember choices and track relationships, modifying dialogue and transaction rates
-  - [ ] Add `disposition` rating (numeric scale, e.g., -100 to +100) and `memoryFlags` array to each NPC's state in the save game data.
-  - [ ] Implement relationship change triggers (e.g., agreeing with Vance increases Federation reputation/disposition, but decreases Corsair Envoy disposition).
-  - [ ] Apply disposition impacts: high disposition lowers shop prices, unlocks secret quests, or grants companion recruitment; negative disposition sparks hostile dialogue or travel ambushes.
-- [ ] **Attribute & Role Checks** - Specific dialog options for roles or attribute thresholds (e.g., Scientist hacking, Rogue negotiating, Warrior intimidating)
-  - [ ] Create a dialogue choice evaluation engine in `systems/quests.js` that checks player stats/roles (e.g., `role === 'Scientist' && stats.intelligence >= 15`).
-  - [ ] Format dialogue choice UI to render check-dependent options: green/enabled for passed checks, greyed out/locked for failed ones (e.g., "[Hack Terminal] - Requires Scientist and INT 15").
-  - [ ] Write success/failure outcome paths for each skill check (e.g., failing a hack sounds alarms and starts combat; succeeding bypasses the combat phase).
+- [x] **Branching Narrative Arcs** - Multi-stage story arcs with dialogue choice forks
+  - [x] Refactor quest data structure in `systems/quests.js` to support multi-stage quests with state-dependent branch nodes.
+  - [x] Create a quest progression state machine that updates based on player choices rather than just linear targets.
+  - [x] Update the Quest Log UI to show branching outcomes and active path names.
+- [x] **Context-Specific Quest Gating** - Gating quest availability based on location and travel state
+  - [x] Implement planet-locked quest filters in `systems/quests.js` so certain missions can only be accepted when docked on their respective planets.
+  - [x] Create travel-specific event hooks that can trigger emergency distress calls or derelict-boarding quests in the travel logic loop.
+- [x] **Persistent Named NPCs** - Unique characters (Captain Vance, Sparky Mercer, Dr. Thorne, Envoy Nesta) with distinct personalities and backgrounds
+  - [x] Create state fields inside character state to store key recurring NPCs: Captain Valen Vance, Jax "Sparky" Mercer, Dr. Elyse Thorne, Envoy Nesta.
+  - [x] Define custom dialogue trees and choices for each NPC.
+  - [x] Integrate NPC interactions with planetary hubs and travel events.
+- [x] **NPC Disposition & Memory System** - NPCs remember choices and track relationships, modifying dialogue and transaction rates
+  - [x] Add `disposition` rating (numeric scale, e.g., -100 to +100) and `memoryFlags` array to each NPC's state in the save game data.
+  - [x] Implement relationship change triggers (e.g., agreeing with Vance increases Federation reputation/disposition, but decreases Corsair Envoy disposition).
+  - [x] Apply disposition impacts: high disposition lowers shop prices, unlocks secret quests, or grants companion recruitment; negative disposition sparks hostile dialogue or travel ambushes.
+- [x] **Attribute & Role Checks** - Specific dialog options for roles or attribute thresholds (e.g., Scientist hacking, Rogue negotiating, Warrior intimidating)
+  - [x] Create a dialogue choice evaluation engine in `systems/quests.js` that checks player stats/roles (e.g., `role === 'Scientist' && stats.intelligence >= 15`).
+  - [x] Format dialogue choice UI to render check-dependent options: green/enabled for passed checks, greyed out/locked for failed ones (e.g., "[Hack Terminal] - Requires Scientist and INT 15").
+  - [x] Write success/failure outcome paths for each skill check (e.g., failing a hack sounds alarms and starts combat; succeeding bypasses the combat phase).
 - [ ] **Dynamic Galactic Outcomes** - Major decisions that permanently reshape hubs, change NPC availability/prices, or unlock distinct branching endings
   - [ ] Define global world-state flags in the game engine (e.g., `isBioDomeDestroyed`, `isPirateControlled`).
   - [ ] Implement world-state triggers that alter planetary hub views: modify NPC lists, switch shop inventories, adjust local tax rates (prices), and change hub description texts.

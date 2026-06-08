@@ -157,6 +157,25 @@ export function loadGame() {
             };
         }
 
+        // Retroactive factions setup
+        if (state.character && !state.character.factions) {
+            state.character.factions = {
+                federation: 0,
+                corsairs: 0,
+                syndicate: 0
+            };
+        }
+
+        // Retroactive npcs setup
+        if (state.character && !state.character.npcs) {
+            state.character.npcs = {
+                vance: { disposition: 0, memoryFlags: [] },
+                mercer: { disposition: 0, memoryFlags: [] },
+                thorne: { disposition: 0, memoryFlags: [] },
+                nesta: { disposition: 0, memoryFlags: [] }
+            };
+        }
+
         // Clear notifications
         state.levelUpNotification = null;
         state.victoryMessage = null;

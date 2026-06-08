@@ -24,13 +24,36 @@ export function initShop(deps) {
 }
 
 /**
+ * Get the price multiplier for a faction based on player reputation
+ */
+export function getPriceMultiplier(factionId) {
+    if (!state || !state.character || !state.character.factions) return 1.0;
+    const rep = state.character.factions[factionId] || 0;
+    if (rep >= 0) {
+        return 1.0 - (rep / 100) * 0.3; // Up to 30% discount at +100 Rep
+    } else {
+        return 1.0 + (Math.abs(rep) / 100) * 0.5; // Up to 50% markup at -100 Rep
+    }
+}
+
+/**
+ * Get the active faction for the local planet's merchant
+ */
+export function getLocalShopFaction() {
+    if (!state || !state.currentLocation) return 'federation';
+    if (state.currentLocation === 'xylo_delta') return 'corsairs';
+    if (state.currentLocation === 'nebula_outpost') return 'syndicate';
+    return 'federation';
+}
+
+/**
  * Buy an item from the shop
  */
 export function buyItem(itemName) {
     const item = items[itemName];
     if (!item) return false;
 
-    const price = item.price || 10; // Default price if not set
+    const price = getItemPrice(itemName);
 
     if (state.character.credits < price) {
         addLog(`❌ Not enough credits! Cost: ${price}, You have: ${state.character.credits}`);
@@ -55,8 +78,7 @@ export function sellItem(itemName) {
     const idx = state.inventory.indexOf(itemName);
     if (idx === -1) return false;
 
-    const item = items[itemName];
-    const price = item ? Math.floor((item.price || 10) / 2) : 5; // Sell for 50%
+    const price = getItemSellPrice(itemName);
 
     state.inventory.splice(idx, 1);
     state.character.credits += price;
@@ -70,14 +92,23 @@ export function sellItem(itemName) {
  */
 export function getItemPrice(itemName) {
     const item = items[itemName];
-    return item ? (item.price || 10) : 0;
+    if (!item) return 0;
+    const basePrice = item.price || 10;
+    const faction = getLocalShopFaction();
+    return Math.floor(basePrice * getPriceMultiplier(faction));
 }
 
 /**
  * Get item sell price
  */
 export function getItemSellPrice(itemName) {
-    return Math.floor(getItemPrice(itemName) / 2);
+    const item = items[itemName];
+    if (!item) return 0;
+    const basePrice = item.price || 10;
+    const baseSellPrice = Math.floor(basePrice / 2);
+    const faction = getLocalShopFaction();
+    const mult = getPriceMultiplier(faction);
+    return Math.floor(baseSellPrice * (2.0 - mult)); // Friendly = higher sell price, Hostile = lower sell price
 }
 
 /**
@@ -88,7 +119,8 @@ export function orderItem(itemName) {
     const item = items[itemName];
     if (!item) return false;
 
-    const price = item.price || 10;
+    const basePrice = item.price || 10;
+    const price = Math.floor(basePrice * getPriceMultiplier('syndicate'));
 
     // Check credit
     if (state.character.credits < price) {
