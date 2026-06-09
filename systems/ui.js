@@ -165,6 +165,12 @@ export function getStatusEffectIcon(type) {
         attackBoost: "⚔️",
         poison: "☠️",
         burn: "🔥",
+        burning: "🔥",
+        frozen: "❄️",
+        electrified: "⚡",
+        melted: "🧪",
+        broken: "💥",
+        stunned: "✨",
         defenseBreak: "⚠️"
     };
     return icons[type] || "✨";

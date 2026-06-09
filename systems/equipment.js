@@ -66,6 +66,13 @@ export function getEffectiveStats() {
     attack += attackBuff;
     defense += defenseBuff;
 
+    // Apply combat stances from Tactical Combat 2.0
+    if (state.combatStance === "Vanguard") {
+        defense += 5;
+    } else if (state.combatStance === "Berserker") {
+        defense = Math.max(0, defense - 3);
+    }
+
     return { attack, defense };
 }
 

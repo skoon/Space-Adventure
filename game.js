@@ -4,7 +4,7 @@
  */
 
 // Import all system modules
-import { initCombat, processStatusEffects, encounterEnemy, encounterBoss, updateCombatUI, playerAttack, playerBlock, playerDodge, useSpecialAbility, endPlayerTurn, enemyTurn, winCombat, triggerCompanionAbility } from './systems/combat.js';
+import { initCombat, processStatusEffects, encounterEnemy, encounterBoss, updateCombatUI, playerAttack, playerBlock, playerDodge, useSpecialAbility, endPlayerTurn, enemyTurn, winCombat, triggerCompanionAbility, selectStance, dealStaggerDamage } from './systems/combat.js';
 import { initQuests, acceptQuest, checkQuestProgress, applyQuestItem } from './systems/quests.js';
 import { initEquipment, getEffectiveStats, equipItem, unequipItem } from './systems/equipment.js';
 import { initCharacter, createCharacter, gainXp, getCharacterAvatar, useHealItem, restartGame } from './systems/character.js';
@@ -121,6 +121,10 @@ const combatElements = {
   enemyAtk: document.getElementById("enemyAtk"),
   enemyDef: document.getElementById("enemyDef"),
   enemyHpBar: document.getElementById("enemyHpBar"),
+  enemyBreakCurrent: document.getElementById("enemyBreakCurrent"),
+  enemyBreakMax: document.getElementById("enemyBreakMax"),
+  enemyBreakBar: document.getElementById("enemyBreakBar"),
+  enemyStatusEffects: document.getElementById("enemyStatusEffects"),
   combatLog: document.getElementById("combatLog")
 };
 
@@ -268,7 +272,7 @@ function initializeGame() {
   initInventory({
     ...deps,
     ui: { addLog, updateCombatLog, updateUI },
-    combat: { updateCombatUI, enemyTurn }
+    combat: { updateCombatUI, enemyTurn, dealStaggerDamage, checkPhaseTransition, winCombat }
   });
 
   // Re-initialize UI with all dependencies
@@ -383,6 +387,7 @@ window.playerBlock = playerBlock;
 window.playerDodge = playerDodge;
 window.useSpecialAbility = useSpecialAbility;
 window.endPlayerTurn = endPlayerTurn;
+window.selectStance = selectStance;
 window.openCombatItemMenu = openCombatItemMenu;
 window.closeCombatItemMenu = closeCombatItemMenu;
 window.useCombatItem = useCombatItem;

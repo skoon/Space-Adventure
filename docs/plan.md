@@ -13,7 +13,8 @@
   - Empty Rooms (10%)
 - **Risk vs. Reward:** The deeper the player goes into the derelict ship, the better the loot (higher tier items like Titanium, Plasma Cores, Nanites, Quantum Chips), but if they run out of oxygen, they pass out, lose all secured loot from the run, and take 25% max HP damage.
 - **Escape:** Players can choose to escape with their secured loot at any time.
-- **Integration:** Fully integrated with the game loop, combat system, travel system, and ship medbay healing.
+- **Vessel Schematic Map UI:** Re-wired and fully implemented with a structural mapping layout inside [updateDerelictUI](file:///d:/source/Roogames/Space%20Adventure/systems/ui.js) that renders an airlock, explored rooms, active location node (`👤`), and unexplored path markers (`?`).
+- **Integration:** Fully integrated with the game loop, combat system, travel system, and ship medbay healing. Verified via unit tests in [derelict.test.js](file:///d:/source/Roogames/Space%20Adventure/tests/systems/derelict.test.js).
 
 ### Cybernetic Implants / Augmentation System (Completed)
 **How it works:** A progression layer separate from leveling and traditional equipment. Players have a limited number of "Cyber-Slots" (Head, Arms, Torso, Nervous System) that can be fitted with custom augmentations in the Spacecraft Hub's Augmentation Clinic.
@@ -24,34 +25,40 @@
 - **Synaptic Accelerator (Nervous System):** Increases Dodge Action success chance by +15%.
 - **Surgical Suite:** Operations consume credits and rare components. Extraction requires a 50 CR surgical fee.
 
+### Faction Reputation & Allegiances (Completed)
+**How it works:** Player decisions and quest choices affect standings with three major galactic groups (Galactic Federation, Void Corsairs, and Photon Prime Syndicate).
+**Mechanics:**
+- **Dynamic Shop Multipliers:** Positive faction reputation rewards players with up to a 30% discount on local items and Syndicate online orders, while negative reputation incurs up to a 50% markup. Selling prices scale similarly.
+- **Interplanetary Travel Ambushes:** Traveling to a location while possessing hostile reputation (`< -30`) with either the Corsairs or the Federation triggers a scaled random combat intercept in transit.
+- **Integration:** Fully verified via unit tests in [branching_quests.test.js](file:///d:/source/Roogames/Space%20Adventure/tests/systems/branching_quests.test.js).
+
+### Branching Narrative Quest System & Persistent NPCs (Completed)
+**How it works:** Refactored the quest system to support multi-stage, choice-based narrative paths featuring persistent named NPCs with unique personalities.
+**Mechanics:**
+- **Dialogue Choice Engine:** Evaluates active role, race, base stats, and active gear stats (weapons, armor, accessories) in dialogues to dynamically gate choices.
+- **Persistent NPCs:** Track disposition rankings (scale `-100` to `100`) and memory flags for Captain Valen Vance, Jax "Sparky" Mercer, Dr. Elyse Thorne, and Envoy Nesta.
+- **Environmental Gating:** Gating quest availability based on location (planet-locked) and travel state (derelict distress signals).
+- **Action Console Clean-up**: Removed the ad-hoc "Challenge Boss" button from [index.html](file:///d:/source/Roogames/Space%20Adventure/index.html) and reorganized the bottom console into a clean 2x4 grid layout.
+
+### Tactical Combat 2.0 (Combos, Stagger, and Stances) (Completed)
+**How it works:** Expands the combat system to introduce elemental damage types/combos, stance-switching, and a posture break/stagger gauge system.
+**Mechanics:**
+- **Elemental Synergies & Combos:**
+  - Weapons and attacks deal Physical, Thermal, Cryo, Plasma, or Corrosive damage.
+  - Combos include Shatter (Physical deals 2x damage to Frozen enemy and removes Frozen) and Shock (Plasma on Electrified enemy has a 50% chance to stun and removes Electrified).
+  - Status effects: Burning (8 damage/turn), Frozen (-1 starting AP for player), Electrified (susceptible to Shock), and Melted (-5 enemy DEF).
+- **Stagger & Break Gauges:** Enemies have secondary Break gauges. Reducing the Break shield to 0 applies the Broken status, which skips their next turn (stun) and causes them to take 2x damage from all attacks.
+- **Role Combat Stances:** Players can toggle between two stances or neutral (costing 1 AP):
+  - *Warrior:* Vanguard (+5 DEF) vs. Berserker (+100% stagger damage, -3 DEF).
+  - *Rogue:* Shadow (100% crit chance on next attack, disables block/dodge, resets to Neutral after attacking) vs. Skirmisher (reduces item AP cost to 0 AP).
+  - *Scientist:* Support Overclock (+1 AP/turn regen, companion active cooldowns reduced by 1 extra turn/turn) vs. Disruption Mode (basic attacks apply random elemental status).
+- **Weapons & Grenades:** Added Frag Grenade (+50 stagger) and EMP Grenade (+80 stagger, Plasma type, applies Electrified status) as consumables, and Cryo Pistol (Cryo type) and Acid Injector (Corrosive type) as weapons.
+
 ---
 
 ## 🔮 Future / Planned Ideas
 
-### 1. Faction Reputation & Allegiances
-**How it works:** Expand the existing quest and NPC systems by introducing major galactic factions (e.g., The Galactic Federation, The Void Corsairs [Space Pirates], and the Photon Prime Syndicate). 
-**Why it fits:** Adds narrative depth and gives more weight to the "Main Story" and "Side Quests" systems. 
-**Mechanics:**
-- Completing quests for one faction raises your reputation with them but lowers it with their rivals.
-- **Perks:** High reputation with Photon Prime might give a 20% discount on online orders and exclusive high-tier drop boxes.
-- **Consequences:** Negative reputation with the Void Corsairs means you get ambushed by pirate boarding parties during planetary travel.
-
-### 2. Branching Narrative Quest System
-**How it works:** Transition the quest system from simple tasks to multi-stage story arcs with branching decisions, skill checks, persistent NPCs, and outcomes that change the game world.
-**Why it fits:** Provides players with a stronger narrative drive, letting roleplaying choices impact the state of the galaxy.
-**Mechanics:**
-- **Persistent Named NPCs:** Rather than generic quest-givers, players interact with key recurring characters with unique names, backgrounds, and distinct personalities (which also affect their quest rewards and dialogues).
-  - *Captain Valen Vance:* The cynical, duty-bound Galactic Federation commander who values order and discipline but hides a soft spot for lost causes.
-  - *Jax "Sparky" Mercer:* A hyperactive, eccentric Rogue mechanic who operates in grey markets, loves illegal cybernetics, and speaks in fast-paced space-slang.
-  - *Dr. Elyse Thorne:* A cold, calculating scientist obsessed with ancient alien relics, who values knowledge and technology over morality.
-  - *Nesta, Void Corsair Envoy:* A charismatic, ruthless space pirate representative who respects raw strength and cunning negotiation.
-- **NPC Disposition & Memory:** Recurring NPCs remember your past choices, dialogue responses, and faction standing, altering how they greet you, the prices they offer, or if they cooperate at all.
-- **Context-Specific Quest Availability:** Quests are bound to specific environments. Certain missions are only offered while docked on specific planets (e.g., searching for thermal cores on Inferno-IX), while others trigger as emergent events during travel (e.g., intercepting emergency transmissions or finding anomalies that lead to derelict-only storylines).
-- **Attribute / Class Checks:** Dialogues that allow specialized options based on role or stats (e.g., Scientist using Science/Hack skills to bypass security, Rogue using Charisma/Stealth to negotiate, Warrior using Strength to intimidate).
-- **Galactic Outcomes:** Major decisions at the end of quest lines (e.g., choosing to save a bio-dome, side with a corporate syndicate, or help a group of rebel colonists) that permanently modify planetary hubs, NPC services, and active side quests.
-- **Branching Endings:** Distinct narrative endings based on quest outcomes, faction allegiances, and player choices.
-
-### 3. Location-Specific Ecologies & Unique Threats
+### 1. Location-Specific Ecologies & Unique Threats
 **How it works:** Rework the enemy generation system so that each planetary body or space dungeon features custom, thematic enemies with distinct combat mechanics.
 **Why it fits:** Enhancing location-specific threats rewards strategic loadout planning and gives each planet a unique identity.
 **Mechanics:**
@@ -60,17 +67,3 @@
   - *Ice Planet (Crio-Prime):* Cryo-parasites that drain AP (Action Points) on hit or freeze character actions.
   - *Derelict Ships / Anomalies:* Phasing shadow-beasts that are immune to physical attacks (requiring energy weapons or shields) and rogue security units that hack shield capacitors.
 - **Environmental Combat Modifiers:** Planetary hazards modify the combat arena (e.g., high gravity doubling AP cost for heavy movement/attacks, solar radiation draining energy per turn, vacuum environments constantly depleting Oxygen).
-
-### 4. Tactical Combat 2.0 (Combos, Stagger, and Stances)
-**How it works:** Expand the combat system to introduce elemental damage interactions, stance-switching, and a posture-breaking system to add layer-based strategy to every turn.
-**Why it fits:** Elevates combat from a simple cycle of attacks/blocks into a deeper tactical game where actions build toward powerful synergies.
-**Mechanics:**
-- **Elemental Synergies & Combos:**
-  - Introduce Thermal (burn), Cryo (freeze), Plasma (shock), and Corrosive (acid) damage.
-  - Trigger combo-chains (e.g., applying Cryo first to slow an enemy, then hitting them with physical damage to shatter them for 2x damage; or using Plasma on a wet/conductive target to stun them).
-- **Stagger & Break System:** Enemies (especially Bosses and Elites) possess a second "Break Shield/Posture" gauge. Certain heavy attacks (like Warrior's Power Strike or grenades) deal high Stagger. Reducing the gauge to zero breaks the enemy, stunning them for one turn and doubling all incoming damage.
-- **Role Combat Stances:** Toggleable stances that modify turn-by-turn performance:
-  - *Warrior:* Vanguard Stance (taunts enemies, absorbs companion damage) vs. Berserker Stance (attacks deal double stagger, but receives 20% more damage).
-  - *Rogue:* Shadow Stance (stealth, guaranteed crits, cannot block/dodge) vs. Skirmisher Stance (reduced AP cost for movement and item usage).
-  - *Scientist:* Support Overclock (increases AP generation for the player and companions) vs. Disruption Mode (normal attacks apply random debuffs like EMP or Corrosive).
-

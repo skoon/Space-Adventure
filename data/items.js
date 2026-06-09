@@ -2,6 +2,8 @@ export const items = {
   "Energy Cell": { type: "consumable", category: "consumable", effect: "heal", value: 30, description: "Restores 30 HP", price: 50, stackable: true},
   "Nano Stimpack": { type: "consumable", category: "consumable", effect: "heal", value: 50, description: "Restores 50 HP", price: 100, stackable: true },
   "Advanced Medkit": { type: "consumable", category: "consumable", effect: "heal", value: 75, description: "Restores 75 HP (crafted)", price: 150, stackable: true },
+  "Frag Grenade": { type: "consumable", category: "consumable", effect: "damage", value: 30, stagger: 50, description: "Deals 30 damage and 50 stagger.", price: 150, stackable: true },
+  "EMP Grenade": { type: "consumable", category: "consumable", effect: "damage", value: 10, stagger: 80, damageType: "Plasma", applyStatus: "Electrified", description: "Deals 10 Plasma damage, 80 stagger, and Electrifies.", price: 200, stackable: true },
   "Alien Crystal": { type: "material", category: "material", description: "A mysterious glowing crystal.", price: 200, stackable: true },
   "Data Chip": { type: "material", category: "material", description: "Contains encrypted data.", price: 150, stackable: true },
   "Scrap Metal": { type: "material", category: "material", description: "Useful for crafting.", price: 20, stackable: true },
@@ -27,6 +29,8 @@ export const items = {
   "Enhanced Plasma Rifle": { type: "weapon", category: "equipment", stats: { attack: 8 }, description: "An upgraded energy weapon with alien tech.", price: 1000, stackable: false },
   "Laser Blade": { type: "weapon", category: "equipment", stats: { attack: 7 }, description: "A high-tech melee weapon.", price: 750, stackable: false },
   "Photon Cannon": { type: "weapon", category: "equipment", stats: { attack: 10 }, description: "Devastating ranged weapon.", price: 1200, stackable: false },
+  "Cryo Pistol": { type: "weapon", category: "equipment", stats: { attack: 4 }, description: "Fires cryo-beams that freeze enemies.", price: 600, stackable: false },
+  "Acid Injector": { type: "weapon", category: "equipment", stats: { attack: 6 }, description: "Injects corrosive acid that melts armor.", price: 800, stackable: false },
 
   // Armor
   "Kevlar Vest": { type: "armor", category: "equipment", stats: { defense: 4 }, description: "Basic protective armor.", price: 400, stackable: false },

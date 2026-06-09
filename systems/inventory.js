@@ -8,7 +8,7 @@ let state;
 
 // Dependencies
 let addLog, updateCombatLog, updateCombatUI, updateUI;
-let enemyTurn;
+let enemyTurn, dealStaggerDamage, checkPhaseTransition, winCombat;
 let items;
 
 import { getPassiveBonus } from './skills.js';
@@ -29,6 +29,9 @@ export function initInventory(deps) {
     updateCombatUI = deps.combat.updateCombatUI;
     updateUI = deps.ui.updateUI;
     enemyTurn = deps.combat.enemyTurn;
+    dealStaggerDamage = deps.combat.dealStaggerDamage;
+    checkPhaseTransition = deps.combat.checkPhaseTransition;
+    winCombat = deps.combat.winCombat;
 }
 
 /**
@@ -94,16 +97,20 @@ export function closeCombatItemMenu() {
  * Use a combat item
  */
 export function useCombatItem(itemName) {
-    if (!state.character || !state.enemy || state.character.ap < 1) return;
+    if (!state.character || !state.enemy) return;
     
     const item = items[itemName];
     if (!item || item.type !== "consumable") return;
+
+    const isSkirmisher = state.combatStance === "Skirmisher";
+    const apCost = isSkirmisher ? 0 : 1;
+    if (state.character.ap < apCost) return;
 
     // Remove 1 from inventory
     const index = state.inventory.indexOf(itemName);
     if (index === -1) return;
     
-    state.character.ap -= 1;
+    state.character.ap -= apCost;
     state.inventory.splice(index, 1);
 
     // Apply effect
@@ -118,6 +125,53 @@ export function useCombatItem(itemName) {
         const energyAmount = item.value || 0;
         state.character.energy = Math.min(state.character.maxEnergy, (state.character.energy || 0) + energyAmount);
         addLog(`⚡ You used ${itemName} and restored ${energyAmount} Energy.`);
+    } else if (item.effect === "damage") {
+        const dmg = item.value || 0;
+        const staggerVal = item.stagger || 0;
+
+        // Apply stagger
+        if (staggerVal > 0 && dealStaggerDamage) {
+            dealStaggerDamage(staggerVal);
+        }
+
+        // Apply status effect if any
+        if (item.applyStatus && state.enemyStatusEffects) {
+            const statusType = item.applyStatus.toLowerCase();
+            const existing = state.enemyStatusEffects.find(e => e.type === statusType);
+            if (!existing) {
+                if (statusType === "electrified") {
+                    state.enemyStatusEffects.push({ type: "electrified", duration: 3 });
+                    addLog(`⚡ ${state.enemy.name} is Electrified!`);
+                } else if (statusType === "frozen") {
+                    state.enemyStatusEffects.push({ type: "frozen", duration: 3 });
+                    addLog(`❄️ ${state.enemy.name} is Frozen!`);
+                } else if (statusType === "melted") {
+                    state.enemyStatusEffects.push({ type: "melted", duration: 3 });
+                    addLog(`🧪 ${state.enemy.name} is Melted!`);
+                } else if (statusType === "burning") {
+                    state.enemyStatusEffects.push({ type: "burning", damage: 8, duration: 3 });
+                    addLog(`🔥 ${state.enemy.name} is Burning!`);
+                }
+            }
+        }
+
+        // Check broken double damage
+        let finalDmg = dmg;
+        if (state.enemyStatusEffects && state.enemyStatusEffects.some(e => e.type === "broken")) {
+            finalDmg *= 2;
+            addLog("💥 VULNERABILITY! 2x damage dealt to Broken enemy!");
+        }
+
+        state.enemy.hp = Math.max(0, state.enemy.hp - finalDmg);
+        addLog(`💥 You threw ${itemName} dealing ${finalDmg} damage to ${state.enemy.name}!`);
+
+        if (checkPhaseTransition) checkPhaseTransition();
+
+        if (state.enemy.hp <= 0 && winCombat) {
+            winCombat();
+            closeCombatItemMenu();
+            return;
+        }
     } else {
         addLog(`You used ${itemName} but nothing happened.`);
     }

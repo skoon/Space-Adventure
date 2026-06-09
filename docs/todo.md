@@ -43,25 +43,26 @@
   - [x] Remove the `encounterBoss()` button from the Action Console in [index.html](file:///d:/source/Roogames/Space%20Adventure/index.html#L355-L357).
   - [x] Integrate boss-encounter triggers at the final stage of narrative quests in `systems/quests.js`.
 
-### Tactical Combat 2.0 (Planned)
+### Tactical Combat 2.0 (Completed)
 
-- [ ] **Elemental Synergies & Combos** - Implement Thermal, Cryo, Plasma, and Corrosive damage types and combo-chain triggers
-  - [ ] Update `systems/combat.js` to support new damage types: `Thermal`, `Cryo`, `Plasma`, `Corrosive`.
-  - [ ] Add active status effects to characters/enemies: `Burning` (damage-over-time), `Frozen` (speed/AP debuff), `Electrified` (susceptible to shock), `Melted` (reduced armor/defense).
-  - [ ] Implement combo-trigger logic in `systems/combat.js` damage calculation (e.g., if target has `Frozen`, physical damage deals 2x "Shatter" bonus; if `Electrified`, plasma damage inflicts 1-turn stun).
-  - [ ] Update Combat UI to display active elemental debuffs with distinct icons or color coding.
-- [ ] **Stagger & Break Gauges** - Add posture/shield break gauges to enemies, causing temporary stun and vulnerability
-  - [ ] Add `breakMax` and `breakCurrent` fields to enemy objects in `systems/combat.js` and stats initialization.
-  - [ ] Define "Stagger Damage" values for all standard attacks, special abilities, and explosive items (e.g., Warrior's Power Strike deals high Stagger; standard attack deals low Stagger).
-  - [ ] Implement Break condition: when `breakCurrent` reaches 0, apply `Broken` status effect for 1 turn (stunned, receives 2x damage).
-  - [ ] Render a secondary "Break Shield" gauge below enemy health bars in the Combat UI.
-- [ ] **Role Combat Stances** - Add active stances (Vanguard/Berserker, Shadow/Skirmisher, Overclock/Disruption) that cost AP to toggle
-  - [ ] Implement stance-switching action in `systems/combat.js` that costs 1 AP.
-  - [ ] Define active state modifiers in player statistics based on current stance:
+- [x] **Elemental Synergies & Combos** - Implement Thermal, Cryo, Plasma, and Corrosive damage types and combo-chain triggers
+  - [x] Update `systems/combat.js` to support new damage types: `Thermal`, `Cryo`, `Plasma`, `Corrosive`.
+  - [x] Add active status effects to characters/enemies: `Burning` (damage-over-time), `Frozen` (speed/AP debuff), `Electrified` (susceptible to shock), `Melted` (reduced armor/defense).
+  - [x] Implement combo-trigger logic in `systems/combat.js` damage calculation (e.g., if target has `Frozen`, physical damage deals 2x "Shatter" bonus; if `Electrified`, plasma damage inflicts 1-turn stun).
+  - [x] Update Combat UI to display active elemental debuffs with distinct icons or color coding.
+- [x] **Stagger & Break Gauges** - Add posture/shield break gauges to enemies, causing temporary stun and vulnerability
+  - [x] Add `breakMax` and `breakCurrent` fields to enemy objects in `systems/combat.js` and stats initialization.
+  - [x] Define "Stagger Damage" values for all standard attacks, special abilities, and explosive items (e.g., Warrior's Power Strike deals high Stagger; standard attack deals low Stagger).
+  - [x] Implement Break condition: when `breakCurrent` reaches 0, apply `Broken` status effect for 1 turn (stunned, receives 2x damage).
+  - [x] Render a secondary "Break Shield" gauge below enemy health bars in the Combat UI.
+- [x] **Role Combat Stances** - Add active stances (Vanguard/Berserker, Shadow/Skirmisher, Overclock/Disruption) that cost AP to toggle
+  - [x] Implement stance-switching action in `systems/combat.js` that costs 1 AP.
+  - [x] Define active state modifiers in player statistics based on current stance:
     - Warrior: `Vanguard` (+DEF, auto-taunts enemies to protect companions) vs. `Berserker` (+Stagger damage, -DEF).
     - Rogue: `Shadow` (Stealth, 100% crit chance on next attack, disables block/dodge) vs. `Skirmisher` (reduces item/movement AP cost by 1).
     - Scientist: `Support Overclock` (+1 AP regeneration for player & companions) vs. `Disruption Mode` (attacks apply random elemental debuff).
-  - [ ] Update Combat UI with Stance selection buttons (disabled when AP is 0) and display active stance indicators on character portraits.
+  - [x] Update Combat UI with Stance selection buttons (disabled when AP is 0) and display active stance indicators on character portraits.
+  - [ ] (Todo) Find/implement a graphic badge for combat stances instead of a plain text badge
 
 ## 📈 Progression & Character Development
 

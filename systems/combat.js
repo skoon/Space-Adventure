@@ -41,7 +41,7 @@ export function initCombat(deps) {
     checkQuestProgress = deps.quests.checkQuestProgress;
     showVictoryMessage = deps.ui.showVictoryMessage;
     simulateExploration = deps.exploration.simulateExploration;
-    getDifficulty = deps.settings.getDifficulty;
+    getDifficulty = deps.settings ? deps.settings.getDifficulty : null;
 }
 
 /**
@@ -111,7 +111,10 @@ export function encounterEnemy() {
     randomEnemy.maxHp = randomEnemy.hp;
     randomEnemy.attack = Math.floor(randomEnemy.attack * difficulty.enemyDmgModifier * levelScale);
 
+    randomEnemy.breakMax = Math.floor(randomEnemy.hp * 0.5);
+    randomEnemy.breakCurrent = randomEnemy.breakMax;
     state.enemy = randomEnemy;
+    state.combatStance = "Neutral";
     state.character.ap = state.character.maxAp || 3;
     if (state.character.cybernetics && state.character.cybernetics.arms === 'reflex_boosters') {
         if (Math.random() < 0.35) {
@@ -154,7 +157,10 @@ export function encounterBoss() {
     boss.maxHp = boss.hp;
     boss.attack = Math.floor(boss.attack * difficulty.enemyDmgModifier * levelScale);
 
+    boss.breakMax = Math.floor(boss.hp * 0.6);
+    boss.breakCurrent = boss.breakMax;
     state.enemy = boss;
+    state.combatStance = "Neutral";
     state.character.ap = state.character.maxAp || 3;
     if (state.character.cybernetics && state.character.cybernetics.arms === 'reflex_boosters') {
         if (Math.random() < 0.35) {
@@ -170,6 +176,173 @@ export function encounterBoss() {
     showScreen("combat");
     updateCombatUI();
     addLog(`⚠️ WARNING: YOU HAVE ENCOUNTERED THE AREA BOSS, ${state.enemy.name.toUpperCase()}!`);
+}
+
+/**
+ * Get the damage type of the player's equipped weapon
+ */
+export function getPlayerDamageType() {
+    if (!state.character || !state.character.equipment || !state.character.equipment.weapon) {
+        return "Physical";
+    }
+    const weaponName = state.character.equipment.weapon;
+    if (weaponName.includes("Plasma") || weaponName.includes("Photon")) {
+        return "Plasma";
+    }
+    if (weaponName.includes("Laser") || weaponName.includes("Blade")) {
+        return "Thermal";
+    }
+    if (weaponName.includes("Acid") || weaponName.includes("Corrosive")) {
+        return "Corrosive";
+    }
+    if (weaponName.includes("Cryo")) {
+        return "Cryo";
+    }
+    return "Physical";
+}
+
+/**
+ * Calculate damage adjusting for Melted defense, Broken vulnerability, and Frozen Shatter combos
+ */
+export function calculateDamageAndApplyCombos(baseDmg, dmgType) {
+    let finalDmg = baseDmg;
+    
+    // Broken vulnerability: 2x damage
+    const isBroken = state.enemyStatusEffects.some(e => e.type === "broken");
+    if (isBroken) {
+        finalDmg *= 2;
+    }
+    
+    // Frozen Shatter combo: Physical hitting Frozen triggers Shatter for 2x damage and consumes Frozen
+    const isFrozen = state.enemyStatusEffects.some(e => e.type === "frozen");
+    if (dmgType === "Physical" && isFrozen) {
+        finalDmg *= 2;
+        state.enemyStatusEffects = state.enemyStatusEffects.filter(e => e.type !== "frozen");
+        addLog(`❄️ SHATTER! Physical damage shattered the Frozen ${state.enemy.name} for 2x damage!`);
+    }
+    
+    return finalDmg;
+}
+
+/**
+ * Apply status effects based on player's damage type and active stances
+ */
+export function applyAttackStatusEffects(dmgType) {
+    if (!state.enemy || state.enemy.hp <= 0) return;
+    
+    // Scientist Disruption stance applies random elemental status effect
+    if (state.combatStance === "Disruption") {
+        const effects = ["burning", "frozen", "electrified", "melted"];
+        const randomEffect = effects[Math.floor(Math.random() * effects.length)];
+        applyEnemyStatus(randomEffect);
+        return;
+    }
+    
+    if (dmgType === "Thermal") {
+        if (Math.random() < 0.50) {
+            applyEnemyStatus("burning", 3);
+        }
+    } else if (dmgType === "Cryo") {
+        if (Math.random() < 0.50) {
+            applyEnemyStatus("frozen", 3);
+        }
+    } else if (dmgType === "Plasma") {
+        // Electrified Plasma Shock combo
+        const isElectrified = state.enemyStatusEffects.some(e => e.type === "electrified");
+        if (isElectrified) {
+            addLog(`⚡ SHOCK COMBO! Plasma damage reacted with Electrified status!`);
+            state.enemyStatusEffects = state.enemyStatusEffects.filter(e => e.type !== "electrified");
+            if (Math.random() < 0.50) {
+                state.enemyStatusEffects.push({ type: "stunned", duration: 1 });
+                addLog(`✨ ${state.enemy.name} is Stunned for 1 turn!`);
+            } else {
+                addLog(`✨ Stun failed, but Electrified charges dissipated.`);
+            }
+        } else {
+            if (Math.random() < 0.30) {
+                applyEnemyStatus("electrified", 3);
+            }
+        }
+    } else if (dmgType === "Corrosive") {
+        if (Math.random() < 0.50) {
+            applyEnemyStatus("melted", 3);
+        }
+    }
+}
+
+/**
+ * Helper to apply status effect to enemy
+ */
+function applyEnemyStatus(type, duration = 3) {
+    if (!state.enemy) return;
+    
+    const existing = state.enemyStatusEffects.find(e => e.type === type);
+    if (!existing) {
+        if (type === "burning") {
+            state.enemyStatusEffects.push({ type: "burning", damage: 8, duration });
+            addLog(`🔥 ${state.enemy.name} is Burning!`);
+        } else if (type === "frozen") {
+            state.enemyStatusEffects.push({ type: "frozen", duration });
+            addLog(`❄️ ${state.enemy.name} is Frozen!`);
+        } else if (type === "electrified") {
+            state.enemyStatusEffects.push({ type: "electrified", duration });
+            addLog(`⚡ ${state.enemy.name} is Electrified!`);
+        } else if (type === "melted") {
+            state.enemyStatusEffects.push({ type: "melted", duration });
+            addLog(`🧪 ${state.enemy.name} is Melted! (Defense reduced)`);
+        }
+    }
+}
+
+/**
+ * Deal stagger damage to the enemy's Break shield
+ */
+export function dealStaggerDamage(amount) {
+    if (!state.enemy) return;
+    if (state.enemyStatusEffects.some(e => e.type === "broken")) return;
+    
+    state.enemy.breakCurrent = Math.max(0, (state.enemy.breakCurrent !== undefined ? state.enemy.breakCurrent : state.enemy.breakMax || 50) - amount);
+    addLog(`⚡ Dealt ${amount} Stagger damage! (${state.enemy.breakCurrent}/${state.enemy.breakMax})`);
+    
+    if (state.enemy.breakCurrent <= 0) {
+        state.enemyStatusEffects.push({ type: "broken", duration: 1 });
+        addLog(`💥 BREAK! ${state.enemy.name}'s posture is broken! Stunned for 1 turn and takes 2x damage!`);
+    }
+}
+
+/**
+ * Stance switching handler
+ */
+export function selectStance(index) {
+    if (!state.character || !state.enemy) return;
+    if (state.character.ap < 1) {
+        addLog("⚠️ Not enough Action Points (AP) to change stance!");
+        updateCombatLog();
+        return;
+    }
+
+    const rawStances = {
+        Warrior: ["Vanguard", "Berserker"],
+        Rogue: ["Shadow", "Skirmisher"],
+        Scientist: ["Support Overclock", "Disruption"]
+    };
+    const roleStances = rawStances[state.character.role];
+    if (!roleStances) return;
+
+    const targetStance = roleStances[index];
+    if (!targetStance) return;
+
+    state.character.ap -= 1;
+    if (state.combatStance === targetStance) {
+        state.combatStance = "Neutral";
+        addLog(`🔄 Returned to Neutral stance.`);
+    } else {
+        state.combatStance = targetStance;
+        addLog(`🔄 Switched to ${targetStance} stance!`);
+    }
+
+    updateCombatLog();
+    updateCombatUI();
 }
 
 /**
@@ -208,6 +381,9 @@ export function updateCombatUI() {
     const apBar = document.getElementById("combatApBar");
     if (apBar) apBar.style.width = `${apPercentage}%`;
 
+    const activeStance = state.combatStance || "Neutral";
+    const isShadow = activeStance === "Shadow";
+    
     const attackBtn = document.querySelector('button[onclick="playerAttack()"]');
     const blockBtn = document.querySelector('button[onclick="playerBlock()"]');
     const dodgeBtn = document.querySelector('button[onclick="playerDodge()"]');
@@ -217,16 +393,27 @@ export function updateCombatUI() {
         attackBtn.className = `py-3 px-4 bg-red-600 hover:bg-red-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < 2 ? "opacity-50 cursor-not-allowed" : ""}`;
     }
     if (blockBtn) {
-        blockBtn.disabled = state.character.ap < 1;
-        blockBtn.className = `py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < 1 ? "opacity-50 cursor-not-allowed" : ""}`;
+        if (isShadow) {
+            blockBtn.disabled = true;
+            blockBtn.className = "py-3 px-4 bg-gray-750 text-gray-500 rounded font-bold flex items-center justify-center gap-2 opacity-50 cursor-not-allowed border border-gray-700";
+        } else {
+            blockBtn.disabled = state.character.ap < 1;
+            blockBtn.className = `py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < 1 ? "opacity-50 cursor-not-allowed" : ""}`;
+        }
     }
     if (dodgeBtn) {
-        dodgeBtn.disabled = state.character.ap < 1;
-        dodgeBtn.className = `py-3 px-4 bg-green-600 hover:bg-green-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < 1 ? "opacity-50 cursor-not-allowed" : ""}`;
+        if (isShadow) {
+            dodgeBtn.disabled = true;
+            dodgeBtn.className = "py-3 px-4 bg-gray-750 text-gray-500 rounded font-bold flex items-center justify-center gap-2 opacity-50 cursor-not-allowed border border-gray-700";
+        } else {
+            dodgeBtn.disabled = state.character.ap < 1;
+            dodgeBtn.className = `py-3 px-4 bg-green-600 hover:bg-green-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < 1 ? "opacity-50 cursor-not-allowed" : ""}`;
+        }
     }
     if (itemBtn) {
-        itemBtn.disabled = state.character.ap < 1;
-        itemBtn.className = `py-3 px-4 bg-yellow-600 hover:bg-yellow-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < 1 ? "opacity-50 cursor-not-allowed" : ""}`;
+        const itemApCost = activeStance === "Skirmisher" ? 0 : 1;
+        itemBtn.disabled = state.character.ap < itemApCost;
+        itemBtn.className = `py-3 px-4 bg-yellow-600 hover:bg-yellow-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < itemApCost ? "opacity-50 cursor-not-allowed" : ""}`;
     }
 
     const companionBtn = document.getElementById("combatCompanionBtn");
@@ -281,7 +468,7 @@ export function updateCombatUI() {
     if (combatElements.enemyDef) combatElements.enemyDef.textContent = state.enemy.defense;
 
     // Enemy Status effects
-    const enemyEffectsContainer = document.getElementById("enemyStatusEffects");
+    const enemyEffectsContainer = combatElements.enemyStatusEffects;
     if (enemyEffectsContainer) {
         enemyEffectsContainer.innerHTML = "";
         state.enemyStatusEffects.forEach((effect, i) => {
@@ -319,6 +506,70 @@ export function updateCombatUI() {
         specialButton.className = `py-3 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors flex items-center justify-center gap-2 text-sm ${hasEnergy && hasAp ? "" : "opacity-50 cursor-not-allowed"}`;
         specialButton.textContent = `${abilityName} (3 AP)`;
     }
+
+    // Update Break shield UI
+    const breakMax = state.enemy.breakMax || 50;
+    const breakCurrent = state.enemy.breakCurrent !== undefined ? state.enemy.breakCurrent : breakMax;
+    if (combatElements.enemyBreakCurrent) combatElements.enemyBreakCurrent.textContent = breakCurrent;
+    if (combatElements.enemyBreakMax) combatElements.enemyBreakMax.textContent = breakMax;
+    if (combatElements.enemyBreakBar) {
+        const breakPct = Math.max(0, Math.min(100, (breakCurrent / breakMax) * 100));
+        combatElements.enemyBreakBar.style.width = `${breakPct}%`;
+        if (state.enemyStatusEffects.some(e => e.type === "broken")) {
+            combatElements.enemyBreakBar.className = "bg-orange-500 h-2 rounded-full transition-all animate-pulse shadow-[0_0_8px_rgba(249,115,22,0.8)]";
+        } else {
+            combatElements.enemyBreakBar.className = "bg-sky-400 h-2 rounded-full transition-all shadow-[0_0_8px_rgba(56,189,248,0.8)]";
+        }
+    }
+
+    // Update Stance UI text badge
+    const stanceBadge = document.getElementById("combatPlayerStance");
+    if (stanceBadge) {
+        stanceBadge.textContent = `Stance: ${activeStance}`;
+        if (activeStance === "Neutral") {
+            stanceBadge.className = "text-xs font-bold text-gray-400 mt-1";
+        } else {
+            stanceBadge.className = "text-xs font-bold text-cyan-400 mt-1 animate-pulse";
+        }
+    }
+
+    // Update Stance buttons in selector panel
+    const stanceBtn0 = document.getElementById("stanceBtn0");
+    const stanceBtn1 = document.getElementById("stanceBtn1");
+    if (stanceBtn0 && stanceBtn1) {
+        const stances = {
+            Warrior: ["🛡️ Vanguard", "🪓 Berserker"],
+            Rogue: ["🌑 Shadow", "👟 Skirmisher"],
+            Scientist: ["⚡ Overclock", "🧬 Disruption"]
+        };
+        const rawStances = {
+            Warrior: ["Vanguard", "Berserker"],
+            Rogue: ["Shadow", "Skirmisher"],
+            Scientist: ["Support Overclock", "Disruption"]
+        };
+        const roleStances = stances[state.character.role] || ["Stance A", "Stance B"];
+        const roleRawStances = rawStances[state.character.role] || ["Stance A", "Stance B"];
+        
+        stanceBtn0.textContent = roleStances[0];
+        stanceBtn1.textContent = roleStances[1];
+
+        stanceBtn0.disabled = state.character.ap < 1 && activeStance !== roleRawStances[0];
+        stanceBtn1.disabled = state.character.ap < 1 && activeStance !== roleRawStances[1];
+        
+        if (activeStance === roleRawStances[0]) {
+            stanceBtn0.className = "py-1 px-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded text-xs font-bold transition-colors border border-cyan-400";
+            stanceBtn0.disabled = state.character.ap < 1;
+        } else {
+            stanceBtn0.className = `py-1 px-3 bg-gray-700 hover:bg-gray-650 text-gray-200 rounded text-xs font-bold transition-colors border border-gray-600 ${state.character.ap < 1 ? "opacity-50 cursor-not-allowed" : ""}`;
+        }
+        
+        if (activeStance === roleRawStances[1]) {
+            stanceBtn1.className = "py-1 px-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded text-xs font-bold transition-colors border border-cyan-400";
+            stanceBtn1.disabled = state.character.ap < 1;
+        } else {
+            stanceBtn1.className = `py-1 px-3 bg-gray-700 hover:bg-gray-650 text-gray-200 rounded text-xs font-bold transition-colors border border-gray-600 ${state.character.ap < 1 ? "opacity-50 cursor-not-allowed" : ""}`;
+        }
+    }
 }
 
 /**
@@ -345,8 +596,9 @@ export function playerAttack() {
 
     // Critical hit chance (15% base, higher for Rogues) + passive
     const passiveCrit = getPassiveBonus('critChance');
+    const isShadow = state.combatStance === "Shadow";
     const critChance = (state.character.role === "Rogue" ? 0.25 : 0.15) + passiveCrit;
-    const isCritical = Math.random() < critChance;
+    const isCritical = Math.random() < critChance || isShadow;
     let critMultiplier = isCritical ? 2 : 1;
     if (isCritical && state.character.cybernetics && state.character.cybernetics.head === 'targeting_matrix') {
         critMultiplier += 0.5;
@@ -355,9 +607,19 @@ export function playerAttack() {
     // Check for attack buffs
     const stats = getEffectiveStats();
     const passiveAttack = getPassiveBonus('attack');
-    const baseDamage = Math.max(1, (stats.attack + passiveAttack) - state.enemy.defense);
+    
+    // Melted status reduces enemy defense
+    const isMelted = state.enemyStatusEffects.some(e => e.type === "melted");
+    const enemyDefense = Math.max(0, state.enemy.defense - (isMelted ? 5 : 0));
+    
+    let baseDamage = Math.max(1, (stats.attack + passiveAttack) - enemyDefense);
+    const dmgType = getPlayerDamageType();
+    
+    // Adjust base damage for combos & stagger break
+    baseDamage = calculateDamageAndApplyCombos(baseDamage, dmgType);
     const damage = Math.floor(baseDamage * critMultiplier);
-    state.enemy.hp -= damage;
+    state.enemy.hp = Math.max(0, state.enemy.hp - damage);
+    
     checkPhaseTransition();
 
     if (isCritical) {
@@ -365,6 +627,17 @@ export function playerAttack() {
     } else {
         addLog(`You hit the ${state.enemy.name} for ${damage} damage.`);
     }
+
+    if (isShadow) {
+        state.combatStance = "Neutral";
+        addLog("👤 You emerge from the shadows! Stance reset to Neutral.");
+    }
+
+    // Apply elemental status effects
+    applyAttackStatusEffects(dmgType);
+
+    // Apply stagger
+    dealStaggerDamage(state.combatStance === "Berserker" ? 20 : 10);
     updateCombatLog();
 
     if (state.enemy.hp <= 0) {
@@ -492,26 +765,45 @@ export function useSpecialAbility() {
     const stats = getEffectiveStats();
     const effectiveAttack = stats.attack + getPassiveBonus('attack');
 
+    const isMelted = state.enemyStatusEffects.some(e => e.type === "melted");
+    const enemyDefense = Math.max(0, state.enemy.defense - (isMelted ? 5 : 0));
+    const isShadow = state.combatStance === "Shadow";
+
     if (state.character.role === "Warrior") {
         if (hasSkill('warrior_whirlwind')) {
+            let baseDamage = Math.max(0, effectiveAttack - enemyDefense);
+            baseDamage = calculateDamageAndApplyCombos(baseDamage, "Physical");
             let mult = 1.0;
             if (state.character.cybernetics && state.character.cybernetics.head === 'targeting_matrix') {
                 mult += 0.5;
             }
-            const damage = Math.floor(Math.max(0, effectiveAttack - state.enemy.defense) * mult);
-            state.enemy.hp -= damage;
+            if (isShadow) {
+                mult *= 2; // guaranteed crit
+                state.combatStance = "Neutral";
+                addLog("👤 You emerge from the shadows! Stance reset to Neutral.");
+            }
+            const damage = Math.floor(baseDamage * mult);
+            state.enemy.hp = Math.max(0, state.enemy.hp - damage);
             state.character.ap += 1; // Refund 1 AP
             addLog(`🌪️ WHIRLWIND! You slash through the enemy for ${damage} damage and regain 1 AP!`);
+            dealStaggerDamage(state.combatStance === "Berserker" ? 50 : 25);
         } else {
             // Power Strike - 1.5x damage
-            const baseDamage = Math.max(0, effectiveAttack - state.enemy.defense);
+            let baseDamage = Math.max(0, effectiveAttack - enemyDefense);
+            baseDamage = calculateDamageAndApplyCombos(baseDamage, "Physical");
             let mult = 1.5;
             if (state.character.cybernetics && state.character.cybernetics.head === 'targeting_matrix') {
                 mult += 0.5;
             }
+            if (isShadow) {
+                mult *= 2; // guaranteed crit
+                state.combatStance = "Neutral";
+                addLog("👤 You emerge from the shadows! Stance reset to Neutral.");
+            }
             const damage = Math.floor(baseDamage * mult);
-            state.enemy.hp -= damage;
+            state.enemy.hp = Math.max(0, state.enemy.hp - damage);
             addLog(`⚔️ POWER STRIKE! You unleash a devastating blow for ${damage} damage!`);
+            dealStaggerDamage(state.combatStance === "Berserker" ? 80 : 40);
         }
         checkPhaseTransition();
         updateCombatLog();
@@ -520,25 +812,38 @@ export function useSpecialAbility() {
         else if (state.character.ap <= 0) enemyTurn();
     } else if (state.character.role === "Rogue") {
         if (hasSkill('rogue_shadowstrike')) {
-            const baseDamage = Math.max(0, effectiveAttack - state.enemy.defense);
+            let baseDamage = Math.max(0, effectiveAttack - enemyDefense);
+            baseDamage = calculateDamageAndApplyCombos(baseDamage, "Physical");
             let mult = 2.0;
             if (state.character.cybernetics && state.character.cybernetics.head === 'targeting_matrix') {
                 mult += 0.5;
             }
+            if (isShadow) {
+                mult *= 2; // guaranteed crit
+                state.combatStance = "Neutral";
+                addLog("👤 You emerge from the shadows! Stance reset to Neutral.");
+            }
             const damage = Math.floor(baseDamage * mult);
-            state.enemy.hp -= damage;
+            state.enemy.hp = Math.max(0, state.enemy.hp - damage);
             state.enemyStatusEffects.push({ type: "poison", damage: 8, duration: 3 });
             addLog(`🌑 SHADOW STRIKE! You deal ${damage} damage and poison the enemy!`);
+            dealStaggerDamage(20);
         } else {
             // Guaranteed Critical Hit - 2.5x damage
-            const baseDamage = Math.max(0, effectiveAttack - state.enemy.defense);
+            let baseDamage = Math.max(0, effectiveAttack - enemyDefense);
+            baseDamage = calculateDamageAndApplyCombos(baseDamage, "Physical");
             let mult = 2.5;
             if (state.character.cybernetics && state.character.cybernetics.head === 'targeting_matrix') {
                 mult += 0.5;
             }
+            if (isShadow) {
+                state.combatStance = "Neutral";
+                addLog("👤 You emerge from the shadows! Stance reset to Neutral.");
+            }
             const damage = Math.floor(baseDamage * mult);
-            state.enemy.hp -= damage;
+            state.enemy.hp = Math.max(0, state.enemy.hp - damage);
             addLog(`🗡️ ASSASSINATE! You strike a critical weak point for ${damage} damage!`);
+            dealStaggerDamage(15);
         }
         checkPhaseTransition();
         updateCombatLog();
@@ -547,16 +852,37 @@ export function useSpecialAbility() {
         else if (state.character.ap <= 0) enemyTurn();
     } else if (state.character.role === "Scientist") {
         if (hasSkill('sci_overload')) {
-            const baseDamage = Math.max(0, effectiveAttack - state.enemy.defense);
+            let baseDamage = Math.max(0, effectiveAttack - enemyDefense);
+            
+            // Overload deals Plasma damage, check electrified shock combo
+            const isElectrified = state.enemyStatusEffects.some(e => e.type === "electrified");
+            if (isElectrified) {
+                addLog(`⚡ SHOCK COMBO! Plasma Overload reacted with Electrified status!`);
+                state.enemyStatusEffects = state.enemyStatusEffects.filter(e => e.type !== "electrified");
+                if (Math.random() < 0.50) {
+                    state.enemyStatusEffects.push({ type: "stunned", duration: 1 });
+                    addLog(`✨ ${state.enemy.name} is Stunned for 1 turn!`);
+                } else {
+                    addLog(`✨ Stun failed, but Electrified charges dissipated.`);
+                }
+            }
+            
+            baseDamage = calculateDamageAndApplyCombos(baseDamage, "Plasma");
             let mult = 2.0;
             if (state.character.cybernetics && state.character.cybernetics.head === 'targeting_matrix') {
                 mult += 0.5;
             }
+            if (isShadow) {
+                mult *= 2; // guaranteed crit
+                state.combatStance = "Neutral";
+                addLog("👤 You emerge from the shadows! Stance reset to Neutral.");
+            }
             const damage = Math.floor(baseDamage * mult);
-            state.enemy.hp -= damage;
+            state.enemy.hp = Math.max(0, state.enemy.hp - damage);
             state.enemyStatusEffects.push({ type: "defenseBreak", value: Math.floor(state.enemy.defense / 2), duration: 2 });
             addLog(`💥 OVERLOAD! You deal ${damage} damage and shatter their defense!`);
             checkPhaseTransition();
+            dealStaggerDamage(35);
             if (state.enemy.hp <= 0) winCombat();
             else if (state.character.ap <= 0) enemyTurn();
         } else {
@@ -566,6 +892,10 @@ export function useSpecialAbility() {
                 { type: "defenseBoost", value: 5, duration: 3 }
             ];
             addLog("🔬 You activate a defensive shield! Defense increased for 3 turns.");
+            if (isShadow) {
+                state.combatStance = "Neutral";
+                addLog("👤 You emerge from the shadows! Stance reset to Neutral.");
+            }
             if (state.character.ap <= 0) enemyTurn();
         }
         updateCombatLog();
@@ -592,6 +922,46 @@ export function endPlayerTurn() {
  */
 export function enemyTurn() {
     if (!state.character || !state.enemy) return;
+
+    // Tactical Combat 2.0: Skip enemy turn if Broken or Stunned
+    if (state.enemyStatusEffects.some(e => e.type === "broken" || e.type === "stunned")) {
+        addLog(`✨ ${state.enemy.name} is incapacitated and skips their turn!`);
+        
+        // Decrement status durations since their turn is skipped
+        processStatusEffects();
+
+        // AP and energy regeneration
+        let startingAp = state.character.maxAp || 3;
+        if (state.playerStatusEffects.some(e => e.type === "frozen")) {
+            startingAp = Math.max(1, startingAp - 1);
+            addLog("❄️ You are Frozen! Starting AP reduced by 1.");
+        }
+        
+        // Support Overclock AP bonus (+1 AP regen)
+        if (state.combatStance === "Support Overclock") {
+            startingAp += 1;
+            addLog("⚡ Stance: Support Overclock provides +1 AP!");
+            
+            // Reduce companion active cooldowns by 1 extra turn
+            if (state.companionCooldown > 0) {
+                state.companionCooldown = Math.max(0, state.companionCooldown - 1);
+            }
+        }
+        
+        state.character.ap = startingAp;
+
+        // Reset companion cooldown if it was 0 or higher
+        if (state.companionCooldown > 0) {
+            state.companionCooldown--;
+        }
+
+        state.character.energy = Math.min(state.character.maxEnergy, (state.character.energy || state.character.maxEnergy) + 5);
+
+        updateCombatLog();
+        updateCombatUI();
+        updateUI();
+        return;
+    }
 
     // Check if player is dodging
     const dodgeEffect = state.playerStatusEffects.find(e => e.type === "dodging");
@@ -713,8 +1083,23 @@ export function enemyTurn() {
     // Regenerate energy (5 per turn)
     state.character.energy = Math.min(state.character.maxEnergy, (state.character.energy || state.character.maxEnergy) + 5);
 
-    // Reset AP for the new turn
-    state.character.ap = state.character.maxAp || 3;
+    // Reset AP for the new turn with stances & statuses applied
+    let startingAp = state.character.maxAp || 3;
+    if (state.playerStatusEffects.some(e => e.type === "frozen")) {
+        startingAp = Math.max(1, startingAp - 1);
+        addLog("❄️ You are Frozen! Starting AP reduced by 1.");
+    }
+    
+    if (state.combatStance === "Support Overclock") {
+        startingAp += 1;
+        addLog("⚡ Stance: Support Overclock provides +1 AP!");
+        
+        if (state.companionCooldown > 0) {
+            state.companionCooldown = Math.max(0, state.companionCooldown - 1);
+        }
+    }
+    
+    state.character.ap = startingAp;
     if (state.companionCooldown > 0) {
         state.companionCooldown--;
     }
