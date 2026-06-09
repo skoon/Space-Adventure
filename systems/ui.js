@@ -225,6 +225,7 @@ function updateDerelictUI() {
     const oxBar = document.getElementById('derelictOxygenBar');
     const roomsText = document.getElementById('derelictRoomsText');
     const lootList = document.getElementById('derelictLootList');
+    const mapContainer = document.getElementById('derelictMapContainer');
 
     if (oxText && state.derelict) {
         oxText.textContent = `${state.derelict.oxygen}/${state.derelict.maxOxygen}`;
@@ -242,6 +243,43 @@ function updateDerelictUI() {
         }
         
         roomsText.textContent = state.derelict.roomsExplored;
+        
+        // Render Map
+        if (mapContainer) {
+            mapContainer.innerHTML = '';
+            const currentRoom = state.derelict.roomsExplored;
+            const startNode = Math.max(0, currentRoom - 2);
+            const endNode = startNode + 4;
+            
+            for (let i = startNode; i <= endNode; i++) {
+                if (i > startNode) {
+                    const line = document.createElement('div');
+                    line.className = `h-0.5 w-6 border-t-2 border-dashed ${i <= currentRoom ? 'border-red-500' : 'border-gray-700'}`;
+                    mapContainer.appendChild(line);
+                }
+                
+                const node = document.createElement('div');
+                node.className = `w-12 h-12 rounded-full border-2 flex flex-col justify-center items-center font-mono text-sm relative ${
+                    i === currentRoom
+                        ? 'border-red-500 bg-red-950/40 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.5)] animate-pulse'
+                        : i < currentRoom
+                            ? 'border-gray-500 bg-gray-800 text-gray-400'
+                            : 'border-gray-800 bg-black text-gray-700'
+                }`;
+                
+                if (i === 0) {
+                    node.innerHTML = '🚪<span class="text-[9px] absolute -bottom-5 text-gray-400 font-bold">Airlock</span>';
+                } else if (i === currentRoom) {
+                    node.innerHTML = '👤<span class="text-[9px] absolute -bottom-5 text-red-400 font-bold">You</span>';
+                } else if (i < currentRoom) {
+                    node.innerHTML = `🛡️<span class="text-[9px] absolute -bottom-5 text-gray-500 font-bold font-mono">Room ${i}</span>`;
+                } else {
+                    node.innerHTML = `?<span class="text-[9px] absolute -bottom-5 text-gray-700 font-bold font-mono">Room ${i}</span>`;
+                }
+                
+                mapContainer.appendChild(node);
+            }
+        }
         
         // Render Loot
         if (lootList) {

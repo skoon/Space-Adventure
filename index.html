@@ -406,6 +406,18 @@
               </div>
             </div>
 
+            <!-- Vessel Schematic / Map -->
+            <div class="bg-black/70 border border-red-950/80 rounded p-3 mb-4 flex flex-col items-center justify-center min-h-[120px] relative z-10">
+              <h3 class="text-red-400 font-mono text-xs uppercase tracking-wider mb-2 self-start flex items-center gap-1">
+                <span class="inline-block w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+                VESSEL SCHEMATIC / STRUCTURAL SCANNER
+              </h3>
+              <!-- Grid/Path of rooms -->
+              <div id="derelictMapContainer" class="flex items-center justify-center gap-2 w-full p-2 overflow-x-auto">
+                 <!-- Generated dynamically in updateDerelictUI -->
+              </div>
+            </div>
+
             <div class="flex-grow bg-black/80 border border-gray-700 rounded p-3 mb-4 overflow-y-auto custom-scrollbar-cyan relative z-10">
               <h3 class="text-yellow-500 font-bold mb-2 border-b border-gray-700 pb-1">SECURED CARGO</h3>
               <div id="derelictLootList" class="flex flex-wrap gap-2 text-sm">

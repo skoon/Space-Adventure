@@ -11,7 +11,7 @@ import { initCharacter, createCharacter, gainXp, getCharacterAvatar, useHealItem
 import { initExploration, simulateExploration, travelDeeper } from './systems/exploration.js';
 import { initEvents, generateRandomEvent, handleEvent } from './systems/events.js';
 import { initSaveLoad, saveGame, loadGame, exportGame, importGame, autoSave, initializeSaveSystem } from './systems/saveload.js';
-import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog, showTravelScreen, showSettingsModal, showStatsAllocationUI, closeStatsAllocationUI, allocateStat, showAchievementsUI, closeAchievementsUI, switchShipTab, switchOperationsTab, updateQuickCrewPanel } from './systems/ui.js';
+import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog, showTravelScreen, showSettingsModal, showStatsAllocationUI, closeStatsAllocationUI, allocateStat, showAchievementsUI, closeAchievementsUI, switchShipTab, switchOperationsTab, updateQuickCrewPanel, showDerelictScreen } from './systems/ui.js';
 import { initInventory, openCombatItemMenu, closeCombatItemMenu, useCombatItem } from './systems/inventory.js';
 import { initLocations, travelTo, getLocationDetails, getUnlockedLocations } from './systems/locations.js';
 import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem, claimAllOrders } from './systems/shop.js';
@@ -81,7 +81,8 @@ const screens = {
   creation: document.getElementById("characterCreationScreen"),
   exploring: document.getElementById("exploringScreen"),
   combat: document.getElementById("combatScreen"),
-  defeat: document.getElementById("defeatScreen")
+  defeat: document.getElementById("defeatScreen"),
+  derelict: document.getElementById("derelictScreen")
 };
 
 const elements = {
@@ -294,7 +295,7 @@ function initializeGame() {
   // Initialize Derelict
   initDerelict({
     ...deps,
-    ui: { addLog, updateUI, showScreen },
+    ui: { addLog, updateUI, showScreen, showDerelictScreen },
     character: { gainXp },
     quests: { checkQuestProgress },
     combat: { encounterEnemy }
