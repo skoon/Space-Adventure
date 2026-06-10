@@ -32,7 +32,7 @@ export const locations = {
     travelCost: 250,
     lootTable: ["Data Chip", "Alien Alloy", "Energy Cell", "Credits"]
   },
-  "Norkon Outpost": {
+  "norkon_outpost": {
     id: "norkon_outpost",
     name: "Norkon Outpost",
     description: "A space station drifting in the void.",

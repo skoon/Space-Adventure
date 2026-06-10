@@ -98,6 +98,13 @@ describe('Location System', () => {
         expect(success).toBe(false);
         expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('locked'));
     });
+
+    test('DATA: All locations in real data should have matching keys and ids', () => {
+        const { locations: realLocations } = require('../../data/locations.js');
+        for (const [key, value] of Object.entries(realLocations)) {
+            expect(key).toBe(value.id);
+        }
+    });
 });
 
 describe('Event System (Location Enhancements)', () => {

@@ -86,15 +86,15 @@ const screens = {
 };
 
 const elements = {
-  characterName: document.getElementById("characterName_display"),
+  characterName: document.getElementById("characterName"),
   characterLevel: document.getElementById("characterLevel"),
-  characterHp: document.getElementById("characterHp"),
-  characterMaxHp: document.getElementById("characterMaxHp"),
+  characterHp: document.getElementById("playerHp"),
+  characterMaxHp: document.getElementById("playerMaxHp"),
   characterAtk: document.getElementById("characterAtk"),
   characterDef: document.getElementById("characterDef"),
-  characterXp: document.getElementById("characterXp"),
-  characterXpToNext: document.getElementById("characterXpToNext"),
-  characterAvatar: document.getElementById("characterAvatar"),
+  characterXp: document.getElementById("playerXp"),
+  characterXpToNext: document.getElementById("xpToNext"),
+  characterAvatar: document.getElementById("playerAvatar"),
   characterRaceRole: document.getElementById("characterRaceRole"),
   characterCredits: document.getElementById("characterCredits") // New UI element
 };

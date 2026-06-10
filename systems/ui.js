@@ -24,6 +24,8 @@ import { checkAchievement } from './achievements.js';
 import { initAchievementsUI, showAchievementsUI, closeAchievementsUI } from './ui/achievements-ui.js';
 import { initCompanionsUI } from './ui/companions-ui.js';
 import { initCyberneticsUI } from './ui/cybernetics-ui.js';
+import { getActiveCompanion } from './companions.js';
+import { SKILL_TREES, hasSkill, unlockSkill } from './skills.js';
 
 // Re-export for external use
 export { 
@@ -514,14 +516,8 @@ export function closeSkillsUI() {
 /**
  * Render the Skill Tree
  */
-export async function renderSkillTree() {
+export function renderSkillTree() {
     if (!state.character) return;
-    
-    // Dynamically import skills module to prevent circular dependencies
-    const skillsModule = await import('./skills.js');
-    const SKILL_TREES = skillsModule.SKILL_TREES;
-    const hasSkill = skillsModule.hasSkill;
-    const unlockSkill = skillsModule.unlockSkill;
     
     const role = state.character.role;
     const tree = SKILL_TREES[role];
@@ -827,15 +823,11 @@ export function switchOperationsTab(tab) {
 /**
  * Update quick status info for active crew and unlocked passive subroutines
  */
-export async function updateQuickCrewPanel() {
+export function updateQuickCrewPanel() {
     if (!state || !state.character) return;
     
-    // Dynamic imports to prevent circular dependencies
-    const companionsModule = await import('./companions.js');
-    const skillsModule = await import('./skills.js');
-    
     // 1. Update companion UI
-    const activeCompanion = companionsModule.getActiveCompanion();
+    const activeCompanion = getActiveCompanion();
     const avatarEl = document.getElementById('quickCompanionAvatar');
     const nameEl = document.getElementById('quickCompanionName');
     const levelEl = document.getElementById('quickCompanionLevel');
@@ -860,11 +852,11 @@ export async function updateQuickCrewPanel() {
     if (skillsListEl) {
         skillsListEl.innerHTML = '';
         const role = state.character.role;
-        const tree = skillsModule.SKILL_TREES[role] || [];
+        const tree = SKILL_TREES[role] || [];
         
         let hasAnySkill = false;
         tree.forEach(skill => {
-            if (skillsModule.hasSkill(skill.id)) {
+            if (hasSkill(skill.id)) {
                 hasAnySkill = true;
                 const item = document.createElement('div');
                 item.className = "bg-cyan-950/30 border border-cyan-900/50 p-2 rounded flex items-center gap-2";
