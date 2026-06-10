@@ -1,7 +1,8 @@
 
-import { initUI, updateUI, switchOperationsTab, updateQuickCrewPanel } from '../../systems/ui.js';
+import { initUI, updateUI, switchOperationsTab, updateQuickCrewPanel, renderShipModules, switchShipTab } from '../../systems/ui.js';
 import { initCompanions } from '../../systems/companions.js';
 import { initSkills } from '../../systems/skills.js';
+import { initShip } from '../../systems/ship.js';
 
 describe('UI System', () => {
     let mockState;
@@ -94,6 +95,7 @@ describe('UI System', () => {
         };
 
         initUI(mockDeps);
+        initShip(mockDeps);
     });
 
     test('updateUI updates elements on first run', () => {
@@ -243,5 +245,58 @@ describe('UI System', () => {
         document.body.removeChild(levelEl);
         document.body.removeChild(skillEl);
         document.body.removeChild(skillsListEl);
+    });
+
+    test('renderShipModules renders ship modules and navigation card', async () => {
+        // Setup ship state
+        mockState.character.ship = {
+            engineLevel: 1,
+            medbayLevel: 0,
+            cargoLevel: 0,
+            scannerLevel: 0
+        };
+
+        // Create DOM elements
+        const tabSystems = document.createElement('button');
+        tabSystems.id = 'tabShipSystems';
+        const tabCrew = document.createElement('button');
+        tabCrew.id = 'tabCrewQuarter';
+        const tabCybernetics = document.createElement('button');
+        tabCybernetics.id = 'tabCybernetics';
+        const systemsPanel = document.createElement('div');
+        systemsPanel.id = 'shipSystemsPanel';
+        const crewPanel = document.createElement('div');
+        crewPanel.id = 'shipCrewPanel';
+        const cyberneticsPanel = document.createElement('div');
+        cyberneticsPanel.id = 'shipCyberneticsPanel';
+        
+        const container = document.createElement('div');
+        container.id = 'shipModulesContainer';
+        systemsPanel.appendChild(container);
+
+        document.body.appendChild(tabSystems);
+        document.body.appendChild(tabCrew);
+        document.body.appendChild(tabCybernetics);
+        document.body.appendChild(systemsPanel);
+        document.body.appendChild(crewPanel);
+        document.body.appendChild(cyberneticsPanel);
+
+        // Run renderShipModules directly and await it
+        await renderShipModules();
+
+        // Check if modules were rendered
+        expect(container.innerHTML).toContain('Engine');
+        expect(container.innerHTML).toContain('Medical Bay');
+        expect(container.innerHTML).toContain('Cargo Hold');
+        expect(container.innerHTML).toContain('Scanner Array');
+        expect(container.innerHTML).toContain('Sector Navigation Map');
+
+        // Cleanup
+        document.body.removeChild(tabSystems);
+        document.body.removeChild(tabCrew);
+        document.body.removeChild(tabCybernetics);
+        document.body.removeChild(systemsPanel);
+        document.body.removeChild(crewPanel);
+        document.body.removeChild(cyberneticsPanel);
     });
 });
