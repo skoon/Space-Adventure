@@ -21,14 +21,23 @@
         </h1>
         <div class="flex gap-2">
           <button
-            onclick="saveGame()"
+            id="exitHeaderBtn"
+            style="display: none"
+            onclick="import('./systems/ui/saveload-ui.js').then(m => m.exitToMainMenu())"
+            class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm font-bold transition-colors"
+            title="Exit to Main Menu"
+          >
+            🚪 Exit
+          </button>
+          <button
+            onclick="import('./systems/ui/saveload-ui.js').then(m => m.showSaveLoadUI('save'))"
             class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold transition-colors"
             title="Save Game"
           >
             💾 Save
           </button>
           <button
-            onclick="loadGame()"
+            onclick="import('./systems/ui/saveload-ui.js').then(m => m.showSaveLoadUI('load'))"
             class="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold transition-colors"
             title="Load Game"
           >
@@ -69,7 +78,7 @@
                 Begin Your Journey
               </button>
               <button
-                onclick="loadGame()"
+                onclick="import('./systems/ui/saveload-ui.js').then(m => m.showSaveLoadUI('load'))"
                 class="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg text-lg font-bold transition-colors"
                 id="loadGameButton"
                 style="display: none"

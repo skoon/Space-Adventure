@@ -38,19 +38,22 @@ export function showSettingsModal() {
             </div>
         </div>
         `,
-        [
-            {
-                text: "Close",
-                action: () => {
-                    // Logic handled by change listener
-                    // Dialog will close automatically by default action behavior in showDialog
-                    // if we don't prevent it.
-                    // But we should explicitly hide it if this action is called? 
-                    // showDialog impl: if (option.action !== hideDialog) hideDialog();
-                    // So this empty function will trigger hideDialog.
-                }
+        (() => {
+            const options = [];
+            if (deps.state && deps.state.character) {
+                options.push({
+                    text: "Exit to Main Menu",
+                    action: () => {
+                        import('./saveload-ui.js').then(m => m.exitToMainMenu());
+                    }
+                });
             }
-        ]
+            options.push({
+                text: "Close",
+                action: () => {}
+            });
+            return options;
+        })()
     );
 
     // Attach listener

@@ -155,6 +155,15 @@ export function showScreen(screenName) {
     if (screenName === 'exploring') {
         switchOperationsTab('cargo');
     }
+
+    const exitBtn = document.getElementById("exitHeaderBtn");
+    if (exitBtn) {
+        if (screenName !== 'start' && screenName !== 'characterCreation' && state && state.character) {
+            exitBtn.style.display = "block";
+        } else {
+            exitBtn.style.display = "none";
+        }
+    }
 }
 
 /**

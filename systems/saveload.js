@@ -1,6 +1,6 @@
 /**
  * Save/Load System Module
- * Handles game persistence, save/load, import/export
+ * Handles game persistence, save/load, import/export with slot support
  */
 
 import { restoreSavedRarityItems } from './rarity.js';
@@ -32,6 +32,15 @@ export function initSaveLoad(deps) {
 }
 
 /**
+ * Get the localStorage key for a specific slot
+ */
+export function getStorageKey(slot) {
+    const s = slot !== undefined ? slot : (state?.activeSaveSlot || 1);
+    if (Number(s) === 1) return STORAGE_KEY;
+    return `${STORAGE_KEY}_slot_${s}`;
+}
+
+/**
  * Get current game state as serializable object
  */
 function getGameState() {
@@ -49,24 +58,35 @@ function getGameState() {
         stats: state.stats || {},
         companions: state.companions || {},
         activeCompanion: state.activeCompanion || null,
-        companionCooldown: state.companionCooldown || 0
+        companionCooldown: state.companionCooldown || 0,
+        currentLocation: state.currentLocation || "terra_prime" // Fix missing location bug
     };
 }
 
 /**
  * Save game to localStorage
  */
-export function saveGame() {
+export function saveGame(slot) {
     if (!state.character) {
         alert("No game to save! Please create a character first.");
         return false;
     }
 
+    if (slot !== undefined) {
+        state.activeSaveSlot = slot;
+    }
+    const targetSlot = state.activeSaveSlot || 1;
+
     try {
         const saveData = getGameState();
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
-        addLog("💾 Game saved successfully!");
-        showSaveMessage("Game Saved!");
+        localStorage.setItem(getStorageKey(targetSlot), JSON.stringify(saveData));
+        if (Number(targetSlot) === 1) {
+            addLog("💾 Game saved successfully!");
+            showSaveMessage("Game Saved!");
+        } else {
+            addLog(`💾 Game saved successfully to Slot ${targetSlot}!`);
+            showSaveMessage(`Game Saved (Slot ${targetSlot})`);
+        }
         return true;
     } catch (error) {
         console.error("Error saving game:", error);
@@ -78,11 +98,16 @@ export function saveGame() {
 /**
  * Load game from localStorage
  */
-export function loadGame() {
+export function loadGame(slot) {
+    if (slot !== undefined) {
+        state.activeSaveSlot = slot;
+    }
+    const targetSlot = state.activeSaveSlot || 1;
+
     try {
-        const saveDataStr = localStorage.getItem(STORAGE_KEY);
+        const saveDataStr = localStorage.getItem(getStorageKey(targetSlot));
         if (!saveDataStr) {
-            alert("No saved game found!");
+            alert(`No saved game found in Slot ${targetSlot}!`);
             return false;
         }
 
@@ -117,6 +142,9 @@ export function loadGame() {
         }
         state.activeCompanion = saveData.activeCompanion || null;
         state.companionCooldown = saveData.companionCooldown || 0;
+        
+        // Restore currentLocation
+        state.currentLocation = saveData.currentLocation || "terra_prime";
 
         // Restore dynamic rarity items in catalog
         restoreSavedRarityItems(state.inventory, state.character?.equipment);
@@ -187,8 +215,13 @@ export function loadGame() {
             updateCombatUI();
         }
 
-        addLog("📂 Game loaded successfully!");
-        showSaveMessage("Game Loaded!");
+        if (Number(targetSlot) === 1) {
+            addLog("📂 Game loaded successfully!");
+            showSaveMessage("Game Loaded!");
+        } else {
+            addLog(`📂 Game loaded successfully from Slot ${targetSlot}!`);
+            showSaveMessage(`Game Loaded (Slot ${targetSlot})`);
+        }
         return true;
     } catch (error) {
         console.error("Error loading game:", error);
@@ -242,8 +275,8 @@ export function importGame() {
         reader.onload = (event) => {
             try {
                 const saveDataStr = event.target.result;
-                localStorage.setItem(STORAGE_KEY, saveDataStr);
-                loadGame();
+                localStorage.setItem(getStorageKey(1), saveDataStr);
+                loadGame(1);
                 addLog("📥 Game imported successfully!");
             } catch (error) {
                 console.error("Error importing game:", error);
@@ -258,24 +291,28 @@ export function importGame() {
 /**
  * Check if save exists
  */
-export function hasSaveGame() {
-    return localStorage.getItem(STORAGE_KEY) !== null;
+export function hasSaveGame(slot) {
+    return localStorage.getItem(getStorageKey(slot)) !== null;
 }
 
 /**
  * Delete save game
  */
-export function deleteSaveGame() {
-    if (!hasSaveGame()) {
+export function deleteSaveGame(slot) {
+    const targetSlot = slot !== undefined ? slot : (state.activeSaveSlot || 1);
+    const key = getStorageKey(targetSlot);
+    if (localStorage.getItem(key) === null) {
         alert("No saved game to delete!");
-        return;
+        return false;
     }
 
-    if (confirm("Are you sure you want to delete your saved game? This cannot be undone.")) {
-        localStorage.removeItem(STORAGE_KEY);
-        addLog("🗑️ Saved game deleted.");
-        showSaveMessage("Save Deleted!");
+    if (confirm(`Are you sure you want to delete Save Slot ${targetSlot}? This cannot be undone.`)) {
+        localStorage.removeItem(key);
+        addLog(`🗑️ Save Slot ${targetSlot} deleted.`);
+        showSaveMessage(`Slot ${targetSlot} Deleted!`);
+        return true;
     }
+    return false;
 }
 
 /**
@@ -285,8 +322,9 @@ export function autoSave() {
     if (state.character && state.gameState !== "start" && state.gameState !== "characterCreation" && state.gameState !== "defeat") {
         try {
             const saveData = getGameState();
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
-            console.log("Auto-saved game");
+            const targetSlot = state.activeSaveSlot || 1;
+            localStorage.setItem(getStorageKey(targetSlot), JSON.stringify(saveData));
+            console.log(`Auto-saved game to Slot ${targetSlot}`);
         } catch (error) {
             console.error("Auto-save failed:", error);
         }
@@ -297,17 +335,33 @@ export function autoSave() {
  * Initialize save system on page load
  */
 export function initializeSaveSystem() {
-    // Check if there's a saved game and show option to load
+    // Check if there's any saved game and show option to load
     const loadButton = document.getElementById("loadGameButton");
-    if (hasSaveGame()) {
-        const saveInfo = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        if (saveInfo && saveInfo.timestamp) {
-            const saveDate = new Date(saveInfo.timestamp);
-            const saveDateStr = saveDate.toLocaleString();
-            console.log(`Save game found from ${saveDateStr}`);
-            if (loadButton) {
-                loadButton.style.display = "block";
-                loadButton.title = `Last saved: ${saveDateStr}`;
+    let hasAnySave = false;
+    let lastSavedTime = null;
+    
+    for (let i = 1; i <= 3; i++) {
+        const key = getStorageKey(i);
+        const saveDataStr = localStorage.getItem(key);
+        if (saveDataStr) {
+            hasAnySave = true;
+            try {
+                const saveData = JSON.parse(saveDataStr);
+                if (saveData && saveData.timestamp) {
+                    const time = new Date(saveData.timestamp);
+                    if (!lastSavedTime || time > lastSavedTime) {
+                        lastSavedTime = time;
+                    }
+                }
+            } catch(e) {}
+        }
+    }
+    
+    if (hasAnySave) {
+        if (loadButton) {
+            loadButton.style.display = "block";
+            if (lastSavedTime) {
+                loadButton.title = `Last saved: ${lastSavedTime.toLocaleString()}`;
             }
         }
     } else {
@@ -315,4 +369,76 @@ export function initializeSaveSystem() {
             loadButton.style.display = "none";
         }
     }
+}
+
+/**
+ * Get slot metadata/info for rendering in the Save/Load modal
+ */
+export function getSlotInfo(slot) {
+    const key = getStorageKey(slot);
+    const saveDataStr = localStorage.getItem(key);
+    if (!saveDataStr) return { exists: false };
+    
+    try {
+        const saveData = JSON.parse(saveDataStr);
+        if (!saveData || !saveData.character) return { exists: false };
+        
+        const locationNames = {
+            terra_prime: "Terra Prime",
+            xylo_delta: "Xylo Delta",
+            nebula_outpost: "Nebula Outpost",
+            norkon_outpost: "Norkon Outpost"
+        };
+        const locId = saveData.currentLocation || "terra_prime";
+        const locName = locationNames[locId] || locId;
+
+        return {
+            exists: true,
+            name: saveData.character.name,
+            level: saveData.character.level || 1,
+            role: saveData.character.role || "Unknown",
+            locationName: locName,
+            timestamp: saveData.timestamp
+        };
+    } catch(e) {
+        console.error("Error reading slot metadata:", e);
+        return { exists: false };
+    }
+}
+
+/**
+ * Exit the active game and return to the main menu (start screen)
+ */
+export function exitToMainMenu() {
+    if (!state) return;
+    
+    state.character = null;
+    state.enemy = null;
+    state.inventory = [];
+    state.playerStatusEffects = [];
+    state.enemyStatusEffects = [];
+    state.gameState = "start";
+    state.currentLocation = "terra_prime";
+    
+    // Reset DOM screens
+    showScreen("start");
+    
+    // Clear log and inputs
+    const missionLog = document.getElementById("missionLog");
+    if (missionLog) missionLog.innerHTML = "";
+    
+    const nameInput = document.getElementById("nameInput");
+    if (nameInput) nameInput.value = "";
+    
+    // Toggle Exit button in header
+    const exitBtn = document.getElementById("exitHeaderBtn");
+    if (exitBtn) exitBtn.style.display = "none";
+    
+    // Update continue button
+    initializeSaveSystem();
+    
+    // Trigger general UI update
+    updateUI();
+    
+    addLog("🚪 Exited to Main Menu.");
 }
