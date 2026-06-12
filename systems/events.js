@@ -432,3 +432,82 @@ function triggerNPCEvent() {
         );
     }
 }
+
+/**
+ * Scan local frequencies for distress signals (bypasses standard exploration weights)
+ */
+export function scanForSignals() {
+    if (!state.character) return;
+    
+    const energyCost = 10;
+    const currentEnergy = state.character.energy ?? state.character.maxEnergy ?? 100;
+    if (currentEnergy < energyCost) {
+        addLog("⚠️ Not enough energy to scan for signals!");
+        updateUI();
+        return;
+    }
+    
+    state.character.energy = Math.max(0, currentEnergy - energyCost);
+    addLog("📡 Scanning local frequencies for distress signals (-10 Energy)...");
+    updateUI();
+    
+    // Roll the outcome
+    const roll = Math.random();
+    
+    if (roll < 0.60) {
+        // 60% chance to find a local signal / quest offer
+        import('./quests.js').then(m => {
+            const boardQuests = m.getJobBoardQuests();
+            if (boardQuests.length > 0) {
+                // Pick a random available quest
+                const quest = boardQuests[Math.floor(Math.random() * boardQuests.length)];
+                
+                showDialog(
+                    "📡 Distress Signal Intercepted",
+                    `You've decoded a distress signal from a local contact.<br><br>"Emergency transmission! We need assistance with a matter in this sector."<br><br><strong>Quest: ${quest.title}</strong><br>${quest.description}`,
+                    [
+                        {
+                            text: "Accept Contract",
+                            action: () => {
+                                m.acceptQuest(quest.id);
+                                addLog(`Accepted contract: ${quest.title}`);
+                                updateUI();
+                            }
+                        },
+                        {
+                            text: "Ignore Signal",
+                            action: () => {
+                                addLog("You filtered out the distress signal.");
+                            }
+                        }
+                    ]
+                );
+            } else {
+                addLog("📡 No distress signals detected in this quadrant.");
+            }
+        });
+    } else if (roll < 0.80) {
+        // 20% chance to locate a supply cache (Loot)
+        const lootTable = deps.data.locations[state.currentLocation]?.lootTable || ["Energy Cell", "Scrap Metal"];
+        const item = lootTable[Math.floor(Math.random() * lootTable.length)];
+        
+        let credits = 20 + Math.floor(Math.random() * 40);
+        addLog("📡 Signal scan revealed a hidden cargo container!");
+        
+        state.inventory.push(item);
+        state.character.credits = (state.character.credits || 0) + credits;
+        
+        addLog(`You salvaged 1 ${item} and ${credits} credits from the debris.`);
+        
+        import('./quests.js').then(m => {
+            m.checkQuestProgress("collect", item, 1);
+        });
+        updateUI();
+    } else {
+        // 20% chance to trigger an ambush (Combat)
+        addLog("⚠️ Danger! Your active scan signature attracted hostile entities!");
+        setTimeout(() => {
+            encounterEnemy();
+        }, 1000);
+    }
+}

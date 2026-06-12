@@ -6,7 +6,7 @@
 
 // Import Sub-modules
 import { initLogger, addLog, updateMissionLog, updateCombatLog } from './ui/logger.js';
-import { initQuestUI, toggleQuestLog, switchQuestTab, renderQuestList } from './ui/quest-ui.js';
+import { initQuestUI, toggleQuestLog, switchQuestTab, renderQuestList, showJobBoard } from './ui/quest-ui.js';
 import { initTravelUI, showTravelScreen, travelToLocation } from './ui/travel-ui.js';
 import { initShopUI, showShop, switchShopTab, updateShopUI } from './ui/shop-ui.js';
 import { initInventoryUI, updateInventory, createInventoryItemButton } from './ui/inventory-ui.js';
@@ -40,7 +40,8 @@ export {
     showVictoryMessage, showSaveMessage, 
     showDialog, hideDialog,
     showStatsAllocationUI, closeStatsAllocationUI, allocateStat,
-    showAchievementsUI, closeAchievementsUI
+    showAchievementsUI, closeAchievementsUI,
+    showJobBoard
 };
 
 import { items } from '../data/items.js';
@@ -529,48 +530,70 @@ export function renderSkillTree() {
     if (!container || !tree) return;
     
     spDisplay.textContent = state.character.skillPoints || 0;
-    if (roleDesc) roleDesc.textContent = `${role} Talents`;
+    if (roleDesc) roleDesc.textContent = `${role} Talents & Subroutines`;
     
     container.innerHTML = '';
+    // Use grid columns for side-by-side path layout
+    container.className = "grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar-cyan";
     
+    // Group skills by path (specialization)
+    const paths = {};
     tree.forEach(skill => {
-        const isUnlocked = hasSkill(skill.id);
-        const canUnlock = !isUnlocked && (!skill.requires || hasSkill(skill.requires));
-        const lackSp = state.character.skillPoints < skill.cost;
+        const pathName = skill.path || 'General';
+        if (!paths[pathName]) paths[pathName] = [];
+        paths[pathName].push(skill);
+    });
+    
+    Object.entries(paths).forEach(([pathName, pathSkills]) => {
+        const column = document.createElement('div');
+        column.className = "flex flex-col gap-4 bg-gray-900/40 p-4 border border-cyan-900/30 rounded-lg shadow-inner";
         
-        let statusClass = "border-gray-600 bg-gray-800 opacity-50";
-        if (isUnlocked) statusClass = "border-green-500 bg-green-900/40";
-        else if (canUnlock && !lackSp) statusClass = "border-yellow-500 bg-yellow-900/40 cursor-pointer hover:bg-yellow-800/60";
-        else if (canUnlock && lackSp) statusClass = "border-red-500 bg-red-900/20";
+        const pathHeader = document.createElement('h4');
+        pathHeader.className = "text-sm font-bold text-cyan-400 border-b border-cyan-900/50 pb-2 mb-2 uppercase tracking-widest font-mono text-center";
+        pathHeader.textContent = `⚡ ${pathName} Branch ⚡`;
+        column.appendChild(pathHeader);
         
-        const node = document.createElement('div');
-        node.className = `p-4 border-2 rounded-lg transition-all flex items-start gap-4 ${statusClass}`;
-        
-        node.innerHTML = `
-            <div class="text-4xl">${skill.icon}</div>
-            <div class="flex-grow">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-lg font-bold ${isUnlocked ? 'text-green-400' : 'text-blue-300'}">${skill.name}</h3>
-                    <span class="text-sm font-bold ${isUnlocked ? 'text-green-400' : 'text-yellow-400'}">${isUnlocked ? 'UNLOCKED' : `Cost: ${skill.cost} SP`}</span>
+        pathSkills.forEach(skill => {
+            const isUnlocked = hasSkill(skill.id);
+            const canUnlock = !isUnlocked && (!skill.requires || hasSkill(skill.requires));
+            const lackSp = state.character.skillPoints < skill.cost;
+            
+            let statusClass = "border-gray-800 bg-gray-950 opacity-40";
+            if (isUnlocked) statusClass = "border-green-500 bg-green-950/20 shadow-[0_0_8px_rgba(34,197,94,0.15)]";
+            else if (canUnlock && !lackSp) statusClass = "border-cyan-500 bg-cyan-950/20 cursor-pointer hover:bg-cyan-900/20 shadow-[0_0_8px_rgba(6,182,212,0.15)]";
+            else if (canUnlock && lackSp) statusClass = "border-yellow-600 bg-yellow-950/10";
+            
+            const node = document.createElement('div');
+            node.className = `p-3 border rounded transition-all flex items-start gap-3 ${statusClass}`;
+            
+            node.innerHTML = `
+                <div class="text-3xl">${skill.icon}</div>
+                <div class="flex-grow">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-sm font-bold ${isUnlocked ? 'text-green-400' : 'text-cyan-300'}">${skill.name}</h3>
+                        <span class="text-[10px] font-bold ${isUnlocked ? 'text-green-400' : 'text-yellow-500'} font-mono">${isUnlocked ? 'UNLOCKED' : `Cost: ${skill.cost} SP`}</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">${skill.description}</p>
+                    ${skill.requires && !hasSkill(skill.requires) ? `<p class="text-[9px] text-red-400 mt-1 font-mono">Requires: ${tree.find(s => s.id === skill.requires)?.name || skill.requires}</p>` : ''}
                 </div>
-                <p class="text-sm text-gray-300 mt-1">${skill.description}</p>
-                ${skill.requires && !hasSkill(skill.requires) ? `<p class="text-xs text-red-400 mt-1">Requires previous tier skill.</p>` : ''}
-            </div>
-        `;
+            `;
+            
+            if (canUnlock && !lackSp) {
+                node.onclick = () => {
+                    const res = unlockSkill(skill.id);
+                    if (res.success) {
+                        renderSkillTree();
+                        updateUI();
+                    } else {
+                        addLog(res.message);
+                    }
+                };
+            }
+            
+            column.appendChild(node);
+        });
         
-        if (canUnlock && !lackSp) {
-            node.onclick = () => {
-                const res = unlockSkill(skill.id);
-                if (res.success) {
-                    renderSkillTree();
-                    updateUI();
-                } else {
-                    addLog(res.message);
-                }
-            };
-        }
-        
-        container.appendChild(node);
+        container.appendChild(column);
     });
 }
 

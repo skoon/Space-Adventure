@@ -130,3 +130,71 @@ export function renderQuestList() {
         list.appendChild(div);
     });
 }
+
+/**
+ * Show Job Board Modal
+ */
+export function showJobBoard() {
+    const modal = document.getElementById("jobBoardModal");
+    if (!modal) return;
+
+    modal.classList.remove("hidden");
+    modal.style.display = "flex";
+    renderJobBoardList();
+}
+
+/**
+ * Render Job Board Postings
+ */
+export function renderJobBoardList() {
+    const container = document.getElementById("jobBoardContainer");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    import('../quests.js').then(m => {
+        const boardQuests = m.getJobBoardQuests();
+
+        if (boardQuests.length === 0) {
+            container.innerHTML = `<div class="text-gray-400 text-center col-span-3 italic p-8">No contracts available in this sector.</div>`;
+            return;
+        }
+
+        boardQuests.forEach(quest => {
+            const card = document.createElement("div");
+            card.className = "bg-gray-800/80 p-4 border border-cyan-900/40 rounded flex flex-col justify-between shadow-inner";
+
+            let rewardsText = "";
+            if (quest.rewards) {
+                if (quest.rewards.xp) rewardsText += `${quest.rewards.xp} XP `;
+                if (quest.rewards.items) rewardsText += `+ [${quest.rewards.items.join(", ")}]`;
+            }
+
+            card.innerHTML = `
+                <div class="mb-4">
+                    <h3 class="text-sm font-bold text-cyan-400 mb-2 font-mono uppercase tracking-wide">${quest.title}</h3>
+                    <p class="text-xs text-gray-300 mb-2 font-sans leading-relaxed">${quest.description}</p>
+                    <div class="text-[10px] text-yellow-500 font-mono mt-3">
+                        Rewards: ${rewardsText}
+                    </div>
+                </div>
+                <button
+                    id="acceptBtn_${quest.id}"
+                    class="w-full py-2 px-3 bg-cyan-950/60 hover:bg-cyan-900/85 border border-cyan-800 text-cyan-400 rounded font-bold font-mono text-[10px] uppercase tracking-widest transition-all shadow-[0_0_6px_rgba(6,182,212,0.15)]"
+                >
+                    Accept Contract
+                </button>
+            `;
+
+            const btn = card.querySelector(`#acceptBtn_${quest.id}`);
+            if (btn) {
+                btn.onclick = () => {
+                    m.acceptQuest(quest.id);
+                    renderJobBoardList(); // Refresh board to replace accepted quest
+                };
+            }
+
+            container.appendChild(card);
+        });
+    });
+}

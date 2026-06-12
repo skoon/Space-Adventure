@@ -549,5 +549,112 @@ export function applyQuestItem(itemName) {
     return itemUsed;
 }
 
+/**
+ * Generate a dynamic quest for a location
+ */
+export function generateDynamicQuest(locationId) {
+    if (!state.character) return null;
+    
+    const id = `dynamic_${locationId}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const level = state.character.level || 1;
+    
+    const targets = {
+        terra_prime: {
+            enemies: ["Xenobot"],
+            items: ["Scrap Metal", "Rusty Pipe"]
+        },
+        xylo_delta: {
+            enemies: ["Xenobot", "Plasmavore"],
+            items: ["Sand Sample", "Ancient Shard"]
+        },
+        nebula_outpost: {
+            enemies: ["Void Corsair Reaver"],
+            items: ["Data Chip", "Alien Alloy"]
+        },
+        norkon_outpost: {
+            enemies: ["Xenobot", "Void Corsair Reaver"],
+            items: ["Data Chip", "Energy Cell"]
+        }
+    };
+    
+    const locData = targets[locationId] || { enemies: ["Xenobot"], items: ["Scrap Metal"] };
+    const questType = Math.random() < 0.5 ? "kill" : "collect";
+    
+    let target, amount, title, description, rewards;
+    
+    if (questType === "kill") {
+        target = locData.enemies[Math.floor(Math.random() * locData.enemies.length)];
+        amount = 2 + Math.floor(Math.random() * 2); // 2-3
+        title = `Bounty: ${target}s`;
+        description = `Defeat ${amount} ${target}s in this sector to maintain regional safety.`;
+        rewards = {
+            xp: 40 * level,
+            items: Math.random() < 0.5 ? ["Energy Cell"] : ["Nano Stimpack"]
+        };
+    } else {
+        target = locData.items[Math.floor(Math.random() * locData.items.length)];
+        amount = 1 + Math.floor(Math.random() * 2); // 1-2
+        title = `Acquisition: ${target}`;
+        description = `Collect and turn in ${amount} ${target}(s) for scientific analysis.`;
+        rewards = {
+            xp: 35 * level,
+            items: Math.random() < 0.5 ? ["Energy Cell"] : ["Nano Stimpack"]
+        };
+    }
+    
+    const newQuest = {
+        id,
+        title,
+        description,
+        type: questType,
+        target,
+        amount,
+        rewards,
+        isMainStory: false,
+        requiredPlanet: locationId,
+        isDynamic: true
+    };
+    
+    // Inject into global quests dataset
+    quests[id] = newQuest;
+    return newQuest;
+}
+
+/**
+ * Get available quests for the Job Board on the current location
+ */
+export function getJobBoardQuests() {
+    if (!state.character) return [];
+    
+    const currentLocation = state.currentLocation;
+    
+    // Find all non-active, non-completed quests for current planet
+    let available = Object.values(quests).filter(q => {
+        if (state.character.activeQuests[q.id] || state.character.completedQuests.includes(q.id)) return false;
+        if (q.requiredPlanet && q.requiredPlanet !== currentLocation) return false;
+        if (q.derelictOnly) return false;
+        
+        // Faction Standing Gating
+        if (q.requiredFaction && state.character.factions) {
+            const { faction, min } = q.requiredFaction;
+            if ((state.character.factions[faction] || 0) < min) return false;
+        }
+        
+        return true;
+    });
+    
+    // If fewer than 3 available, generate dynamic quests to fill the board to 3
+    while (available.length < 3) {
+        const dynQuest = generateDynamicQuest(currentLocation);
+        if (dynQuest) {
+            available.push(dynQuest);
+        } else {
+            break;
+        }
+    }
+    
+    return available;
+}
+
 
 

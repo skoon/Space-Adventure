@@ -220,6 +220,23 @@ export function calculateDamageAndApplyCombos(baseDmg, dmgType) {
         state.enemyStatusEffects = state.enemyStatusEffects.filter(e => e.type !== "frozen");
         addLog(`❄️ SHATTER! Physical damage shattered the Frozen ${state.enemy.name} for 2x damage!`);
     }
+
+    // Opportunist: Deal +20% damage to poisoned or stunned enemies
+    const isPoisonedOrStunned = state.enemyStatusEffects.some(e => e.type === "poison" || e.type === "stunned");
+    if (isPoisonedOrStunned) {
+        const opportunistMult = getPassiveBonus('opportunistDmg') || 0;
+        if (opportunistMult > 0) {
+            finalDmg = Math.floor(finalDmg * (1 + opportunistMult));
+        }
+    }
+
+    // Plasma Overcharge: Plasma damage deals +20% extra damage
+    if (dmgType === "Plasma") {
+        const plasmaMult = getPassiveBonus('plasmaDmgMultiplier') || 0;
+        if (plasmaMult > 0) {
+            finalDmg = Math.floor(finalDmg * (1 + plasmaMult));
+        }
+    }
     
     return finalDmg;
 }
@@ -569,6 +586,75 @@ export function updateCombatUI() {
         } else {
             stanceBtn1.className = `py-1 px-3 bg-gray-700 hover:bg-gray-650 text-gray-200 rounded text-xs font-bold transition-colors border border-gray-600 ${state.character.ap < 1 ? "opacity-50 cursor-not-allowed" : ""}`;
         }
+    }
+
+    // Render dynamic active skills
+    const skillsContainer = document.getElementById("combatActiveSkillsContainer");
+    if (skillsContainer) {
+        skillsContainer.innerHTML = "";
+        
+        const activeSkills = [];
+        if (state.character.role === "Warrior" && hasSkill('warrior_shield_wall')) {
+            activeSkills.push({
+                id: 'warrior_shield_wall',
+                name: '🔰 Shield Wall',
+                ap: 1,
+                energy: 20,
+                action: 'useShieldWall'
+            });
+        }
+        if (state.character.role === "Rogue" && hasSkill('rogue_smoke_bomb')) {
+            activeSkills.push({
+                id: 'rogue_smoke_bomb',
+                name: '🌫️ Smoke Bomb',
+                ap: 1,
+                energy: 25,
+                action: 'useSmokeBomb'
+            });
+        }
+        if (state.character.role === "Scientist") {
+            if (hasSkill('sci_nanite_repair')) {
+                activeSkills.push({
+                    id: 'sci_nanite_repair',
+                    name: '🧪 Nanite Repair',
+                    ap: 1,
+                    energy: 30,
+                    action: 'useNaniteRepair'
+                });
+            }
+            if (hasSkill('sci_acid_spray')) {
+                activeSkills.push({
+                    id: 'sci_acid_spray',
+                    name: '💨 Acid Spray',
+                    ap: 1,
+                    energy: 30,
+                    action: 'useAcidSpray'
+                });
+            }
+        }
+        
+        activeSkills.forEach(skill => {
+            const hasEnergy = currentEnergy >= skill.energy;
+            const hasAp = state.character.ap >= skill.ap;
+            const disabled = !hasEnergy || !hasAp || (activeStance === "Shadow");
+            
+            const btn = document.createElement("button");
+            btn.className = `py-2 px-3 rounded font-bold transition-all text-xs flex items-center justify-center gap-1 border border-cyan-800 ${
+                !disabled 
+                    ? "bg-cyan-950/80 text-cyan-400 hover:bg-cyan-900/80 shadow-[0_0_6px_rgba(6,182,212,0.2)]" 
+                    : "bg-gray-800 text-gray-500 opacity-50 cursor-not-allowed border-gray-700"
+            }`;
+            btn.disabled = disabled;
+            btn.innerHTML = `<span>${skill.name}</span> <span class="text-[9px] text-gray-400">(${skill.ap} AP, ${skill.energy} E)</span>`;
+            
+            btn.onclick = () => {
+                import('./combat.js').then(m => {
+                    m[skill.action]();
+                });
+            };
+            
+            skillsContainer.appendChild(btn);
+        });
     }
 }
 
@@ -972,6 +1058,14 @@ export function enemyTurn() {
             updateCombatLog();
             // Regenerate energy
             state.character.energy = Math.min(state.character.maxEnergy, (state.character.energy || state.character.maxEnergy) + 5);
+            
+            // Fleeting Shadow bonus: Regain 10 additional Energy and 1 AP
+            if (hasSkill('rogue_fleeting_shadow')) {
+                state.character.energy = Math.min(state.character.maxEnergy, (state.character.energy || state.character.maxEnergy) + 10);
+                state.character.ap = Math.min(state.character.maxAp || 3, (state.character.ap || 0) + 1);
+                addLog(`👻 Fleeting Shadow: Regained 10 Energy and 1 Action Point!`);
+            }
+            
             updateCombatUI();
             return;
         } else {
@@ -1148,6 +1242,13 @@ export function winCombat() {
     // Restore energy on victory
     state.character.energy = state.character.maxEnergy;
 
+    // Bloodlust heal on kill passive
+    const healOnKill = getPassiveBonus('healOnKill') || 0;
+    if (healOnKill > 0 && state.character.hp < state.character.maxHp) {
+        state.character.hp = Math.min(state.character.maxHp, state.character.hp + healOnKill);
+        addLog(`🩸 Bloodlust: Restored ${healOnKill} HP on victory!`);
+    }
+
     // Rewards
     gainXp(xpGained);
     checkQuestProgress("kill", enemyName, 1);
@@ -1285,4 +1386,128 @@ export function triggerCompanionAbility() {
     updateCombatLog();
     updateCombatUI();
     updateUI();
+}
+
+export function useShieldWall() {
+    if (!state.character || !state.enemy || state.character.ap < 1) return;
+    const energyCost = 20;
+    const currentEnergy = state.character.energy ?? state.character.maxEnergy ?? 100;
+    if (currentEnergy < energyCost) {
+        addLog("⚠️ Not enough energy to use Shield Wall!");
+        updateCombatLog();
+        return;
+    }
+    state.character.ap -= 1;
+    state.character.energy = Math.max(0, currentEnergy - energyCost);
+    state.playerStatusEffects = [
+        ...state.playerStatusEffects.filter(e => e.type !== "defenseBoost"),
+        { type: "defenseBoost", value: 8, duration: 3 }
+    ];
+    addLog("🔰 SHIELD WALL! You raise a defensive barrier, boosting defense (+8) for 3 turns.");
+    updateCombatLog();
+    updateCombatUI();
+    updateUI();
+    if (state.character.ap <= 0) enemyTurn();
+}
+
+export function useSmokeBomb() {
+    if (!state.character || !state.enemy || state.character.ap < 1) return;
+    const energyCost = 25;
+    const currentEnergy = state.character.energy ?? state.character.maxEnergy ?? 100;
+    if (currentEnergy < energyCost) {
+        addLog("⚠️ Not enough energy to use Smoke Bomb!");
+        updateCombatLog();
+        return;
+    }
+    state.character.ap -= 1;
+    state.character.energy = Math.max(0, currentEnergy - energyCost);
+    
+    const passiveDodge = getPassiveBonus('dodgeChance');
+    const dodgeChance = 0.6 + passiveDodge;
+    
+    state.playerStatusEffects = [
+        ...state.playerStatusEffects.filter(e => e.type !== "dodging"),
+        { type: "dodging", chance: dodgeChance, duration: 2 }
+    ];
+    addLog("🌫️ SMOKE BOMB! You disappear in a cloud of smoke, boosting dodge chance (60%) for 2 turns.");
+    updateCombatLog();
+    updateCombatUI();
+    updateUI();
+    if (state.character.ap <= 0) enemyTurn();
+}
+
+export function useNaniteRepair() {
+    if (!state.character || !state.enemy || state.character.ap < 1) return;
+    const energyCost = 30;
+    const currentEnergy = state.character.energy ?? state.character.maxEnergy ?? 100;
+    if (currentEnergy < energyCost) {
+        addLog("⚠️ Not enough energy to use Nanite Repair!");
+        updateCombatLog();
+        return;
+    }
+    state.character.ap -= 1;
+    state.character.energy = Math.max(0, currentEnergy - energyCost);
+    
+    const baseHeal = 40;
+    const healMultiplier = getPassiveBonus('healMultiplier') || 0;
+    const finalHeal = Math.floor(baseHeal * (1 + healMultiplier));
+    
+    state.character.hp = Math.min(state.character.maxHp, state.character.hp + finalHeal);
+    
+    const negativeEffects = ["poison", "burn", "burning", "frozen", "defenseBreak", "broken", "stunned"];
+    state.playerStatusEffects = state.playerStatusEffects.filter(e => !negativeEffects.includes(e.type));
+    
+    addLog(`🧪 NANITE REPAIR! You healed for ${finalHeal} HP and purged all negative status effects.`);
+    updateCombatLog();
+    updateCombatUI();
+    updateUI();
+    if (state.character.ap <= 0) enemyTurn();
+}
+
+export function useAcidSpray() {
+    if (!state.character || !state.enemy || state.character.ap < 1) return;
+    const energyCost = 30;
+    const currentEnergy = state.character.energy ?? state.character.maxEnergy ?? 100;
+    if (currentEnergy < energyCost) {
+        addLog("⚠️ Not enough energy to use Acid Spray!");
+        updateCombatLog();
+        return;
+    }
+    state.character.ap -= 1;
+    state.character.energy = Math.max(0, currentEnergy - energyCost);
+    
+    const stats = getEffectiveStats();
+    let effectiveAttack = stats.attack + getPassiveBonus('attack');
+    
+    const plasmaMult = getPassiveBonus('plasmaDmgMultiplier') || 0;
+    
+    const isMelted = state.enemyStatusEffects.some(e => e.type === "melted");
+    const enemyDefense = Math.max(0, state.enemy.defense - (isMelted ? 5 : 0));
+    
+    let baseDamage = Math.max(0, effectiveAttack - enemyDefense);
+    baseDamage = calculateDamageAndApplyCombos(baseDamage, "Plasma");
+    
+    let mult = 1.5 * (1 + plasmaMult);
+    const damage = Math.floor(baseDamage * mult);
+    
+    state.enemy.hp = Math.max(0, state.enemy.hp - damage);
+    
+    state.enemyStatusEffects = [
+        ...state.enemyStatusEffects.filter(e => e.type !== "melted"),
+        { type: "melted", duration: 3 }
+    ];
+    
+    addLog(`🧪 ACID SPRAY! You deal ${damage} Plasma damage and apply Melted (-5 Defense) to ${state.enemy.name} for 3 turns!`);
+    
+    checkPhaseTransition();
+    dealStaggerDamage(20);
+    updateCombatLog();
+    updateCombatUI();
+    updateUI();
+    
+    if (state.enemy.hp <= 0) {
+        winCombat();
+    } else if (state.character.ap <= 0) {
+        enemyTurn();
+    }
 }

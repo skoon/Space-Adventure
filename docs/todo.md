@@ -190,6 +190,7 @@
 - [x] **Auto-Save** - Automatic saving at key moments
 - [x] **Save/Load UI** - Interface for managing saves
 - [x] **Export/Import** - JSON file export and import functionality
+- [ ] **Start New Game & List Saved Games** - Add interface to list saved games and start a new game session
 
 ### Achievement System
 

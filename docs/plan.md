@@ -67,3 +67,34 @@
   - *Ice Planet (Crio-Prime):* Cryo-parasites that drain AP (Action Points) on hit or freeze character actions.
   - *Derelict Ships / Anomalies:* Phasing shadow-beasts that are immune to physical attacks (requiring energy weapons or shields) and rogue security units that hack shield capacitors.
 - **Environmental Combat Modifiers:** Planetary hazards modify the combat arena (e.g., high gravity doubling AP cost for heavy movement/attacks, solar radiation draining energy per turn, vacuum environments constantly depleting Oxygen).
+
+### 2. Multi-Slot Save Management & Saved Games UI
+**How it works:** Transition the single-slot save system to a multi-slot system, allowing players to start multiple playthroughs, select saves from a list on the main menu, and delete unwanted saves.
+**Mechanics:**
+- **Save Registry**: Keep a list of all saved playthroughs under a central localStorage key (`galacticOdyssey_saves_list`) containing metadata such as name, level, race, role, location, and timestamp.
+- **Isolated Playthrough States**: Store each playthrough state under its own unique key: `galacticOdyssey_save_${id}`.
+- **Main Menu UI**: Render a "Saved Games" load modal with character details and load/delete options, and update the "Begin Your Journey" flow to assign new unique save IDs upon character creation.
+
+### 3. Tactical Space-Combat & Ship Defense Events
+**How it works:** Add random space combat events while traveling between planets. The player's ship modules (weapons, shields, engines) are put to the test in text-based tactical choices or ship-to-ship battles.
+**Mechanics:**
+- **Ship Stats**: Introduce Ship Shield HP and Ship Weapon Systems (upgradable modules).
+- **Combat Events**: Allow choices during transit such as "Fire Torpedoes (costs Energy)", "Recharge Deflector Shields (costs Scrap)", or "Evasive Maneuvers (roll engine speed check)".
+
+### 4. Sector Reputation & Faction Influence Zone
+**How it works:** The galaxy is controlled by factions (Federation, Corsairs, Syndicate). The player's faction reputation unlocks unique sector perks or hazards.
+**Mechanics:**
+- **Faction Security Levels**: Hostile sectors require higher engine levels or trigger more frequent ambushes.
+- **Outpost Rewards**: Friendly sectors offer discounts at shops, faction-exclusive quests, and unique companion recruitment options.
+
+### 5. Cybernetic Overcharge & Skill Synergies
+**How it works:** Connect the Cybernetics system to the character's skill tree.
+**Mechanics:**
+- **Augmentation Synergy**: Installing specific implant sets (e.g., Arms + Head implants) unlocks unique passive traits, like "Target Lock" (+20% Critical Stacking in Berserker stance) or "Nanite Shielding" (Companion Lyra's heals also grant temporary defense).
+
+### 6. Derelict Ship Boss Raids & Unique Blueprints
+**How it works:** Expand derelict ship exploration with rare end-room Boss encounters.
+**Mechanics:**
+- **Legendary Blueprint Drops**: Defeating a Derelict Boss drops rare blueprints (e.g., "Quantum Shield Core Recipe").
+- **Crafting Extensions**: Players can use the crafting system to craft legendary-tier accessories or cybernetic enhancements.
+
