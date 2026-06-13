@@ -19,7 +19,7 @@ export const locations = {
     coordinates: { x: 400, y: 150 },
     theme: "theme-desert",
     travelCost: 100,
-    lootTable: ["Sand Sample", "Ancient Shard", "Scrap Metal", "Credits"]
+    lootTable: ["Sand Sample", "Ancient Shard", "Scrap Metal", "Plasma Core", "Cargo Container", "Credits"]
   },
   "nebula_outpost": {
     id: "nebula_outpost",
@@ -30,7 +30,7 @@ export const locations = {
     coordinates: { x: 600, y: 400 },
     theme: "theme-space",
     travelCost: 250,
-    lootTable: ["Data Chip", "Alien Alloy", "Energy Cell", "Credits"]
+    lootTable: ["Data Chip", "Alien Alloy", "Quantum Chip", "Energy Cell", "Credits"]
   },
   "norkon_outpost": {
     id: "norkon_outpost",
@@ -41,6 +41,6 @@ export const locations = {
     coordinates: { x: 200, y: 100 },
     theme: "theme-space",
     travelCost: 250,
-    lootTable: ["Data Chip", "Alien Alloy", "Energy Cell", "Credits"]
+    lootTable: ["Data Chip", "Alien Alloy", "Quantum Chip", "Energy Cell", "Credits"]
   },
 };

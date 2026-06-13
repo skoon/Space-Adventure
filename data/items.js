@@ -22,6 +22,7 @@ export const items = {
   "Rare Earth Elements": { type: "material", category: "material", description: "Rare earth elements used in advanced technology.", price: 1000, stackable: true },  
   "Industrial Compressor": { type: "material", category: "material", description: "An industrial compressor for compressing materials.", price: 1200, stackable: true },  
   "Medical Synthesizer": { type: "material", category: "material", description: "A medical synthesizer for creating medical supplies.", price: 1500, stackable: true },
+  "Cargo Container": { type: "material", category: "material", description: "A heavy shipping crate containing valuable cargo.", price: 400, stackable: true },
   
 
   // Weapons
