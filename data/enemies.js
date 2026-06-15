@@ -8,7 +8,16 @@ export const enemies = [
   { name: "Derelict Security Drone", hp: 75, attack: 16, defense: 6, locations: ["derelict"], drops: ["Circuit Board", "Scrap Metal"] },
   { name: "Infestation Swarm", hp: 55, attack: 14, defense: 2, locations: ["derelict"], drops: ["Bio-Gel", "Alien Crystal"] },
   { name: "Mutated Crewmate", hp: 85, attack: 18, defense: 4, locations: ["derelict"], drops: ["Rusty Pipe", "Medical Synthesizer"] },
-  { name: "Void Corsair Raider", hp: 100, attack: 24, defense: 5, locations: ["derelict"], drops: ["Energy Cell", "Titanium Ingot"] }
+  { name: "Void Corsair Raider", hp: 100, attack: 24, defense: 5, locations: ["derelict"], drops: ["Energy Cell", "Titanium Ingot"] },
+  // Inferno-IX Enemies
+  { name: "Magma Elemental", hp: 90, attack: 16, defense: 4, locations: ["inferno_ix"], drops: ["Plasma Core", "Energy Cell"] },
+  { name: "Ashen Hulk", hp: 150, attack: 14, defense: 8, locations: ["inferno_ix"], drops: ["Titanium Ingot", "Alien Alloy"] },
+  // Crio-Prime Enemies
+  { name: "Frost parasite", hp: 70, attack: 12, defense: 3, locations: ["crio_prime"], drops: ["Nano Stimpack", "Bio-Gel"] },
+  { name: "Cryo Drake", hp: 120, attack: 20, defense: 6, locations: ["crio_prime"], drops: ["Alien Crystal", "Titanium Ingot"] },
+  // Additional Derelict / Anomaly Enemies
+  { name: "Eldritch Shade", hp: 80, attack: 18, defense: 2, locations: ["derelict"], drops: ["Ancient Shard", "Alien Crystal"] },
+  { name: "Security Sentinel", hp: 90, attack: 15, defense: 8, locations: ["derelict"], drops: ["Circuit Board", "Quantum Chip"] }
 ];
 
 export const bosses = [

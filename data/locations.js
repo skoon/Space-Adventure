@@ -43,4 +43,28 @@ export const locations = {
     travelCost: 250,
     lootTable: ["Data Chip", "Alien Alloy", "Quantum Chip", "Energy Cell", "Credits"]
   },
+  "inferno_ix": {
+    id: "inferno_ix",
+    name: "Inferno-IX",
+    description: "A volcanic hellscape rich in rare metals, but plagued by extreme heat.",
+    hazardLevel: 4,
+    engineLevelReq: 2,
+    coordinates: { x: 300, y: 350 },
+    theme: "theme-volcanic",
+    travelCost: 300,
+    lootTable: ["Titanium Ingot", "Plasma Core", "Scrap Metal", "Credits"],
+    environment: "Solar Radiation"
+  },
+  "crio_prime": {
+    id: "crio_prime",
+    name: "Crio-Prime",
+    description: "An icy wasteland where sub-zero temperatures freeze machinery and flesh alike.",
+    hazardLevel: 4,
+    engineLevelReq: 3,
+    coordinates: { x: 700, y: 200 },
+    theme: "theme-ice",
+    travelCost: 400,
+    lootTable: ["Alien Crystal", "Bio-Gel", "Quantum Chip", "Credits"],
+    environment: "High Gravity"
+  }
 };

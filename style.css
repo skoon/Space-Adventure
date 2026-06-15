@@ -408,6 +408,16 @@ header button:hover {
   --primary-color: #6366f1;
 }
 
+.theme-volcanic {
+  background: linear-gradient(to bottom, #111827, #991b1b);
+  --primary-color: #ef4444;
+}
+
+.theme-ice {
+  background: linear-gradient(to bottom, #111827, #0369a1);
+  --primary-color: #38bdf8;
+}
+
 /* Map Visualization */
 .map-container {
   background-color: #000;

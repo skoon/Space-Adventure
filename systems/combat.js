@@ -7,7 +7,7 @@ import { COMPANIONS, getCompanionAbilityValue, resetCompanionTalkFlags } from '.
 let state;
 
 // Data and DOM references
-let enemies, bosses, combatElements;
+let enemies, bosses, locations, combatElements;
 
 // Import functions from other modules
 let addLog, updateCombatLog, showScreen, updateUI;
@@ -27,6 +27,7 @@ export function initCombat(deps) {
     // Data
     enemies = deps.data.enemies;
     bosses = deps.data.bosses;
+    locations = deps.data.locations;
     combatElements = deps.dom.combatElements;
 
     // Functions
@@ -42,6 +43,20 @@ export function initCombat(deps) {
     showVictoryMessage = deps.ui.showVictoryMessage;
     simulateExploration = deps.exploration.simulateExploration;
     getDifficulty = deps.settings ? deps.settings.getDifficulty : null;
+}
+
+/**
+ * Get the active environment/hazard of the current location
+ */
+export function getActiveEnvironment() {
+    if (state.gameState !== "combat") return null;
+    if (state.derelict && state.derelict.active) {
+        return "Vacuum";
+    }
+    if (state.currentLocation && locations && locations[state.currentLocation]) {
+        return locations[state.currentLocation].environment || null;
+    }
+    return null;
 }
 
 /**
@@ -237,6 +252,17 @@ export function calculateDamageAndApplyCombos(baseDmg, dmgType) {
             finalDmg = Math.floor(finalDmg * (1 + plasmaMult));
         }
     }
+
+    // Ashen Hulk: high fire/plasma defense, weak to Cryo
+    if (state.enemy && state.enemy.name === "Ashen Hulk") {
+        if (dmgType === "Thermal" || dmgType === "Plasma") {
+            finalDmg = Math.floor(finalDmg * 0.5);
+            addLog(`🔥 Ashen Hulk resists ${dmgType} damage!`);
+        } else if (dmgType === "Cryo") {
+            finalDmg = Math.floor(finalDmg * 1.5);
+            addLog(`❄️ Ashen Hulk is weak to Cryo damage!`);
+        }
+    }
     
     return finalDmg;
 }
@@ -368,6 +394,30 @@ export function selectStance(index) {
 export function updateCombatUI() {
     if (!state.character || !state.enemy) return;
 
+    // Update combat environment warning banner
+    const activeEnv = getActiveEnvironment();
+    const envBanner = document.getElementById("combatEnvironmentBanner");
+    const envText = document.getElementById("combatEnvironmentText");
+    if (envBanner && envText) {
+        if (activeEnv) {
+            envBanner.classList.remove("hidden");
+            let desc = "";
+            if (activeEnv === "High Gravity") {
+                desc = "HIGH GRAVITY: Melee attacks cost +1 AP, Dodge costs +1 AP";
+                envBanner.className = "bg-orange-955/80 border border-orange-500 rounded-lg p-2 text-center text-xs font-bold text-orange-300 flex items-center justify-center gap-2 mb-2";
+            } else if (activeEnv === "Solar Radiation") {
+                desc = "SOLAR RADIATION: Drains 5 Energy at the end of each turn";
+                envBanner.className = "bg-red-950/80 border border-red-500 rounded-lg p-2 text-center text-xs font-bold text-red-300 flex items-center justify-center gap-2 mb-2";
+            } else if (activeEnv === "Vacuum") {
+                desc = "VACUUM (NO LIFE SUPPORT): Drains 1 Oxygen per turn. Running out drains 10% max HP";
+                envBanner.className = "bg-sky-950/80 border border-sky-500 rounded-lg p-2 text-center text-xs font-bold text-sky-300 flex items-center justify-center gap-2 mb-2";
+            }
+            envText.textContent = `⚠️ ENVIRONMENTAL HAZARD: ${desc}`;
+        } else {
+            envBanner.classList.add("hidden");
+        }
+    }
+
     const activeDefenseBoost = state.playerStatusEffects.find(e => e.type === "defenseBoost");
     const effectiveDefense = state.character.defense + (activeDefenseBoost?.value || 0);
     const currentEnergy = state.character.energy ?? state.character.maxEnergy ?? 100;
@@ -400,14 +450,18 @@ export function updateCombatUI() {
 
     const activeStance = state.combatStance || "Neutral";
     const isShadow = activeStance === "Shadow";
+    const isHighGravity = activeEnv === "High Gravity";
+    const attackApCost = isHighGravity ? 3 : 2;
+    const dodgeApCost = isHighGravity ? 2 : 1;
     
     const attackBtn = document.querySelector('button[onclick="playerAttack()"]');
     const blockBtn = document.querySelector('button[onclick="playerBlock()"]');
     const dodgeBtn = document.querySelector('button[onclick="playerDodge()"]');
     const itemBtn = document.querySelector('button[onclick="openCombatItemMenu()"]');
     if (attackBtn) {
-        attackBtn.disabled = state.character.ap < 2;
-        attackBtn.className = `py-3 px-4 bg-red-600 hover:bg-red-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < 2 ? "opacity-50 cursor-not-allowed" : ""}`;
+        attackBtn.disabled = state.character.ap < attackApCost;
+        attackBtn.innerHTML = `<span>⚔️</span> Attack (${attackApCost} AP)`;
+        attackBtn.className = `py-3 px-4 bg-red-600 hover:bg-red-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < attackApCost ? "opacity-50 cursor-not-allowed" : ""}`;
     }
     if (blockBtn) {
         if (isShadow) {
@@ -423,8 +477,9 @@ export function updateCombatUI() {
             dodgeBtn.disabled = true;
             dodgeBtn.className = "py-3 px-4 bg-gray-750 text-gray-500 rounded font-bold flex items-center justify-center gap-2 opacity-50 cursor-not-allowed border border-gray-700";
         } else {
-            dodgeBtn.disabled = state.character.ap < 1;
-            dodgeBtn.className = `py-3 px-4 bg-green-600 hover:bg-green-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < 1 ? "opacity-50 cursor-not-allowed" : ""}`;
+            dodgeBtn.disabled = state.character.ap < dodgeApCost;
+            dodgeBtn.innerHTML = `<span>💨</span> Dodge (${dodgeApCost} AP)`;
+            dodgeBtn.className = `py-3 px-4 bg-green-600 hover:bg-green-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < dodgeApCost ? "opacity-50 cursor-not-allowed" : ""}`;
         }
     }
     if (itemBtn) {
@@ -662,8 +717,16 @@ export function updateCombatUI() {
  * Player performs a basic attack
  */
 export function playerAttack() {
-    if (!state.character || !state.enemy || state.character.ap < 2) return;
-    state.character.ap -= 2;
+    const isHighGravity = getActiveEnvironment() === "High Gravity";
+    const attackApCost = isHighGravity ? 3 : 2;
+    if (!state.character || !state.enemy || state.character.ap < attackApCost) {
+        if (state.character && state.enemy && state.character.ap < attackApCost) {
+            addLog(`⚠️ Not enough Action Points! Attack costs ${attackApCost} AP in High Gravity.`);
+            updateCombatLog();
+        }
+        return;
+    }
+    state.character.ap -= attackApCost;
 
     if (state.character.hp <= 0) {
         addLog("You succumbed to your injuries...");
@@ -701,6 +764,22 @@ export function playerAttack() {
     let baseDamage = Math.max(1, (stats.attack + passiveAttack) - enemyDefense);
     const dmgType = getPlayerDamageType();
     
+    // Eldritch Shade: 90% physical evasion
+    if (state.enemy.name === "Eldritch Shade" && dmgType === "Physical") {
+        if (Math.random() < 0.90) {
+            addLog(`👻 The Eldritch Shade phases out! Your physical attack passes right through it!`);
+            if (isShadow) {
+                state.combatStance = "Neutral";
+                addLog("👤 You emerge from the shadows! Stance reset to Neutral.");
+            }
+            dealStaggerDamage(0);
+            updateCombatLog();
+            if (state.character.ap <= 0) enemyTurn();
+            updateCombatUI();
+            return;
+        }
+    }
+
     // Adjust base damage for combos & stagger break
     baseDamage = calculateDamageAndApplyCombos(baseDamage, dmgType);
     const damage = Math.floor(baseDamage * critMultiplier);
@@ -775,8 +854,16 @@ export function playerBlock() {
  * Player dodges, 30% chance to avoid attack
  */
 export function playerDodge() {
-    if (!state.character || !state.enemy || state.character.ap < 1) return;
-    state.character.ap -= 1;
+    const isHighGravity = getActiveEnvironment() === "High Gravity";
+    const dodgeApCost = isHighGravity ? 2 : 1;
+    if (!state.character || !state.enemy || state.character.ap < dodgeApCost) {
+        if (state.character && state.enemy && state.character.ap < dodgeApCost) {
+            addLog(`⚠️ Not enough Action Points! Dodge costs ${dodgeApCost} AP in High Gravity.`);
+            updateCombatLog();
+        }
+        return;
+    }
+    state.character.ap -= dodgeApCost;
 
     if (state.character.hp <= 0) {
         addLog("You succumbed to your injuries...");
@@ -848,6 +935,23 @@ export function useSpecialAbility() {
     }
 
     state.character.energy = Math.max(0, currentEnergy - energyCost);
+
+    // Eldritch Shade: 90% physical evasion against physical special abilities
+    const isPhysicalAbility = (state.character.role === "Warrior" || state.character.role === "Rogue");
+    if (state.enemy.name === "Eldritch Shade" && isPhysicalAbility) {
+        if (Math.random() < 0.90) {
+            addLog(`👻 The Eldritch Shade phases out! Your special ability passes right through it!`);
+            if (state.combatStance === "Shadow") {
+                state.combatStance = "Neutral";
+                addLog("👤 You emerge from the shadows! Stance reset to Neutral.");
+            }
+            updateCombatLog();
+            if (state.character.ap <= 0) enemyTurn();
+            updateCombatUI();
+            return;
+        }
+    }
+
     const stats = getEffectiveStats();
     const effectiveAttack = stats.attack + getPassiveBonus('attack');
 
@@ -1009,6 +1113,26 @@ export function endPlayerTurn() {
 export function enemyTurn() {
     if (!state.character || !state.enemy) return;
 
+    // Environmental Hazards
+    const activeEnv = getActiveEnvironment();
+    if (activeEnv === "Solar Radiation") {
+        state.character.energy = Math.max(0, (state.character.energy || 0) - 5);
+        addLog("☀️ Solar Radiation: Drained 5 Energy at turn end.");
+    } else if (activeEnv === "Vacuum" && state.derelict && state.derelict.active) {
+        state.derelict.oxygen = Math.max(0, state.derelict.oxygen - 1);
+        addLog(`💨 Vacuum: Drained 1 unit of Oxygen! (Oxygen: ${state.derelict.oxygen}/${state.derelict.maxOxygen})`);
+        if (state.derelict.oxygen <= 0) {
+            const oxyDamage = Math.floor(state.character.maxHp * 0.10);
+            state.character.hp = Math.max(0, state.character.hp - oxyDamage);
+            addLog(`⚠️ Out of Oxygen! Suffocating for ${oxyDamage} damage (10% max HP)!`);
+            if (state.character.hp <= 0) {
+                addLog("You suffocated in the vacuum...");
+                import('./derelict.js').then(m => m.failRun());
+                return;
+            }
+        }
+    }
+
     // Tactical Combat 2.0: Skip enemy turn if Broken or Stunned
     if (state.enemyStatusEffects.some(e => e.type === "broken" || e.type === "stunned")) {
         addLog(`✨ ${state.enemy.name} is incapacitated and skips their turn!`);
@@ -1021,6 +1145,11 @@ export function enemyTurn() {
         if (state.playerStatusEffects.some(e => e.type === "frozen")) {
             startingAp = Math.max(1, startingAp - 1);
             addLog("❄️ You are Frozen! Starting AP reduced by 1.");
+        }
+        const apDrainedEffect = state.playerStatusEffects.find(e => e.type === "apDrained");
+        if (apDrainedEffect) {
+            startingAp = Math.max(1, startingAp - apDrainedEffect.value);
+            addLog(`❄️ AP Drain: Starting AP reduced by ${apDrainedEffect.value}.`);
         }
         
         // Support Overclock AP bonus (+1 AP regen)
@@ -1047,6 +1176,23 @@ export function enemyTurn() {
         updateCombatUI();
         updateUI();
         return;
+    }
+
+    // Security Sentinel turn action
+    if (state.enemy.name === "Security Sentinel") {
+        state.character.energy = Math.max(0, (state.character.energy || 0) - 10);
+        addLog("🤖 Security Sentinel hacks your shield capacitors, draining 10 Energy!");
+        
+        let shieldEffect = state.playerStatusEffects.find(e => e.type === "defenseBoost");
+        if (shieldEffect) {
+            shieldEffect.value = Math.max(0, shieldEffect.value - 10);
+            if (shieldEffect.value === 0) {
+                state.playerStatusEffects = state.playerStatusEffects.filter(e => e.type !== "defenseBoost");
+                addLog("🛡️ Your defense shield was completely depleted!");
+            } else {
+                addLog(`🛡️ Your defense shield was reduced (now +${shieldEffect.value} DEF).`);
+            }
+        }
     }
 
     // Check if player is dodging
@@ -1109,7 +1255,33 @@ export function enemyTurn() {
                 
                 // Rest of turn logic (status effects, energy, etc.)
                 state.character.energy = Math.min(state.character.maxEnergy, (state.character.energy || state.character.maxEnergy) + 5);
-                state.character.ap = state.character.maxAp || 3;
+                
+                // Reset AP for the new turn with stances & statuses applied
+                let startingAp = state.character.maxAp || 3;
+                if (state.playerStatusEffects.some(e => e.type === "frozen")) {
+                    startingAp = Math.max(1, startingAp - 1);
+                    addLog("❄️ You are Frozen! Starting AP reduced by 1.");
+                }
+                const apDrainedEffect = state.playerStatusEffects.find(e => e.type === "apDrained");
+                if (apDrainedEffect) {
+                    startingAp = Math.max(1, startingAp - apDrainedEffect.value);
+                    addLog(`❄️ AP Drain: Starting AP reduced by ${apDrainedEffect.value}.`);
+                }
+                
+                if (state.combatStance === "Support Overclock") {
+                    startingAp += 1;
+                    addLog("⚡ Stance: Support Overclock provides +1 AP!");
+                    
+                    if (state.companionCooldown > 0) {
+                        state.companionCooldown = Math.max(0, state.companionCooldown - 1);
+                    }
+                }
+                
+                state.character.ap = startingAp;
+                if (state.companionCooldown > 0) {
+                    state.companionCooldown--;
+                }
+                
                 if (state.character.hp <= 0) {
                     addLog("You have been defeated...");
                     if (state.derelict && state.derelict.active) {
@@ -1131,6 +1303,13 @@ export function enemyTurn() {
     const minDamage = Math.max(1, Math.floor(state.enemy.attack * 0.15));
     let damage = Math.max(minDamage, state.enemy.attack - effectiveDefense);
 
+    // Cryo Drake: 20% critical strike chance
+    let isEnemyCrit = false;
+    if (state.enemy.name === "Cryo Drake" && Math.random() < 0.20) {
+        isEnemyCrit = true;
+        damage = Math.floor(damage * 1.5);
+    }
+
     if (isBlocking) {
         damage = Math.max(1, Math.floor(damage * 0.5)); // 50% damage reduction, minimum 1
         addLog(`🛡️ You blocked ${state.enemy.name}'s attack, reducing damage!`);
@@ -1150,8 +1329,20 @@ export function enemyTurn() {
 
     state.character.hp -= damage;
 
-    addLog(`${state.enemy.name} hits you for ${damage} damage.`);
+    if (isEnemyCrit) {
+        addLog(`❄️ CRITICAL HIT! The Cryo Drake hits you for ${damage} damage and freezes you!`);
+        state.playerStatusEffects.push({ type: "frozen", duration: 2 });
+    } else {
+        addLog(`${state.enemy.name} hits you for ${damage} damage.`);
+    }
     updateCombatLog();
+
+    // Frost parasite AP drain on hit
+    if (state.enemy.name === "Frost parasite") {
+        state.playerStatusEffects.push({ type: "apDrained", value: 1, duration: 1 });
+        addLog("❄️ The Frost parasite hit drains 1 AP from your next turn!");
+        updateCombatLog();
+    }
 
     // 15% chance for enemy to apply a status effect
     if (Math.random() < 0.15 && state.enemy.attack > 0) {
@@ -1182,6 +1373,11 @@ export function enemyTurn() {
     if (state.playerStatusEffects.some(e => e.type === "frozen")) {
         startingAp = Math.max(1, startingAp - 1);
         addLog("❄️ You are Frozen! Starting AP reduced by 1.");
+    }
+    const apDrainedEffect = state.playerStatusEffects.find(e => e.type === "apDrained");
+    if (apDrainedEffect) {
+        startingAp = Math.max(1, startingAp - apDrainedEffect.value);
+        addLog(`❄️ AP Drain: Starting AP reduced by ${apDrainedEffect.value}.`);
     }
     
     if (state.combatStance === "Support Overclock") {
@@ -1223,6 +1419,36 @@ export function winCombat() {
 
     const enemyName = state.enemy.name;
     const isBoss = state.enemy.isBoss;
+
+    // Magma Elemental: Explodes on death
+    if (enemyName === "Magma Elemental") {
+        const isBlocking = state.playerStatusEffects.some(e => e.type === "blocking");
+        let explodeDmg = 15;
+        if (isBlocking) {
+            explodeDmg = Math.max(1, Math.floor(explodeDmg * 0.5));
+            addLog("🛡️ You block the Magma Elemental's death explosion, reducing damage!");
+        }
+        state.character.hp = Math.max(0, state.character.hp - explodeDmg);
+        addLog(`💥 EXPLOSION! The Magma Elemental explodes on death, dealing ${explodeDmg} damage!`);
+        
+        // Apply Burning debuff
+        state.playerStatusEffects.push({ type: "burn", damage: 8, duration: 2 });
+        addLog(`🔥 You are set on fire by the explosion!`);
+
+        if (state.character.hp <= 0) {
+            addLog("You succumbed to the explosion...");
+            state.enemy = null;
+            if (state.derelict && state.derelict.active) {
+                import('./derelict.js').then(m => m.failRun());
+            } else {
+                state.gameState = "defeat";
+                showScreen("defeat");
+            }
+            updateCombatUI();
+            updateUI();
+            return;
+        }
+    }
     let xpGained = Math.floor(state.enemy.attack * 2 + state.enemy.defense * 3);
     let creditsGained = Math.floor(xpGained * (0.8 + Math.random() * 0.4)); // Credits roughly equal to XP
     
