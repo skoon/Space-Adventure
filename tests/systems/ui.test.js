@@ -289,6 +289,8 @@ describe('UI System', () => {
         expect(container.innerHTML).toContain('Medical Bay');
         expect(container.innerHTML).toContain('Cargo Hold');
         expect(container.innerHTML).toContain('Scanner Array');
+        expect(container.innerHTML).toContain('Deflector Shields');
+        expect(container.innerHTML).toContain('Ship Weapon Systems');
         expect(container.innerHTML).toContain('Sector Navigation Map');
 
         // Cleanup

@@ -85,7 +85,11 @@ export function createCharacter(event) {
             engineLevel: 1, // 1: Inner planets, 2: Outer planets, 3: Deep space
             medbayLevel: 0, // Heals after combat/travel
             cargoLevel: 0,  // Could increase stack sizes
-            scannerLevel: 0 // Boosts good random events
+            scannerLevel: 0, // Boosts good random events
+            shieldLevel: 0,
+            weaponsLevel: 0,
+            shields: 0,
+            maxShields: 0
         },
         factions: {
             federation: 0,

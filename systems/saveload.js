@@ -171,8 +171,17 @@ export function loadGame(slot) {
                 engineLevel: 1,
                 medbayLevel: 0,
                 cargoLevel: 0,
-                scannerLevel: 0
+                scannerLevel: 0,
+                shieldLevel: 0,
+                weaponsLevel: 0,
+                shields: 0,
+                maxShields: 0
             };
+        } else {
+            if (state.character.ship.shieldLevel === undefined) state.character.ship.shieldLevel = 0;
+            if (state.character.ship.weaponsLevel === undefined) state.character.ship.weaponsLevel = 0;
+            if (state.character.ship.shields === undefined) state.character.ship.shields = 0;
+            if (state.character.ship.maxShields === undefined) state.character.ship.maxShields = 0;
         }
 
         // Retroactive cybernetics setup

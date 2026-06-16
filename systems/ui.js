@@ -649,8 +649,70 @@ export async function renderShipModules() {
     
     container.innerHTML = '';
     
+    // Render Ship Shields Health Status Card if shield level > 0
+    const shieldLevel = state.character.ship.shieldLevel || 0;
+    if (shieldLevel > 0) {
+        const shields = state.character.ship.shields || 0;
+        const maxShields = state.character.ship.maxShields || (shieldLevel * 50);
+        
+        const shieldStatusNode = document.createElement('div');
+        shieldStatusNode.className = `p-4 border border-cyan-500 rounded bg-cyan-950/20 mb-4`;
+        
+        // Recharge options
+        const scrapCount = state.inventory.filter(i => i === 'Scrap Metal').length;
+        const canAffordScrapRecharge = shields < maxShields && scrapCount >= 1;
+        
+        const creditsCost = Math.ceil((maxShields - shields) * 2);
+        const canAffordCreditsRecharge = shields < maxShields && state.character.credits >= creditsCost && creditsCost > 0;
+        
+        shieldStatusNode.innerHTML = `
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h3 class="font-bold text-cyan-400 text-lg flex items-center gap-2">🛡️ Deflector Shields Capacitor</h3>
+                    <p class="text-xs text-gray-300 mt-1">Shield Integrity: <span class="font-mono text-cyan-400 font-bold">${shields}/${maxShields}</span></p>
+                    <div class="w-48 bg-gray-800 rounded-full h-2 mt-2">
+                        <div class="bg-cyan-500 h-2 rounded-full transition-all" style="width: ${(shields / maxShields) * 100}%"></div>
+                    </div>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <button id="rechargeScrapBtn" class="px-3 py-1.5 text-xs font-bold rounded ${canAffordScrapRecharge ? 'bg-cyan-600 hover:bg-cyan-500 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}" ${!canAffordScrapRecharge ? 'disabled' : ''}>
+                        🔧 Recharge (-1 Scrap, +25 HP)
+                    </button>
+                    <button id="rechargeCreditsBtn" class="px-3 py-1.5 text-xs font-bold rounded ${canAffordCreditsRecharge ? 'bg-teal-600 hover:bg-teal-500 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}" ${!canAffordCreditsRecharge ? 'disabled' : ''}>
+                        💳 Repair Hull (-${creditsCost} CR)
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        if (canAffordScrapRecharge) {
+            shieldStatusNode.querySelector('#rechargeScrapBtn').onclick = () => {
+                const idx = state.inventory.indexOf('Scrap Metal');
+                if (idx > -1) {
+                    state.inventory.splice(idx, 1);
+                    state.character.ship.shields = Math.min(maxShields, shields + 25);
+                    addLog(`🔧 Used 1 Scrap Metal to recharge deflector shields by 25 points.`);
+                    renderShipModules();
+                    updateUI();
+                }
+            };
+        }
+        
+        if (canAffordCreditsRecharge) {
+            shieldStatusNode.querySelector('#rechargeCreditsBtn').onclick = () => {
+                state.character.credits -= creditsCost;
+                state.character.ship.shields = maxShields;
+                addLog(`🔧 Paid ${creditsCost} Credits to fully recharge ship deflector shields.`);
+                renderShipModules();
+                updateUI();
+            };
+        }
+        
+        container.appendChild(shieldStatusNode);
+    }
+    
     Object.values(modules).forEach(mod => {
-        const currentLevel = state.character.ship[mod.id + 'Level'];
+        const currentLevel = state.character.ship[mod.id + 'Level'] || 0;
         const isMaxLevel = currentLevel >= mod.maxLevel;
         const cost = getUpgradeCost(mod.id, currentLevel);
         const canAfford = cost ? canAffordUpgrade(cost) : false;

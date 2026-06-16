@@ -54,6 +54,13 @@
   - *Scientist:* Support Overclock (+1 AP/turn regen, companion active cooldowns reduced by 1 extra turn/turn) vs. Disruption Mode (basic attacks apply random elemental status).
 - **Weapons & Grenades:** Added Frag Grenade (+50 stagger) and EMP Grenade (+80 stagger, Plasma type, applies Electrified status) as consumables, and Cryo Pistol (Cryo type) and Acid Injector (Corrosive type) as weapons.
 
+### Tactical Space-Combat & Ship Defense Events (Completed)
+**How it works:** Added random space combat events while traveling between planets. The player's ship modules (weapons, shields, engines) are put to the test in text-based tactical choices or ship-to-ship battles.
+**Mechanics:**
+- **Ship Stats:** Introduced Ship Deflector Shields (upgradable module, max 150 shields) and Ship Weapon Systems (upgradable module, deals up to 70 base space damage).
+- **UI Integration:** Rendered a Deflector Shields status card in the Ship Systems interface allowing players to recharge shields using Scrap Metal (-1 Scrap, +25 HP) or pay Credits for a full hull repair.
+- **Combat Events:** Triggers choice-based tactical dialogs during planetary transit (e.g. Void Corsair Raiders, Rogue Security Drone, Solar Radiation Storm, Photon Prime Escort) testing player ship modules and resource management.
+
 ---
 
 ## 🔮 Future / Planned Ideas
@@ -75,24 +82,18 @@
 - **Isolated Playthrough States**: Store each playthrough state under its own unique key: `galacticOdyssey_save_${id}`.
 - **Main Menu UI**: Render a "Saved Games" load modal with character details and load/delete options, and update the "Begin Your Journey" flow to assign new unique save IDs upon character creation.
 
-### 3. Tactical Space-Combat & Ship Defense Events
-**How it works:** Add random space combat events while traveling between planets. The player's ship modules (weapons, shields, engines) are put to the test in text-based tactical choices or ship-to-ship battles.
-**Mechanics:**
-- **Ship Stats**: Introduce Ship Shield HP and Ship Weapon Systems (upgradable modules).
-- **Combat Events**: Allow choices during transit such as "Fire Torpedoes (costs Energy)", "Recharge Deflector Shields (costs Scrap)", or "Evasive Maneuvers (roll engine speed check)".
-
-### 4. Sector Reputation & Faction Influence Zone
+### 3. Sector Reputation & Faction Influence Zone
 **How it works:** The galaxy is controlled by factions (Federation, Corsairs, Syndicate). The player's faction reputation unlocks unique sector perks or hazards.
 **Mechanics:**
 - **Faction Security Levels**: Hostile sectors require higher engine levels or trigger more frequent ambushes.
 - **Outpost Rewards**: Friendly sectors offer discounts at shops, faction-exclusive quests, and unique companion recruitment options.
 
-### 5. Cybernetic Overcharge & Skill Synergies
+### 4. Cybernetic Overcharge & Skill Synergies
 **How it works:** Connect the Cybernetics system to the character's skill tree.
 **Mechanics:**
 - **Augmentation Synergy**: Installing specific implant sets (e.g., Arms + Head implants) unlocks unique passive traits, like "Target Lock" (+20% Critical Stacking in Berserker stance) or "Nanite Shielding" (Companion Lyra's heals also grant temporary defense).
 
-### 6. Derelict Ship Boss Raids & Unique Blueprints
+### 5. Derelict Ship Boss Raids & Unique Blueprints
 **How it works:** Expand derelict ship exploration with rare end-room Boss encounters.
 **Mechanics:**
 - **Legendary Blueprint Drops**: Defeating a Derelict Boss drops rare blueprints (e.g., "Quantum Shield Core Recipe").

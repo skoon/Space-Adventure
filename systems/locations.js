@@ -11,7 +11,7 @@ let state;
 // Dependencies
 let addLog, updateUI, playTravelAnimation;
 let locations;
-import { getMedbayHealAmount } from './ship.js';
+import { getMedbayHealAmount, getScannerBonus, triggerSpaceCombatEvent } from './ship.js';
 
 /**
  * Initialize the locations module
@@ -84,15 +84,17 @@ export function travelTo(locationId) {
             if (ambushFaction) {
                 triggerTravelAmbush(ambushFaction, location);
             } else {
-                import('./ship.js').then(ship => {
-                    const scannerBonus = ship.getScannerBonus() || 0;
-                    // Base 15% chance + Scanner Bonus / 2 (max 25% extra)
-                    if (Math.random() * 100 < 15 + (scannerBonus / 2)) {
-                        import('./derelict.js').then(m => m.startDerelictRun(location));
-                    } else {
+                const scannerBonus = getScannerBonus() || 0;
+                const roll = Math.random() * 100;
+                if (roll < 15 + (scannerBonus / 2)) {
+                    import('./derelict.js').then(m => m.startDerelictRun(location));
+                } else if (roll < 35 + (scannerBonus / 2)) {
+                    triggerSpaceCombatEvent(location, () => {
                         completeTravel(location);
-                    }
-                });
+                    });
+                } else {
+                    completeTravel(location);
+                }
             }
         });
     } else {
@@ -100,14 +102,17 @@ export function travelTo(locationId) {
         if (ambushFaction) {
             triggerTravelAmbush(ambushFaction, location);
         } else {
-            import('./ship.js').then(ship => {
-                const scannerBonus = ship.getScannerBonus() || 0;
-                if (Math.random() * 100 < 15 + (scannerBonus / 2)) {
-                    import('./derelict.js').then(m => m.startDerelictRun(location));
-                } else {
+            const scannerBonus = getScannerBonus() || 0;
+            const roll = Math.random() * 100;
+            if (roll < 15 + (scannerBonus / 2)) {
+                import('./derelict.js').then(m => m.startDerelictRun(location));
+            } else if (roll < 35 + (scannerBonus / 2)) {
+                triggerSpaceCombatEvent(location, () => {
                     completeTravel(location);
-                }
-            });
+                });
+            } else {
+                completeTravel(location);
+            }
         }
     }
 

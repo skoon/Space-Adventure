@@ -293,7 +293,8 @@ function initializeGame() {
   // Initialize Ship
   initShip({
     ...deps,
-    ui: { addLog, updateUI }
+    ui: { addLog, updateUI, showDialog },
+    character: { gainXp }
   });
 
   // Initialize Derelict
