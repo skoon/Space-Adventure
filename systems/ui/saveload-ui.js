@@ -3,7 +3,7 @@
  * Handles Save/Load slots selection and Exit to Main Menu
  */
 
-import { saveGame, loadGame, deleteSaveGame, getSlotInfo, exitToMainMenu as exitCore } from '../saveload.js';
+import { saveGame, loadGame, deleteSaveGame, getSlotInfo, exitToMainMenu as exitCore, startNewGame } from '../saveload.js';
 import { showDialog, hideDialog } from './notifications.js';
 
 /**
@@ -30,6 +30,10 @@ function renderSlotsHtml(mode) {
                         <button id="action-btn-${slot}" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded text-sm transition-colors cursor-pointer flex-1 sm:flex-none">
                             🔄 Overwrite
                         </button>
+                    ` : mode === 'newgame' ? `
+                        <button id="action-btn-${slot}" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded text-sm transition-colors cursor-pointer flex-1 sm:flex-none">
+                            ⚠️ Overwrite
+                        </button>
                     ` : `
                         <button id="action-btn-${slot}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded text-sm transition-colors cursor-pointer flex-1 sm:flex-none">
                             📂 Load
@@ -52,6 +56,10 @@ function renderSlotsHtml(mode) {
                     ${mode === 'save' ? `
                         <button id="action-btn-${slot}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-sm transition-colors cursor-pointer flex-1 sm:flex-none">
                             💾 Save
+                        </button>
+                    ` : mode === 'newgame' ? `
+                        <button id="action-btn-${slot}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-sm transition-colors cursor-pointer flex-1 sm:flex-none">
+                            🆕 New Game
                         </button>
                     ` : `
                         <button id="action-btn-${slot}" class="px-4 py-2 bg-gray-700 text-gray-500 font-bold rounded text-sm cursor-not-allowed flex-1 sm:flex-none" disabled>
@@ -78,6 +86,17 @@ function attachListeners(mode, container) {
                     if (saveGame(slot)) {
                         hideDialog();
                     }
+                } else if (mode === 'newgame') {
+                    const info = getSlotInfo(slot);
+                    if (info.exists) {
+                        if (confirm(`Are you sure you want to overwrite Save Slot ${slot}? This will permanently delete the existing character and progress.`)) {
+                            startNewGame(slot);
+                            hideDialog();
+                        }
+                    } else {
+                        startNewGame(slot);
+                        hideDialog();
+                    }
                 } else {
                     if (loadGame(slot)) {
                         hideDialog();
@@ -102,7 +121,7 @@ function attachListeners(mode, container) {
  * Show Save/Load dialog with 3 Slots selection
  */
 export function showSaveLoadUI(mode) {
-    const title = mode === 'save' ? "Save Game" : "Load Game";
+    const title = mode === 'save' ? "Save Game" : mode === 'newgame' ? "Start New Game" : "Load Game";
     
     showDialog(
         title,

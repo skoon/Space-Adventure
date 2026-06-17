@@ -177,6 +177,17 @@ export function completeQuest(questId) {
         }
     }
 
+    // Award Faction Reputation
+    let factionId = quest.requiredFaction?.faction;
+    if (!factionId && quest.requiredPlanet && deps?.data?.locations?.[quest.requiredPlanet]) {
+        factionId = deps.data.locations[quest.requiredPlanet].controllingFaction;
+    }
+    
+    if (factionId && state.character.factions && state.character.factions[factionId] !== undefined) {
+        state.character.factions[factionId] = Math.min(100, state.character.factions[factionId] + 15);
+        addLog(`📈 Reputation: Completed work for the ${factionId.toUpperCase()}! (+15 Reputation, Standing: ${state.character.factions[factionId]})`);
+    }
+
     // Move to completed
     delete state.character.activeQuests[questId];
     state.character.completedQuests.push(questId);

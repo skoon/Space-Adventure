@@ -8,7 +8,8 @@ export const locations = {
     coordinates: { x: 100, y: 300 },
     theme: "theme-terra",
     travelCost: 0,
-    lootTable: ["Scrap Metal", "Rusty Pipe", "Herb", "Energy Cell", "Credits"]
+    lootTable: ["Scrap Metal", "Rusty Pipe", "Herb", "Energy Cell", "Credits"],
+    controllingFaction: "federation"
   },
   "xylo_delta": {
     id: "xylo_delta",
@@ -19,7 +20,8 @@ export const locations = {
     coordinates: { x: 400, y: 150 },
     theme: "theme-desert",
     travelCost: 100,
-    lootTable: ["Sand Sample", "Ancient Shard", "Scrap Metal", "Plasma Core", "Cargo Container", "Credits"]
+    lootTable: ["Sand Sample", "Ancient Shard", "Scrap Metal", "Plasma Core", "Cargo Container", "Credits"],
+    controllingFaction: "corsairs"
   },
   "nebula_outpost": {
     id: "nebula_outpost",
@@ -30,7 +32,8 @@ export const locations = {
     coordinates: { x: 600, y: 400 },
     theme: "theme-space",
     travelCost: 250,
-    lootTable: ["Data Chip", "Alien Alloy", "Quantum Chip", "Energy Cell", "Credits"]
+    lootTable: ["Data Chip", "Alien Alloy", "Quantum Chip", "Energy Cell", "Credits"],
+    controllingFaction: "syndicate"
   },
   "norkon_outpost": {
     id: "norkon_outpost",
@@ -41,7 +44,8 @@ export const locations = {
     coordinates: { x: 200, y: 100 },
     theme: "theme-space",
     travelCost: 250,
-    lootTable: ["Data Chip", "Alien Alloy", "Quantum Chip", "Energy Cell", "Credits"]
+    lootTable: ["Data Chip", "Alien Alloy", "Quantum Chip", "Energy Cell", "Credits"],
+    controllingFaction: "syndicate"
   },
   "inferno_ix": {
     id: "inferno_ix",
@@ -53,7 +57,8 @@ export const locations = {
     theme: "theme-volcanic",
     travelCost: 300,
     lootTable: ["Titanium Ingot", "Plasma Core", "Scrap Metal", "Credits"],
-    environment: "Solar Radiation"
+    environment: "Solar Radiation",
+    controllingFaction: "syndicate"
   },
   "crio_prime": {
     id: "crio_prime",
@@ -65,6 +70,7 @@ export const locations = {
     theme: "theme-ice",
     travelCost: 400,
     lootTable: ["Alien Crystal", "Bio-Gel", "Quantum Chip", "Credits"],
-    environment: "High Gravity"
+    environment: "High Gravity",
+    controllingFaction: "federation"
   }
 };

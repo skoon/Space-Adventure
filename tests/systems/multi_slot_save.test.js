@@ -6,7 +6,8 @@ import {
     deleteSaveGame, 
     autoSave, 
     getSlotInfo,
-    exitToMainMenu
+    exitToMainMenu,
+    startNewGame
 } from '../../systems/saveload.js';
 
 const mockState = {
@@ -179,5 +180,37 @@ describe('Multi-Slot Save & Exit System', () => {
         expect(mockUi.showScreen).toHaveBeenCalledWith('start');
         expect(mockUi.updateUI).toHaveBeenCalled();
         expect(document.getElementById('exitHeaderBtn').style.display).toBe('none');
+    });
+
+    test('startNewGame resets active session state and navigates to character creation', () => {
+        // Set up some dirty state first
+        mockState.character = { name: 'DirtyHero', level: 10 };
+        mockState.inventory = ['Photon Grenade'];
+        mockState.log = ['log line 1'];
+        mockState.playerStatusEffects = ['shielded'];
+        mockState.achievements = ['unlocked_achievement'];
+        mockState.stats = { strength: 15 };
+        mockState.companions = { vance: { unlocked: true, level: 3 } };
+        mockState.activeCompanion = 'vance';
+        mockState.companionCooldown = 5;
+
+        startNewGame(2);
+
+        expect(mockState.activeSaveSlot).toBe(2);
+        expect(mockState.character).toBeNull();
+        expect(mockState.enemy).toBeNull();
+        expect(mockState.inventory).toHaveLength(0);
+        expect(mockState.log).toHaveLength(0);
+        expect(mockState.playerStatusEffects).toHaveLength(0);
+        expect(mockState.gameState).toBe('characterCreation');
+        expect(mockState.currentLocation).toBe('terra_prime');
+        expect(mockState.achievements).toHaveLength(0);
+        expect(mockState.stats).toEqual({});
+        expect(mockState.companions.vance.unlocked).toBe(false);
+        expect(mockState.companions.vance.level).toBe(1);
+        expect(mockState.activeCompanion).toBeNull();
+        expect(mockState.companionCooldown).toBe(0);
+        expect(mockUi.showScreen).toHaveBeenCalledWith('creation');
+        expect(document.getElementById('nameInput').value).toBe('');
     });
 });

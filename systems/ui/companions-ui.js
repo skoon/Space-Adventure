@@ -3,7 +3,7 @@
  * Coordinates UI rendering for companions inside the spacecraft hub
  */
 
-import { COMPANIONS, getActiveCompanion, setActiveCompanion, recruitCompanion, talkToCompanion, giftToCompanion, giftCreditsToCompanion } from '../companions.js';
+import { COMPANIONS, getActiveCompanion, setActiveCompanion, recruitCompanion, talkToCompanion, giftToCompanion, giftCreditsToCompanion, getRecruitCost, canRecruitCompanion } from '../companions.js';
 
 let state;
 let updateUI, showDialog;
@@ -74,13 +74,29 @@ export function renderCompanionsTab() {
 
         if (!isUnlocked) {
             // Locked companion info
+            const cost = getRecruitCost(id);
+            const canRecruit = canRecruitCompanion(id);
+            const baseCost = data.dialogues.recruitCost;
+            const discountText = cost < baseCost 
+                ? `<span class="text-green-400 font-bold ml-2">(50% Allied Faction Discount!)</span>` 
+                : "";
+            
             const recruitInfo = document.createElement('div');
             recruitInfo.className = 'text-xs text-gray-500 mt-2 space-y-2';
+            
+            let standingMsg = "";
+            if (!canRecruit) {
+                standingMsg = `<p class="text-red-500 font-bold font-mono uppercase tracking-wide">⚠️ Hire Locked: Hostile standing with ${data.alliedFaction.toUpperCase()}</p>`;
+            } else {
+                standingMsg = `<p class="text-[10px] text-gray-400">Allied Faction: <span class="text-cyan-400 uppercase font-mono">${data.alliedFaction}</span> (Friendly standing: 50% off, Hostile: Locked)</p>`;
+            }
+            
             recruitInfo.innerHTML = `
                 <p>Ability: <strong>${data.abilityName}</strong></p>
                 <p class="italic">"${data.dialogues.recruit}"</p>
+                ${standingMsg}
                 <div class="pt-2">
-                    <span class="text-yellow-500 font-bold">Cost: ${data.dialogues.recruitCost} credits</span>
+                    <span class="text-yellow-500 font-bold">Cost: ${cost} credits</span> ${discountText}
                 </div>
             `;
             topSec.appendChild(recruitInfo);
@@ -88,9 +104,9 @@ export function renderCompanionsTab() {
             // Recruit button
             const recruitBtn = document.createElement('button');
             recruitBtn.textContent = `Hire ${data.name}`;
-            recruitBtn.disabled = credits < data.dialogues.recruitCost;
+            recruitBtn.disabled = !canRecruit || credits < cost;
             recruitBtn.className = `w-full py-2 px-3 mt-4 rounded font-bold text-xs transition-colors ${
-                credits >= data.dialogues.recruitCost
+                (canRecruit && credits >= cost)
                     ? 'bg-yellow-600 hover:bg-yellow-500 text-white'
                     : 'bg-gray-800 text-gray-600 cursor-not-allowed border border-gray-700'
             }`;

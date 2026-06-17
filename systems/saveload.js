@@ -451,3 +451,40 @@ export function exitToMainMenu() {
     
     addLog("🚪 Exited to Main Menu.");
 }
+
+/**
+ * Start a new game in a specific slot
+ */
+export function startNewGame(slot) {
+    if (!state) return;
+    
+    state.activeSaveSlot = slot;
+    state.character = null;
+    state.enemy = null;
+    state.inventory = [];
+    state.log = [];
+    state.playerStatusEffects = [];
+    state.enemyStatusEffects = [];
+    state.gameState = "characterCreation";
+    state.currentLocation = "terra_prime";
+    state.achievements = [];
+    state.stats = {};
+    state.companions = {
+        vance: { unlocked: false, trust: 0, level: 1, talkedSinceLastAction: false },
+        lyra: { unlocked: false, trust: 0, level: 1, talkedSinceLastAction: false },
+        apex: { unlocked: false, trust: 0, level: 1, talkedSinceLastAction: false }
+    };
+    state.activeCompanion = null;
+    state.companionCooldown = 0;
+    
+    // Clear DOM inputs
+    const nameInput = document.getElementById("nameInput");
+    if (nameInput) nameInput.value = "";
+    
+    const missionLog = document.getElementById("missionLog");
+    if (missionLog) missionLog.innerHTML = "";
+    
+    // Reset DOM screens
+    showScreen("creation");
+}
+

@@ -48,7 +48,7 @@ export function initEvents(dependencies) {
  * Generate a random event based on weights
  */
 import { getScannerBonus } from './ship.js';
-import { COMPANIONS } from './companions.js';
+import { COMPANIONS, getRecruitCost, canRecruitCompanion } from './companions.js';
 
 /**
  * Generate a random event based on weights and location
@@ -355,12 +355,25 @@ function triggerNPCEvent() {
     if (lockedCompanions.length > 0 && Math.random() < 0.35) {
         const companionId = lockedCompanions[Math.floor(Math.random() * lockedCompanions.length)];
         const compData = COMPANIONS[companionId];
+        
+        const cost = getRecruitCost(companionId);
+        const canRecruit = canRecruitCompanion(companionId);
+        
+        let introText = `You meet a ${compData.role} named ${compData.name}.<br><br>"${compData.dialogues.recruit}"`;
+        if (cost < compData.dialogues.recruitCost) {
+            introText += `<br><br><span class="text-green-400 font-bold">✓ Friendly standing with the ${compData.alliedFaction.toUpperCase()} provides a 50% discount!</span>`;
+        }
+        if (!canRecruit) {
+            introText += `<br><br><span class="text-red-500 font-bold">⚠️ Locked: ${compData.name} refuses to work with a Captain hostile to the ${compData.alliedFaction.toUpperCase()}.</span>`;
+        }
+        
         showDialog(
             "Encounter",
-            `You meet a ${compData.role} named ${compData.name}.<br><br>"${compData.dialogues.recruit}"`,
+            introText,
             [
                 {
-                    text: `Hire for ${compData.dialogues.recruitCost} cr`,
+                    text: `Hire for ${cost} cr`,
+                    disabled: !canRecruit || state.character.credits < cost,
                     action: () => {
                         import('./companions.js').then(m => {
                             m.recruitCompanion(companionId);

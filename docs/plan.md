@@ -61,6 +61,14 @@
 - **UI Integration:** Rendered a Deflector Shields status card in the Ship Systems interface allowing players to recharge shields using Scrap Metal (-1 Scrap, +25 HP) or pay Credits for a full hull repair.
 - **Combat Events:** Triggers choice-based tactical dialogs during planetary transit (e.g. Void Corsair Raiders, Rogue Security Drone, Solar Radiation Storm, Photon Prime Escort) testing player ship modules and resource management.
 
+### Sector Reputation & Faction Influence Zone (Completed)
+**How it works:** The galaxy is controlled by factions (Federation, Corsairs, Syndicate). The player's faction reputation standing unlocks unique sector perks or hazards.
+**Mechanics:**
+- **Faction Security Zones:** Hostile sectors (< -30 reputation with the controlling faction) require higher engine levels to slip past blockades and double the chance of transit ambushes.
+- **Outpost Perks:** Dynamic merchant factions adjust prices by up to a 30% discount for friendly standings or a 50% markup for hostile standings.
+- **Faction Board Contracts:** Gated job contracts appear on planetary boards only if the captain possesses the required standing (min +20). Completing planet-based quests rewards +15 faction reputation.
+- **Crew Recruitment Standings:** Unlock unique companion options or friendly standing recruitment discounts (50% fee off), whereas hostile reputation locks recruitment.
+
 ---
 
 ## 🔮 Future / Planned Ideas
@@ -82,18 +90,12 @@
 - **Isolated Playthrough States**: Store each playthrough state under its own unique key: `galacticOdyssey_save_${id}`.
 - **Main Menu UI**: Render a "Saved Games" load modal with character details and load/delete options, and update the "Begin Your Journey" flow to assign new unique save IDs upon character creation.
 
-### 3. Sector Reputation & Faction Influence Zone
-**How it works:** The galaxy is controlled by factions (Federation, Corsairs, Syndicate). The player's faction reputation unlocks unique sector perks or hazards.
-**Mechanics:**
-- **Faction Security Levels**: Hostile sectors require higher engine levels or trigger more frequent ambushes.
-- **Outpost Rewards**: Friendly sectors offer discounts at shops, faction-exclusive quests, and unique companion recruitment options.
-
-### 4. Cybernetic Overcharge & Skill Synergies
+### 3. Cybernetic Overcharge & Skill Synergies
 **How it works:** Connect the Cybernetics system to the character's skill tree.
 **Mechanics:**
 - **Augmentation Synergy**: Installing specific implant sets (e.g., Arms + Head implants) unlocks unique passive traits, like "Target Lock" (+20% Critical Stacking in Berserker stance) or "Nanite Shielding" (Companion Lyra's heals also grant temporary defense).
 
-### 5. Derelict Ship Boss Raids & Unique Blueprints
+### 4. Derelict Ship Boss Raids & Unique Blueprints
 **How it works:** Expand derelict ship exploration with rare end-room Boss encounters.
 **Mechanics:**
 - **Legendary Blueprint Drops**: Defeating a Derelict Boss drops rare blueprints (e.g., "Quantum Shield Core Recipe").

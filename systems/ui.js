@@ -17,6 +17,7 @@ import {
     showVictoryMessage, showSaveMessage, 
     showDialog, hideDialog 
 } from './ui/notifications.js';
+import { showSaveLoadUI } from './ui/saveload-ui.js';
 
 import { initAttributesUI, showStatsAllocationUI, closeStatsAllocationUI, allocateStat, updateAttributesBtnGlow } from './ui/attributes-ui.js';
 import { initUpgrades } from './upgrades.js';
@@ -491,15 +492,14 @@ function updatePendingOrders() {
 }
 
 /**
- * Start the game
+ * Start the game by opening the start new game slot selector
  */
 export function startGame() {
     if (!state) {
         console.error("State is undefined in startGame!");
         return;
     }
-    state.gameState = "characterCreation";
-    showScreen("creation");
+    showSaveLoadUI('newgame');
 }
 
 /**

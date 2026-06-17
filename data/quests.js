@@ -268,8 +268,8 @@ export const quests = {
     amount: 3,
     rewards: { xp: 120, items: ["Nano Stimpack"] },
     isMainStory: false,
-    requiredPlanet: "nebula_outpost",
-    requiredFaction: { faction: "federation", min: -10 }
+    requiredPlanet: "terra_prime",
+    requiredFaction: { faction: "federation", min: 20 }
   },
   "quest_corsair_01": {
     id: "quest_corsair_01",
@@ -281,7 +281,7 @@ export const quests = {
     rewards: { xp: 150, items: ["Quantum Chip"] },
     isMainStory: false,
     requiredPlanet: "xylo_delta",
-    requiredFaction: { faction: "corsairs", min: -10 }
+    requiredFaction: { faction: "corsairs", min: 20 }
   },
   "quest_syndicate_01": {
     id: "quest_syndicate_01",
@@ -292,7 +292,7 @@ export const quests = {
     amount: 2,
     rewards: { xp: 200, items: ["Plasma Rifle"] },
     isMainStory: false,
-    requiredPlanet: "terra_prime",
-    requiredFaction: { faction: "syndicate", min: -10 }
+    requiredPlanet: "norkon_outpost",
+    requiredFaction: { faction: "syndicate", min: 20 }
   }
 };

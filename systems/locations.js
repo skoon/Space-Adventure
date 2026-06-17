@@ -37,7 +37,18 @@ export function getLocationDetails(locationId) {
  */
 export function getUnlockedLocations() {
     const engineLevel = state.character?.ship?.engineLevel || 1;
-    return Object.values(locations).filter(loc => loc.unlocked !== false && engineLevel >= (loc.engineLevelReq || 1));
+    return Object.values(locations).filter(loc => {
+        if (loc.unlocked === false) return false;
+        
+        let req = loc.engineLevelReq || 1;
+        if (loc.controllingFaction && state.character?.factions) {
+            const rep = state.character.factions[loc.controllingFaction] || 0;
+            if (rep < -30) {
+                req += 1; // Blockade penalty
+            }
+        }
+        return engineLevel >= req;
+    });
 }
 
 /**
@@ -58,8 +69,22 @@ export function travelTo(locationId) {
     }
 
     const engineLevel = state.character?.ship?.engineLevel || 1;
-    if (engineLevel < (location.engineLevelReq || 1)) {
-        addLog(`❌ Cannot travel to ${location.name}. Engine Level ${location.engineLevelReq} required.`);
+    let req = location.engineLevelReq || 1;
+    let hasBlockade = false;
+    if (location.controllingFaction && state.character?.factions) {
+        const rep = state.character.factions[location.controllingFaction] || 0;
+        if (rep < -30) {
+            req += 1;
+            hasBlockade = true;
+        }
+    }
+
+    if (engineLevel < req) {
+        if (hasBlockade) {
+            addLog(`❌ Cannot travel to ${location.name}. Hostile faction security blockades require Engine Level ${req} to slip past.`);
+        } else {
+            addLog(`❌ Cannot travel to ${location.name}. Engine Level ${req} required.`);
+        }
         return false;
     }
 
@@ -80,7 +105,7 @@ export function travelTo(locationId) {
     // Trigger travel animation and logic
     if (playTravelAnimation) {
         playTravelAnimation(() => {
-            const ambushFaction = checkForAmbushFaction();
+            const ambushFaction = checkForAmbushFaction(location);
             if (ambushFaction) {
                 triggerTravelAmbush(ambushFaction, location);
             } else {
@@ -98,7 +123,7 @@ export function travelTo(locationId) {
             }
         });
     } else {
-        const ambushFaction = checkForAmbushFaction();
+        const ambushFaction = checkForAmbushFaction(location);
         if (ambushFaction) {
             triggerTravelAmbush(ambushFaction, location);
         } else {
@@ -119,9 +144,22 @@ export function travelTo(locationId) {
     return true;
 }
 
-function checkForAmbushFaction() {
+function checkForAmbushFaction(destLocation) {
     if (!state.character || !state.character.factions) return null;
     
+    // 1. Check destination controlling faction: double ambush chance (up to 100%) if hostile
+    if (destLocation && destLocation.controllingFaction) {
+        const factionId = destLocation.controllingFaction;
+        const rep = state.character.factions[factionId] || 0;
+        if (rep < -30) {
+            const chance = Math.min(100, Math.abs(rep)); // Up to 100% chance at -100 standing
+            if (Math.random() * 100 < chance) {
+                return factionId;
+            }
+        }
+    }
+    
+    // 2. Fallback general random ambushes in transit
     // Check Corsairs
     const corsairRep = state.character.factions.corsairs || 0;
     if (corsairRep < -30) {

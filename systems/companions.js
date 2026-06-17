@@ -16,6 +16,7 @@ export const COMPANIONS = {
         abilityDesc: "Adds a defense shield (+5 DEF) for 3 turns. Cooldown: 3 turns.",
         cooldown: 3,
         preferredGifts: ["Data Chip", "Scrap Metal"],
+        alliedFaction: "federation",
         dialogues: {
             recruit: "Need a hand? The name's Vance. I can watch your back in combat. For 200 credits, I'm in.",
             recruitCost: 200,
@@ -37,6 +38,7 @@ export const COMPANIONS = {
         abilityDesc: "Restores 25 HP. Cooldown: 4 turns.",
         cooldown: 4,
         preferredGifts: ["Bio-Gel", "Nanites"],
+        alliedFaction: "syndicate",
         dialogues: {
             recruit: "Salutations. I am Dr. Lyra. I specialize in trauma medicine. I would like to join your mission for a research fee of 250 credits.",
             recruitCost: 250,
@@ -58,6 +60,7 @@ export const COMPANIONS = {
         abilityDesc: "Deals 20 direct damage to the enemy. Cooldown: 3 turns.",
         cooldown: 3,
         preferredGifts: ["Alien Crystal", "Quantum Chip"],
+        alliedFaction: "corsairs",
         dialogues: {
             recruit: "Hey there. Name's Apex. Best shot this side of the sector. I need to get off this rock. How about 150 credits and I join your crew?",
             recruitCost: 150,
@@ -90,13 +93,49 @@ export function initCompanions(deps) {
     state.activeCompanion = state.activeCompanion || null;
 }
 
+export function getRecruitCost(id) {
+    const data = COMPANIONS[id];
+    if (!data) return 0;
+    
+    let baseCost = data.dialogues.recruitCost;
+    if (!state || !state.character || !state.character.factions) return baseCost;
+    
+    const alliedFaction = data.alliedFaction;
+    if (alliedFaction) {
+        const rep = state.character.factions[alliedFaction] || 0;
+        if (rep >= 30) {
+            return Math.round(baseCost * 0.5); // 50% discount
+        }
+    }
+    return baseCost;
+}
+
+export function canRecruitCompanion(id) {
+    const data = COMPANIONS[id];
+    if (!data) return false;
+    
+    if (!state || !state.character || !state.character.factions) return true;
+    
+    const alliedFaction = data.alliedFaction;
+    if (alliedFaction) {
+        const rep = state.character.factions[alliedFaction] || 0;
+        if (rep < -20) return false; // Hostile stands lock out companion
+    }
+    return true;
+}
+
 /**
  * Recruit a companion
  */
 export function recruitCompanion(id) {
     if (!state || !state.companions || !COMPANIONS[id] || !state.companions[id]) return false;
     
-    const cost = COMPANIONS[id].dialogues.recruitCost;
+    if (!canRecruitCompanion(id)) {
+        if (addLog) addLog(`❌ ${COMPANIONS[id].name} refuses to join you due to your hostile reputation with the ${COMPANIONS[id].alliedFaction.toUpperCase()}.`);
+        return false;
+    }
+    
+    const cost = getRecruitCost(id);
     if (state.character.credits < cost) {
         if (addLog) addLog("⚠️ Insufficient credits to recruit this companion.");
         return false;

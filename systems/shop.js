@@ -7,10 +7,8 @@ import { rollRarity } from './rarity.js';
 
 // State object reference
 let state;
-
-// Dependencies
 let addLog, updateUI;
-let items;
+let items, locations;
 
 /**
  * Initialize the shop module
@@ -18,6 +16,7 @@ let items;
 export function initShop(deps) {
     state = deps.state;
     items = deps.data.items;
+    locations = deps.data.locations;
 
     addLog = deps.ui.addLog;
     updateUI = deps.ui.updateUI;
@@ -41,6 +40,10 @@ export function getPriceMultiplier(factionId) {
  */
 export function getLocalShopFaction() {
     if (!state || !state.currentLocation) return 'federation';
+    const loc = locations?.[state.currentLocation];
+    if (loc && loc.controllingFaction) {
+        return loc.controllingFaction;
+    }
     if (state.currentLocation === 'xylo_delta') return 'corsairs';
     if (state.currentLocation === 'nebula_outpost') return 'syndicate';
     return 'federation';
