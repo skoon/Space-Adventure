@@ -64,40 +64,34 @@
 ### Sector Reputation & Faction Influence Zone (Completed)
 **How it works:** The galaxy is controlled by factions (Federation, Corsairs, Syndicate). The player's faction reputation standing unlocks unique sector perks or hazards.
 **Mechanics:**
-- **Faction Security Zones:** Hostile sectors (< -30 reputation with the controlling faction) require higher engine levels to slip past blockades and double the chance of transit ambushes.
 - **Outpost Perks:** Dynamic merchant factions adjust prices by up to a 30% discount for friendly standings or a 50% markup for hostile standings.
 - **Faction Board Contracts:** Gated job contracts appear on planetary boards only if the captain possesses the required standing (min +20). Completing planet-based quests rewards +15 faction reputation.
 - **Crew Recruitment Standings:** Unlock unique companion options or friendly standing recruitment discounts (50% fee off), whereas hostile reputation locks recruitment.
+
+### Location-Specific Ecologies & Unique Threats (Completed)
+**How it works:** Planetary bodies and derelicts feature custom, thematic enemies with distinct combat mechanics and environmental hazards.
+**Mechanics:**
+- **Thematic Enemy Types:** Volcanic fire-rock elementals that explode on death, Cryo-parasites that drain AP on hit, phasing shadow-beasts with high physical evasion, and rogue security units that drain shield/energy.
+- **Environmental Combat Modifiers:** Planetary hazards modify combat rules: High Gravity (increases AP costs), Solar Radiation (drains energy), and Vacuum (constantly drains Oxygen).
+
+### Multi-Slot Save Management & Saved Games UI (Completed)
+**How it works:** Extends the single-slot save system to a multi-slot system, allowing players to select save slots on the main menu, delete unwanted saves, and confirm slot overwriting during new game creation.
+**Mechanics:**
+- **Start New Game Slot Selector:** Prompts the player to select a slot when starting a new game.
+- **Populated Slot Warning:** Warns the player with a confirmation dialog before overwriting an existing save slot.
+- **Start Menu Integration:** Displays save slots and metadata, with options to load, delete, or overwrite slots.
 
 ---
 
 ## 🔮 Future / Planned Ideas
 
-### 1. Location-Specific Ecologies & Unique Threats
-**How it works:** Rework the enemy generation system so that each planetary body or space dungeon features custom, thematic enemies with distinct combat mechanics.
-**Why it fits:** Enhancing location-specific threats rewards strategic loadout planning and gives each planet a unique identity.
-**Mechanics:**
-- **Thematic Enemy Types:**
-  - *Volcanic Planet (Inferno-IX):* Volcanic fire-rock elementals that explode on death and apply permanent "Burn" damage over time unless blocked.
-  - *Ice Planet (Crio-Prime):* Cryo-parasites that drain AP (Action Points) on hit or freeze character actions.
-  - *Derelict Ships / Anomalies:* Phasing shadow-beasts that are immune to physical attacks (requiring energy weapons or shields) and rogue security units that hack shield capacitors.
-- **Environmental Combat Modifiers:** Planetary hazards modify the combat arena (e.g., high gravity doubling AP cost for heavy movement/attacks, solar radiation draining energy per turn, vacuum environments constantly depleting Oxygen).
-
-### 2. Multi-Slot Save Management & Saved Games UI
-**How it works:** Transition the single-slot save system to a multi-slot system, allowing players to start multiple playthroughs, select saves from a list on the main menu, and delete unwanted saves.
-**Mechanics:**
-- **Save Registry**: Keep a list of all saved playthroughs under a central localStorage key (`galacticOdyssey_saves_list`) containing metadata such as name, level, race, role, location, and timestamp.
-- **Isolated Playthrough States**: Store each playthrough state under its own unique key: `galacticOdyssey_save_${id}`.
-- **Main Menu UI**: Render a "Saved Games" load modal with character details and load/delete options, and update the "Begin Your Journey" flow to assign new unique save IDs upon character creation.
-
-### 3. Cybernetic Overcharge & Skill Synergies
+### 1. Cybernetic Overcharge & Skill Synergies
 **How it works:** Connect the Cybernetics system to the character's skill tree.
 **Mechanics:**
 - **Augmentation Synergy**: Installing specific implant sets (e.g., Arms + Head implants) unlocks unique passive traits, like "Target Lock" (+20% Critical Stacking in Berserker stance) or "Nanite Shielding" (Companion Lyra's heals also grant temporary defense).
 
-### 4. Derelict Ship Boss Raids & Unique Blueprints
+### 2. Derelict Ship Boss Raids & Unique Blueprints
 **How it works:** Expand derelict ship exploration with rare end-room Boss encounters.
 **Mechanics:**
 - **Legendary Blueprint Drops**: Defeating a Derelict Boss drops rare blueprints (e.g., "Quantum Shield Core Recipe").
 - **Crafting Extensions**: Players can use the crafting system to craft legendary-tier accessories or cybernetic enhancements.
-
