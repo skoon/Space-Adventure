@@ -111,6 +111,26 @@
 - **Raycasted/Wireframe Rendering:** The interface in [ui.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/ui.js) renders the player's immediate perspective—showing corridors, intersections, crates, hazards, or approaching enemies.
 - **Directional Navigation:** Players navigate using discrete controls (Turn Left, Turn Right, Move Forward) or arrow keys.
 - **Tactical Minimap:** A localized radar overlay displays visited cells, nearby signatures, and the path back to the airlock.
+**Implementation Plan:**
+- [ ] **Step 1: Grid Map & Player State Definition**
+  - Define player direction using a cardinal angle or direction vectors (North, South, East, West).
+  - Update `startDerelictRun` in [derelict.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/derelict.js) to initialize map data as an 8x8 grid matrix containing wall, hallway, airlock, loot, and boss nodes.
+  - Track coordinates `state.derelict.x` and `state.derelict.y`.
+- [ ] **Step 2: 3D Perspective Raycasting Engine**
+  - Create a canvas rendering system in a new module [dungeon-renderer.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/ui/dungeon-renderer.js).
+  - Implement a basic raycaster projecting rays through a 60-degree field of view to compute wall distances and line heights.
+  - Implement depth shading (darker colors for distant walls) to simulate ambient space fog.
+  - Draw vertical line bands representing flat walls, corridors, and doors.
+- [ ] **Step 3: UI Viewport & Keyboard Navigation**
+  - Add a `<canvas id="dungeonCanvas">` viewport element in [index.html](file:///mnt/d/source/Roogames/Space%20Adventure/index.html).
+  - Bind keyboard keys (W/A/S/D or Arrow keys) for navigation and rotate controls.
+  - Restrict movement into walls or locked doors using boundary-collision checks.
+- [ ] **Step 4: Interactive Entities & Sprites**
+  - Draw flat billboards/sprites inside the 3D viewport representing chests, terminals, hazards, and enemy units.
+  - Render a top-down minimap widget on the UI showing explored cells and player directional arrow.
+- [ ] **Step 5: Event Trigger Integration**
+  - Hook collision/location coordinates into the event engine in [derelict.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/derelict.js) to trigger combat, hazard checks, loot discovery, and the Void Sentinel Alpha fight.
+  - Update tests in [derelict.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/derelict.test.js) to assert grid movement, collision bounds, and boss room coordination.
 
 ### 2. Space Station Hub & Dynamic Market Economy
 **How it works:** Introduces a major social/trading port ("Galactic Nexus Hub") featuring a fluctuating stock and commodity market that responds to simulated galactic news events.
