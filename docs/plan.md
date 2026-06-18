@@ -104,4 +104,38 @@
 
 ## 🔮 Future / Planned Ideas
 
-All planned milestones are currently completed. New future ideas will be listed here as they are scoped out!
+### 1. Pseudo-3D First-Person "Dungeon Crawler" View
+**How it works:** Replaces the current schematic node-based map view during derelict ship exploration with a retro-modern pseudo-3D first-person wireframe/perspective corridor view rendered on an HTML5 Canvas.
+**Mechanics:**
+- **Procedural Maze Generation:** When docking with a derelict in [derelict.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/derelict.js), a grid-based maze (e.g., 8x8 layout) is procedurally generated with walls, hallways, locked doors, and terminals.
+- **Raycasted/Wireframe Rendering:** The interface in [ui.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/ui.js) renders the player's immediate perspective—showing corridors, intersections, crates, hazards, or approaching enemies.
+- **Directional Navigation:** Players navigate using discrete controls (Turn Left, Turn Right, Move Forward) or arrow keys.
+- **Tactical Minimap:** A localized radar overlay displays visited cells, nearby signatures, and the path back to the airlock.
+
+### 2. Space Station Hub & Dynamic Market Economy
+**How it works:** Introduces a major social/trading port ("Galactic Nexus Hub") featuring a fluctuating stock and commodity market that responds to simulated galactic news events.
+**Mechanics:**
+- **Dynamic Commodity Trading:** Prices for rare resources (e.g., Quantum Chips, Plasma Cores, Carbon Nanotubes) fluctuate based on supply, demand, and news tickers (e.g., "Syndicate Outpost Blockaded").
+- **Trade Cargo Hold:** Players can buy resources low in friendly sectors and travel to sell high in other ports, risking space pirate intercepts.
+- **Market Interface:** Integrates with [shop.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/shop.js) to display price trends, graphs, and stock tickers.
+
+### 3. Crew Cabin & Companion Social Loop
+**How it works:** Expands the companion system into an interactive Spacecraft Cabin screen where players can engage in dialogue with crew members, resolve disputes, and unlock personal loyalty quests.
+**Mechanics:**
+- **Banter & Disposition Events:** Traveling between planets triggers random inter-crew conversations. Resolving these dialogues increases companion trust and unlocks unique synergy traits.
+- **Loyalty Missions:** Reaching high trust thresholds unlocks companion-specific dungeon crawls or choice-driven side-stories.
+- **Cabin UI:** A dedicated ship interior tab integrated with [companions.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/companions.js) allows the captain to inspect crew rooms, gift items, and configure passive bonuses.
+
+### 4. Advanced Cybernetic Modding & Tech Tree Specialization
+**How it works:** Introduces minor sub-augment mod slots for cybernetic implants and unlocks deep class-based active and passive skill paths.
+**Mechanics:**
+- **Nanite Mod Chips:** Each implant installed in [cybernetics.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/cybernetics.js) gains 2 sub-slots to insert custom nanite chips (e.g., +5% critical strike chance, fire resistance, +10 HP).
+- **Stability Management:** Slotting too many mods increases "System Instability," leading to occasional status gltiches during combat if exceeded.
+- **Specialization Tree:** Adds distinct branching tech trees (Heavy Combat, Nano-Biotech, Cyber-Hacking) using specialization points.
+
+### 5. Fleet Command Carrier Upgrades & Tactical Grid Battles
+**How it works:** Allows the player to purchase fighter wings and command an escort squadron, shifting space combat into tactical turn-based grid battles.
+**Mechanics:**
+- **Fighter Pilot Recruitment:** Hire pilot crew members with unique fighter commands and loadouts.
+- **Grid-Based Space Combat:** Space battles transition from text options in [ship.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/ship.js) to a tactical grid where fleet positioning, fire arcs, and shield sectors dictate victory.
+- **Carrier Hangar Bays:** Upgrade ship modules to construct fighter hangars, drone repair bays, and planetary bombardment artillery.
