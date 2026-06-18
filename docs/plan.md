@@ -91,12 +91,17 @@
   - *Neural Overdrive (Arms+Nervous):* Grants a 20% chance to refund 1 AP after using an active class ability.
 - **Clinic UI Integration:** Displays active synergies in the med-bay Surgical Suite clinic tab with active status indicator and descriptions.
 
+### Derelict Ship Boss Raids & Unique Blueprints (Completed)
+**How it works:** Expands derelict ship exploration with a rare end-room boss encounter.
+**Mechanics:**
+- **Void Sentinel Alpha Boss Encounter:** Reaching the final room (room 6) triggers a boss battle with the formidable `Void Sentinel Alpha` defined in [enemies.js](file:///mnt/d/source/Roogames/Space%20Adventure/data/enemies.js). Exploration is disabled after defeating the boss until the player escapes the derelict.
+- **Legendary Blueprint Drops:** Defeating the boss guarantees a drop of either the `Quantum Shield Core Recipe` or `Plasma Targeting HUD Recipe`. To maintain exploration stakes, these drops are secured in the derelict cargo (`state.derelict.currentLoot`) and only transferred to player inventory upon a successful escape.
+- **Recipe Discovery:** Players can click on these blueprint items from the inventory screen to dynamically discover and learn the crafting recipes via [inventory-ui.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/ui/inventory-ui.js).
+- **Legendary Accessories:** Once discovered, players can craft the legendary-tier `Quantum Shield Core` (+10 defense) and `Plasma Targeting HUD` (+10 attack) accessories in the crafting tab defined in [recipes.js](file:///mnt/d/source/Roogames/Space%20Adventure/data/recipes.js).
+- **Integration & Verification:** Fully integrated into derelict exploration [derelict.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/derelict.js), combat results [combat.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/combat.js), and map UI [ui.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/ui.js). Covered by unit tests in [derelict.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/derelict.test.js), [combat.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/combat.test.js), and [crafting.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/crafting.test.js).
+
 ---
 
 ## 🔮 Future / Planned Ideas
 
-### 1. Derelict Ship Boss Raids & Unique Blueprints
-**How it works:** Expand derelict ship exploration with rare end-room Boss encounters.
-**Mechanics:**
-- **Legendary Blueprint Drops**: Defeating a Derelict Boss drops rare blueprints (e.g., "Quantum Shield Core Recipe").
-- **Crafting Extensions**: Players can use the crafting system to craft legendary-tier accessories or cybernetic enhancements.
+All planned milestones are currently completed. New future ideas will be listed here as they are scoped out!
