@@ -159,3 +159,12 @@
 - **Fighter Pilot Recruitment:** Hire pilot crew members with unique fighter commands and loadouts.
 - **Grid-Based Space Combat:** Space battles transition from text options in [ship.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/ship.js) to a tactical grid where fleet positioning, fire arcs, and shield sectors dictate victory.
 - **Carrier Hangar Bays:** Upgrade ship modules to construct fighter hangars, drone repair bays, and planetary bombardment artillery.
+
+### 6. Deep Interactive Dialogue Engine & Expanded NPC Questlines
+**How it works:** Expands the branching narrative dialogue system to introduce complex multi-tiered conversations with named NPCs, character memories, and consequence-based storyline branches.
+**Mechanics:**
+- **Tiered Choice Branching:** Multi-stage dialogues with nested conditions assessing player stats, reputation standings, previous quest outcomes, and companion trust.
+- **NPC Memory Tracker:** NPCs dynamically remember specific player choices (e.g., choosing to spare or destroy the drone), permanently altering their tone, pricing, and available quests in later acts.
+- **Quest Storyline Splits:** Narrative choices dynamically branch main questlines, enabling players to align with specific factions or NPCs, culminating in multiple distinct game-ending epilogues.
+- **Dialogue UI Enhancements:** A revamped dialogue card overlay displaying NPC emotions, action rolls, and success percentages based on character specializations.
+- **Integration & Verification:** Integrated into [quests.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/quests.js) and verified via narrative tests in [branching_quests.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/branching_quests.test.js).

@@ -1,6 +1,6 @@
 {
   "name": "space-adventure",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "A space adventure game",
   "scripts": {
     "start": "http-server -p 8080",
