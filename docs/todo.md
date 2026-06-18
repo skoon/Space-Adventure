@@ -96,20 +96,20 @@
 - [x] **Location-Specific Loot** - Area-specific items and rewards
 - [x] **Travel System** - Integrated planetary travel into the Ship Hub (replacing random transport device encounters)
 
-### Location-Specific Ecologies & Unique Threats (Planned)
+### Location-Specific Ecologies & Unique Threats (Completed)
 
-- [ ] **Thematic Enemy Types** - Unique enemies per planet with distinct mechanics (exploding fire elementals, freeze parasites, physical-immune shadow beasts)
-  - [ ] Design planet-specific rosters in `data/enemies.js` or equivalent system files.
-  - [ ] Implement `Inferno-IX` enemies: *Magma Elemental* (explodes on death dealing damage to player and applying `Burning` debuff), *Ashen Hulk* (high fire/plasma defense, weak to Cryo).
-  - [ ] Implement `Crio-Prime` enemies: *Frost parasite* (drains 1 AP on hit), *Cryo Drake* (freezes player on crit).
-  - [ ] Implement `Derelict Ships / Anomalies` enemies: *Eldritch Shade* (phases out; has 90% physical evasion, requires energy/elemental weapon to damage), *Security Sentinel* (hacks player shields, draining 10 shields per turn).
-- [ ] **Environmental Combat Modifiers** - Planet-specific hazards altering combat rules (high gravity altering AP cost, radiation draining energy, vacuum exhausting oxygen)
-  - [ ] Pass the active location/planet environment parameter into the combat initialization function.
-  - [ ] Apply environment-specific turn-start or turn-end hooks in `systems/combat.js`:
+- [x] **Thematic Enemy Types** - Unique enemies per planet with distinct mechanics (exploding fire elementals, freeze parasites, physical-immune shadow beasts)
+  - [x] Design planet-specific rosters in `data/enemies.js` or equivalent system files.
+  - [x] Implement `Inferno-IX` enemies: *Magma Elemental* (explodes on death dealing damage to player and applying `Burning` debuff), *Ashen Hulk* (high fire/plasma defense, weak to Cryo).
+  - [x] Implement `Crio-Prime` enemies: *Frost parasite* (drains 1 AP on hit), *Cryo Drake* (freezes player on crit).
+  - [x] Implement `Derelict Ships / Anomalies` enemies: *Eldritch Shade* (phases out; has 90% physical evasion, requires energy/elemental weapon to damage), *Security Sentinel* (hacks player shields, draining 10 shields per turn).
+- [x] **Environmental Combat Modifiers** - Planet-specific hazards altering combat rules (high gravity altering AP cost, radiation draining energy, vacuum exhausting oxygen)
+  - [x] Pass the active location/planet environment parameter into the combat initialization function.
+  - [x] Apply environment-specific turn-start or turn-end hooks in `systems/combat.js`:
     - `High Gravity`: Increases movement and melee attack AP cost by +1.
     - `Solar Radiation`: Drains 5 Energy at the end of each player turn.
     - `Vacuum (No Life Support)`: Constantly drains 1 unit of Oxygen per turn; running out drains 10% max HP per turn.
-  - [ ] Update the Combat UI to display active environmental modifiers with warning icons.
+  - [x] Update the Combat UI to display active environmental modifiers with warning icons.
 
 ### Deep Space Dungeons (Derelict Ships)
 

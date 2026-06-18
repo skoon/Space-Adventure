@@ -3,7 +3,7 @@
  * Renders the Cybernetic Augmentation Clinic tab inside the Spacecraft Hub Modal
  */
 
-import { IMPLANTS } from '../cybernetics.js';
+import { IMPLANTS, getActiveSynergies } from '../cybernetics.js';
 
 let state;
 let deps;
@@ -149,6 +149,34 @@ export function renderCyberneticsTab() {
             `;
         }
     });
+
+    // Render Active Synergies section if there are any active synergies
+    const activeSynergies = getActiveSynergies ? getActiveSynergies() : [];
+    if (activeSynergies.length > 0) {
+        html += `
+            <div class="mt-6 p-4 border border-cyan-500/30 bg-cyan-950/5 rounded-lg shadow-[0_0_15px_rgba(6,182,212,0.05)]">
+                <h3 class="font-mono text-cyan-400 font-bold text-xs uppercase tracking-wider mb-3 flex items-center gap-1.5 border-b border-cyan-900/40 pb-1.5">
+                    <span>⚡ Active Augmentation Synergies</span>
+                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                </h3>
+                <div class="space-y-2.5 font-mono">
+        `;
+        activeSynergies.forEach(syn => {
+            html += `
+                    <div class="p-2.5 bg-black/40 border border-cyan-950 rounded flex flex-col gap-1">
+                        <div class="flex justify-between items-center">
+                            <span class="text-yellow-400 font-bold text-xs">» ${syn.name}</span>
+                            <span class="text-[9px] bg-cyan-950 text-cyan-400 border border-cyan-800 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">Active Synergy</span>
+                        </div>
+                        <p class="text-gray-400 text-[11px] leading-relaxed">${syn.description}</p>
+                    </div>
+            `;
+        });
+        html += `
+                </div>
+            </div>
+        `;
+    }
 
     html += `
             </div>

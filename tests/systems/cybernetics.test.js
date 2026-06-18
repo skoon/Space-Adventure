@@ -2,7 +2,8 @@ import {
     initCybernetics,
     installImplant,
     uninstallImplant,
-    IMPLANTS
+    IMPLANTS,
+    getActiveSynergies
 } from '../../systems/cybernetics.js';
 
 import {
@@ -11,7 +12,9 @@ import {
     playerDodge,
     enemyTurn,
     useSpecialAbility,
-    encounterEnemy
+    encounterEnemy,
+    useCompanionAbility,
+    useShieldWall
 } from '../../systems/combat.js';
 
 // Mock dependencies
@@ -305,5 +308,143 @@ describe('Cybernetics Combat Behavior Hooks', () => {
         const dodgingEffect = mockState.playerStatusEffects.find(e => e.type === 'dodging');
         expect(dodgingEffect).toBeDefined();
         expect(dodgingEffect.chance).toBeCloseTo(0.45); // 0.3 base + 0.15 modifier
+    });
+});
+
+describe('Cybernetic Augmentation Synergies', () => {
+    let globalRandom;
+
+    beforeAll(() => {
+        globalRandom = Math.random;
+    });
+
+    afterAll(() => {
+        Math.random = globalRandom;
+    });
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockState.character.credits = 1000;
+        mockState.character.hp = 100;
+        mockState.character.maxHp = 100;
+        mockState.character.energy = 50;
+        mockState.character.ap = 3;
+        mockState.character.maxAp = 3;
+        mockState.character.cybernetics = {
+            head: null,
+            arms: null,
+            torso: null,
+            nervous: null
+        };
+        mockState.playerStatusEffects = [];
+        mockState.enemyStatusEffects = [];
+        mockState.activeCompanion = null;
+        mockState.combatStance = "Neutral";
+        mockState.targetLockStacks = 0;
+        
+        mockState.enemy = {
+            name: 'Alien Scourge',
+            hp: 50,
+            maxHp: 50,
+            attack: 20,
+            defense: 2,
+            xp: 20
+        };
+    });
+
+    test('getActiveSynergies returns empty array if no synergies active, and returns correct synergies when active', () => {
+        expect(getActiveSynergies()).toEqual([]);
+
+        // Target Lock: head (targeting_matrix) + arms (reflex_boosters)
+        mockState.character.cybernetics.head = 'targeting_matrix';
+        mockState.character.cybernetics.arms = 'reflex_boosters';
+        let syns = getActiveSynergies();
+        expect(syns.map(s => s.id)).toContain('target_lock');
+
+        // Cybernetic Overcharge: head (targeting_matrix) + torso (subdermal_plating)
+        mockState.character.cybernetics.torso = 'subdermal_plating';
+        syns = getActiveSynergies();
+        expect(syns.map(s => s.id)).toContain('cybernetic_overcharge');
+    });
+
+    test('Target Lock synergy increases crit chance in Berserker stance and resets on crit', () => {
+        // Activate Target Lock
+        mockState.character.cybernetics.head = 'targeting_matrix';
+        mockState.character.cybernetics.arms = 'reflex_boosters';
+        mockState.combatStance = "Berserker";
+        mockState.targetLockStacks = 2; // +40% crit chance
+
+        // Mock Math.random to return 0.50 (no crit if base was 15%, but with +40% = 55%, 0.50 < 0.55 triggers crit!)
+        // In playerAttack, critChance = 0.15 (Warrior base) + 0.40 (stacks) = 0.55.
+        // If Math.random returns 0.50, it is < 0.55, so it critical hits!
+        Math.random = jest.fn().mockReturnValue(0.50);
+
+        playerAttack();
+        expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('Target Lock critical hit achieved'));
+        expect(mockState.targetLockStacks).toBe(0);
+
+        // If not in Berserker stance, Target Lock has no effect
+        mockState.combatStance = "Neutral";
+        mockState.targetLockStacks = 2;
+        Math.random = jest.fn().mockReturnValue(0.50); // 0.50 >= 0.15 (no crit)
+        playerAttack();
+        expect(mockState.targetLockStacks).toBe(2); // Stacks do not change
+    });
+
+    test('Nanite Shielding synergy applies defense boost on Lyra heal', () => {
+        // Activate Nanite Shielding
+        mockState.character.cybernetics.torso = 'subdermal_plating';
+        mockState.character.cybernetics.nervous = 'synaptic_accelerator';
+        mockState.activeCompanion = 'lyra';
+        mockState.companions = {
+            lyra: { level: 1 }
+        };
+
+        // Command companion (restores 25 HP)
+        // AP costs 1
+        useCompanionAbility();
+
+        expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('Dr. Lyra uses Nano-Heal'));
+        expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('Nanite Shielding grants temporary defense'));
+        const defBoost = mockState.playerStatusEffects.find(e => e.type === 'defenseBoost');
+        expect(defBoost).toBeDefined();
+        expect(defBoost.value).toBe(6);
+        expect(defBoost.duration).toBe(2);
+    });
+
+    test('Cybernetic Overcharge synergy reduces active skills energy cost by 10', () => {
+        // Activate Cybernetic Overcharge
+        mockState.character.cybernetics.head = 'targeting_matrix';
+        mockState.character.cybernetics.torso = 'subdermal_plating';
+        mockState.character.energy = 10; // set low energy
+        mockState.character.ap = 3;
+
+        // Shield Wall costs 20, but with synergy it should cost 10.
+        // We have 10 energy, so it should succeed.
+        useShieldWall();
+
+        expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('SHIELD WALL'));
+        expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('Cybernetic Overcharge reduced Shield Wall energy cost'));
+        expect(mockState.character.energy).toBe(0); // 10 - 10
+    });
+
+    test('Neural Overdrive synergy has a chance to refund 1 AP', () => {
+        // Activate Neural Overdrive
+        mockState.character.cybernetics.arms = 'reflex_boosters';
+        mockState.character.cybernetics.nervous = 'synaptic_accelerator';
+        mockState.character.energy = 50;
+        mockState.character.ap = 3;
+
+        // Mock Math.random to trigger AP refund (Math.random() < 0.20)
+        // Let's mock it to return 0.10.
+        Math.random = jest.fn().mockReturnValue(0.10);
+
+        useShieldWall();
+
+        // AP initially 3. Shield Wall costs 1 AP.
+        // Without refund: 3 -> 2.
+        // With refund: 2 -> 3.
+        expect(mockState.character.ap).toBe(3);
+        expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('Neural Overdrive activated! Refunded 1 Action Point'));
     });
 });

@@ -130,6 +130,7 @@ export function encounterEnemy() {
     randomEnemy.breakCurrent = randomEnemy.breakMax;
     state.enemy = randomEnemy;
     state.combatStance = "Neutral";
+    state.targetLockStacks = 0;
     state.character.ap = state.character.maxAp || 3;
     if (state.character.cybernetics && state.character.cybernetics.arms === 'reflex_boosters') {
         if (Math.random() < 0.35) {
@@ -176,6 +177,7 @@ export function encounterBoss() {
     boss.breakCurrent = boss.breakMax;
     state.enemy = boss;
     state.combatStance = "Neutral";
+    state.targetLockStacks = 0;
     state.character.ap = state.character.maxAp || 3;
     if (state.character.cybernetics && state.character.cybernetics.arms === 'reflex_boosters') {
         if (Math.random() < 0.35) {
@@ -572,6 +574,14 @@ export function updateCombatUI() {
             else abilityName = "⭐ Shield Boost";
         }
 
+        // Cybernetic Overcharge Synergy
+        const hasOvercharge = state.character.cybernetics &&
+                              state.character.cybernetics.head === 'targeting_matrix' &&
+                              state.character.cybernetics.torso === 'subdermal_plating';
+        if (hasOvercharge) {
+            energyCost = Math.max(0, energyCost - 10);
+        }
+
         const hasEnergy = currentEnergy >= energyCost;
         const hasAp = state.character.ap >= 3;
         specialButton.disabled = !hasEnergy || !hasAp;
@@ -648,13 +658,18 @@ export function updateCombatUI() {
     if (skillsContainer) {
         skillsContainer.innerHTML = "";
         
+        // Cybernetic Overcharge Synergy
+        const hasOvercharge = state.character.cybernetics &&
+                              state.character.cybernetics.head === 'targeting_matrix' &&
+                              state.character.cybernetics.torso === 'subdermal_plating';
+        
         const activeSkills = [];
         if (state.character.role === "Warrior" && hasSkill('warrior_shield_wall')) {
             activeSkills.push({
                 id: 'warrior_shield_wall',
                 name: '🔰 Shield Wall',
                 ap: 1,
-                energy: 20,
+                energy: hasOvercharge ? 10 : 20,
                 action: 'useShieldWall'
             });
         }
@@ -663,7 +678,7 @@ export function updateCombatUI() {
                 id: 'rogue_smoke_bomb',
                 name: '🌫️ Smoke Bomb',
                 ap: 1,
-                energy: 25,
+                energy: hasOvercharge ? 15 : 25,
                 action: 'useSmokeBomb'
             });
         }
@@ -673,7 +688,7 @@ export function updateCombatUI() {
                     id: 'sci_nanite_repair',
                     name: '🧪 Nanite Repair',
                     ap: 1,
-                    energy: 30,
+                    energy: hasOvercharge ? 20 : 30,
                     action: 'useNaniteRepair'
                 });
             }
@@ -682,7 +697,7 @@ export function updateCombatUI() {
                     id: 'sci_acid_spray',
                     name: '💨 Acid Spray',
                     ap: 1,
-                    energy: 30,
+                    energy: hasOvercharge ? 20 : 30,
                     action: 'useAcidSpray'
                 });
             }
@@ -711,6 +726,21 @@ export function updateCombatUI() {
             skillsContainer.appendChild(btn);
         });
     }
+}
+
+/**
+ * Helper to check and apply Neural Overdrive synergy
+ */
+function checkNeuralOverdrive() {
+    const hasNeuralOverdrive = state.character.cybernetics &&
+                                state.character.cybernetics.arms === 'reflex_boosters' &&
+                                state.character.cybernetics.nervous === 'synaptic_accelerator';
+    if (hasNeuralOverdrive && Math.random() < 0.20) {
+        state.character.ap = Math.min(state.character.maxAp || 3, state.character.ap + 1);
+        addLog("🦾 SYNERGY: Neural Overdrive activated! Refunded 1 Action Point (AP).");
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -746,8 +776,31 @@ export function playerAttack() {
     // Critical hit chance (15% base, higher for Rogues) + passive
     const passiveCrit = getPassiveBonus('critChance');
     const isShadow = state.combatStance === "Shadow";
-    const critChance = (state.character.role === "Rogue" ? 0.25 : 0.15) + passiveCrit;
+    
+    // Target Lock synergy check
+    let targetLockBonus = 0;
+    const hasTargetLockSynergy = state.character.cybernetics && 
+                                  state.character.cybernetics.head === 'targeting_matrix' && 
+                                  state.character.cybernetics.arms === 'reflex_boosters';
+    if (hasTargetLockSynergy && state.combatStance === "Berserker") {
+        targetLockBonus = (state.targetLockStacks || 0) * 0.20;
+    }
+
+    const critChance = (state.character.role === "Rogue" ? 0.25 : 0.15) + passiveCrit + targetLockBonus;
     const isCritical = Math.random() < critChance || isShadow;
+
+    if (hasTargetLockSynergy && state.combatStance === "Berserker") {
+        if (isCritical) {
+            if (state.targetLockStacks > 0) {
+                addLog(`🦾 SYNERGY: Target Lock critical hit achieved! Stacks reset.`);
+            }
+            state.targetLockStacks = 0;
+        } else {
+            state.targetLockStacks = (state.targetLockStacks || 0) + 1;
+            addLog(`🦾 SYNERGY: Target Lock stacks increased to ${state.targetLockStacks} (+${state.targetLockStacks * 20}% Crit Chance).`);
+        }
+    }
+
     let critMultiplier = isCritical ? 2 : 1;
     if (isCritical && state.character.cybernetics && state.character.cybernetics.head === 'targeting_matrix') {
         critMultiplier += 0.5;
@@ -910,6 +963,14 @@ export function useSpecialAbility() {
     if (state.character.role === "Rogue" && hasSkill('rogue_shadowstrike')) energyCost = 45;
     if (state.character.role === "Scientist" && hasSkill('sci_overload')) energyCost = 50;
 
+    // Cybernetic Overcharge Synergy
+    const hasOvercharge = state.character.cybernetics &&
+                          state.character.cybernetics.head === 'targeting_matrix' &&
+                          state.character.cybernetics.torso === 'subdermal_plating';
+    if (hasOvercharge) {
+        energyCost = Math.max(0, energyCost - 10);
+    }
+
     const currentEnergy = state.character.energy ?? state.character.maxEnergy ?? 100;
     if (currentEnergy < energyCost) {
         addLog("⚠️ Not enough energy to use special ability!");
@@ -918,6 +979,7 @@ export function useSpecialAbility() {
     }
 
     state.character.ap -= 3;
+    checkNeuralOverdrive();
 
     if (state.character.hp <= 0) {
         addLog("You succumbed to your injuries...");
@@ -935,6 +997,9 @@ export function useSpecialAbility() {
     }
 
     state.character.energy = Math.max(0, currentEnergy - energyCost);
+    if (hasOvercharge) {
+        addLog(`🦾 SYNERGY: Cybernetic Overcharge reduced special ability energy cost by 10.`);
+    }
 
     // Eldritch Shade: 90% physical evasion against physical special abilities
     const isPhysicalAbility = (state.character.role === "Warrior" || state.character.role === "Rogue");
@@ -1598,6 +1663,18 @@ export function triggerCompanionAbility() {
         const oldHp = state.character.hp;
         state.character.hp = Math.min(state.character.maxHp, state.character.hp + value);
         addLog(`🩺 [Companion] Dr. Lyra uses Nano-Heal, restoring ${state.character.hp - oldHp} HP!`);
+        
+        // Nanite Shielding synergy
+        const hasNaniteShielding = state.character.cybernetics &&
+                                    state.character.cybernetics.torso === 'subdermal_plating' &&
+                                    state.character.cybernetics.nervous === 'synaptic_accelerator';
+        if (hasNaniteShielding) {
+            state.playerStatusEffects = [
+                ...state.playerStatusEffects.filter(e => e.type !== "defenseBoost"),
+                { type: "defenseBoost", value: 6, duration: 2 }
+            ];
+            addLog(`🦾 SYNERGY: Nanite Shielding grants temporary defense (+6 DEF for 2 turns)!`);
+        }
     } else if (state.activeCompanion === "apex") {
         state.enemy.hp -= value;
         addLog(`🔫 [Companion] Apex fires a Precision Shot, dealing ${value} damage to ${state.enemy.name}!`);
@@ -1616,7 +1693,15 @@ export function triggerCompanionAbility() {
 
 export function useShieldWall() {
     if (!state.character || !state.enemy || state.character.ap < 1) return;
-    const energyCost = 20;
+    
+    let energyCost = 20;
+    const hasOvercharge = state.character.cybernetics &&
+                          state.character.cybernetics.head === 'targeting_matrix' &&
+                          state.character.cybernetics.torso === 'subdermal_plating';
+    if (hasOvercharge) {
+        energyCost = Math.max(0, energyCost - 10);
+    }
+
     const currentEnergy = state.character.energy ?? state.character.maxEnergy ?? 100;
     if (currentEnergy < energyCost) {
         addLog("⚠️ Not enough energy to use Shield Wall!");
@@ -1624,12 +1709,16 @@ export function useShieldWall() {
         return;
     }
     state.character.ap -= 1;
+    checkNeuralOverdrive();
     state.character.energy = Math.max(0, currentEnergy - energyCost);
     state.playerStatusEffects = [
         ...state.playerStatusEffects.filter(e => e.type !== "defenseBoost"),
         { type: "defenseBoost", value: 8, duration: 3 }
     ];
     addLog("🔰 SHIELD WALL! You raise a defensive barrier, boosting defense (+8) for 3 turns.");
+    if (hasOvercharge) {
+        addLog("🦾 SYNERGY: Cybernetic Overcharge reduced Shield Wall energy cost by 10.");
+    }
     updateCombatLog();
     updateCombatUI();
     updateUI();
@@ -1638,7 +1727,15 @@ export function useShieldWall() {
 
 export function useSmokeBomb() {
     if (!state.character || !state.enemy || state.character.ap < 1) return;
-    const energyCost = 25;
+    
+    let energyCost = 25;
+    const hasOvercharge = state.character.cybernetics &&
+                          state.character.cybernetics.head === 'targeting_matrix' &&
+                          state.character.cybernetics.torso === 'subdermal_plating';
+    if (hasOvercharge) {
+        energyCost = Math.max(0, energyCost - 10);
+    }
+
     const currentEnergy = state.character.energy ?? state.character.maxEnergy ?? 100;
     if (currentEnergy < energyCost) {
         addLog("⚠️ Not enough energy to use Smoke Bomb!");
@@ -1646,6 +1743,7 @@ export function useSmokeBomb() {
         return;
     }
     state.character.ap -= 1;
+    checkNeuralOverdrive();
     state.character.energy = Math.max(0, currentEnergy - energyCost);
     
     const passiveDodge = getPassiveBonus('dodgeChance');
@@ -1656,6 +1754,9 @@ export function useSmokeBomb() {
         { type: "dodging", chance: dodgeChance, duration: 2 }
     ];
     addLog("🌫️ SMOKE BOMB! You disappear in a cloud of smoke, boosting dodge chance (60%) for 2 turns.");
+    if (hasOvercharge) {
+        addLog("🦾 SYNERGY: Cybernetic Overcharge reduced Smoke Bomb energy cost by 10.");
+    }
     updateCombatLog();
     updateCombatUI();
     updateUI();
@@ -1664,7 +1765,15 @@ export function useSmokeBomb() {
 
 export function useNaniteRepair() {
     if (!state.character || !state.enemy || state.character.ap < 1) return;
-    const energyCost = 30;
+    
+    let energyCost = 30;
+    const hasOvercharge = state.character.cybernetics &&
+                          state.character.cybernetics.head === 'targeting_matrix' &&
+                          state.character.cybernetics.torso === 'subdermal_plating';
+    if (hasOvercharge) {
+        energyCost = Math.max(0, energyCost - 10);
+    }
+
     const currentEnergy = state.character.energy ?? state.character.maxEnergy ?? 100;
     if (currentEnergy < energyCost) {
         addLog("⚠️ Not enough energy to use Nanite Repair!");
@@ -1672,6 +1781,7 @@ export function useNaniteRepair() {
         return;
     }
     state.character.ap -= 1;
+    checkNeuralOverdrive();
     state.character.energy = Math.max(0, currentEnergy - energyCost);
     
     const baseHeal = 40;
@@ -1684,6 +1794,9 @@ export function useNaniteRepair() {
     state.playerStatusEffects = state.playerStatusEffects.filter(e => !negativeEffects.includes(e.type));
     
     addLog(`🧪 NANITE REPAIR! You healed for ${finalHeal} HP and purged all negative status effects.`);
+    if (hasOvercharge) {
+        addLog("🦾 SYNERGY: Cybernetic Overcharge reduced Nanite Repair energy cost by 10.");
+    }
     updateCombatLog();
     updateCombatUI();
     updateUI();
@@ -1692,7 +1805,15 @@ export function useNaniteRepair() {
 
 export function useAcidSpray() {
     if (!state.character || !state.enemy || state.character.ap < 1) return;
-    const energyCost = 30;
+    
+    let energyCost = 30;
+    const hasOvercharge = state.character.cybernetics &&
+                          state.character.cybernetics.head === 'targeting_matrix' &&
+                          state.character.cybernetics.torso === 'subdermal_plating';
+    if (hasOvercharge) {
+        energyCost = Math.max(0, energyCost - 10);
+    }
+
     const currentEnergy = state.character.energy ?? state.character.maxEnergy ?? 100;
     if (currentEnergy < energyCost) {
         addLog("⚠️ Not enough energy to use Acid Spray!");
@@ -1700,6 +1821,7 @@ export function useAcidSpray() {
         return;
     }
     state.character.ap -= 1;
+    checkNeuralOverdrive();
     state.character.energy = Math.max(0, currentEnergy - energyCost);
     
     const stats = getEffectiveStats();
@@ -1724,6 +1846,9 @@ export function useAcidSpray() {
     ];
     
     addLog(`🧪 ACID SPRAY! You deal ${damage} Plasma damage and apply Melted (-5 Defense) to ${state.enemy.name} for 3 turns!`);
+    if (hasOvercharge) {
+        addLog("🦾 SYNERGY: Cybernetic Overcharge reduced Acid Spray energy cost by 10.");
+    }
     
     checkPhaseTransition();
     dealStaggerDamage(20);
