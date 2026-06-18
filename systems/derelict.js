@@ -33,7 +33,9 @@ export function startDerelictRun(destination) {
         maxOxygen: maxOxygen,
         roomsExplored: 0,
         currentLoot: [],
-        destination: destination
+        destination: destination,
+        bossRoom: 6,
+        bossDefeated: false
     };
 
     state.previousGameState = state.gameState;
@@ -54,6 +56,11 @@ export function startDerelictRun(destination) {
 export function exploreRoom() {
     if (!state.derelict || !state.derelict.active) return;
 
+    if (state.derelict.bossDefeated) {
+        addLog("⚠️ The derelict vessel's structural integrity is failing. You must escape immediately!");
+        return;
+    }
+
     if (state.derelict.oxygen <= 0) {
         failRun();
         return;
@@ -69,6 +76,14 @@ export function exploreRoom() {
     if (state.derelict.oxygen <= 0) {
         addLog("⚠️ Oxygen depleted! You are suffocating!");
         failRun();
+        return;
+    }
+
+    // Check boss room encounter
+    const bossRoom = state.derelict.bossRoom || 6;
+    if (state.derelict.roomsExplored === bossRoom) {
+        triggerBossCombat();
+        updateUI();
         return;
     }
 
@@ -107,6 +122,18 @@ function triggerCombat() {
     }
     
     // Restore location
+    state.currentLocation = originalLocation;
+}
+
+function triggerBossCombat() {
+    const originalLocation = state.currentLocation;
+    state.currentLocation = "derelict";
+    
+    if (deps.combat && deps.combat.encounterBoss) {
+        addLog("🚨 WARNING: ANOMALY SOURCE DETECTED! You have entered the central chamber!");
+        deps.combat.encounterBoss();
+    }
+    
     state.currentLocation = originalLocation;
 }
 

@@ -46,7 +46,8 @@ describe('Derelict System tests', () => {
         };
 
         mockCombat = {
-            encounterEnemy: jest.fn()
+            encounterEnemy: jest.fn(),
+            encounterBoss: jest.fn()
         };
 
         destination = {
@@ -190,6 +191,32 @@ describe('Derelict System tests', () => {
             expect(mockState.derelict.active).toBe(false);
             expect(mockState.gameState).toBe('exploring');
             expect(mockState.currentLocation).toBe('xylo_delta');
+        });
+    });
+
+    describe('Derelict Boss Raid triggers', () => {
+        test('reaching the boss room triggers encounterBoss', () => {
+            startDerelictRun(destination);
+            mockState.derelict.roomsExplored = 5; // next room is 6 (boss room)
+            mockState.derelict.oxygen = 5;
+            
+            exploreRoom();
+            
+            expect(mockState.derelict.roomsExplored).toBe(6);
+            expect(mockCombat.encounterBoss).toHaveBeenCalled();
+            expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('ANOMALY SOURCE DETECTED'));
+        });
+
+        test('cannot explore further once boss is defeated', () => {
+            startDerelictRun(destination);
+            mockState.derelict.roomsExplored = 6;
+            mockState.derelict.bossDefeated = true;
+            mockState.derelict.oxygen = 5;
+
+            exploreRoom();
+
+            expect(mockState.derelict.roomsExplored).toBe(6); // unchanged
+            expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('structural integrity is failing'));
         });
     });
 });

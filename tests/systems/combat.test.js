@@ -230,4 +230,23 @@ describe('Combat System', () => {
         expect(mockCharacter.gainXp).toHaveBeenCalledWith(150);
         expect(mockUi.showVictoryMessage).toHaveBeenCalledWith(expect.stringContaining('Epic Victory'));
     });
+
+    test('winCombat sets bossDefeated and drops blueprint on Void Sentinel Alpha defeat in derelict', () => {
+        mockState.derelict = {
+            active: true,
+            currentLoot: []
+        };
+        mockState.enemy = {
+            name: "Void Sentinel Alpha",
+            attack: 20,
+            defense: 10,
+            isBoss: true,
+            drops: ["Quantum Shield Core Recipe", "Plasma Targeting HUD Recipe"]
+        };
+        winCombat();
+        expect(mockState.derelict.bossDefeated).toBe(true);
+        expect(mockState.derelict.currentLoot.length).toBe(1);
+        expect(mockState.derelict.currentLoot[0]).toMatch(/Recipe$/);
+        expect(mockState.inventory).not.toContain(mockState.derelict.currentLoot[0]);
+    });
 });

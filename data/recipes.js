@@ -28,5 +28,27 @@ export const recipes = {
           "Rusty Pipe": 1
       },
       description: "Forge basic armor from scrap materials."
+  },
+  "quantum_shield_core": {
+      id: "quantum_shield_core",
+      name: "Quantum Shield Core",
+      creates: "Quantum Shield Core",
+      requires: {
+          "Quantum Chip": 2,
+          "Plasma Core": 1,
+          "Circuit Board": 3
+      },
+      description: "A legendary accessory that forms an impenetrable energy field."
+  },
+  "plasma_targeting_hud": {
+      id: "plasma_targeting_hud",
+      name: "Plasma Targeting HUD",
+      creates: "Plasma Targeting HUD",
+      requires: {
+          "Quantum Chip": 1,
+          "Plasma Core": 2,
+          "Carbon Nanotubes": 4
+      },
+      description: "A legendary accessory that grants extreme tactical targeting data."
   }
 };

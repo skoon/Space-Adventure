@@ -1525,7 +1525,16 @@ export function winCombat() {
     // Loot Logic
     const dropTable = state.enemy.drops || ["Energy Cell", "Alien Crystal", "Data Chip"];
     const loot = dropTable[Math.floor(Math.random() * dropTable.length)];
-    const finalLoot = rollRarity(loot, isBoss ? 0.15 : 0);
+    let finalLoot = rollRarity(loot, isBoss ? 0.15 : 0);
+    
+    if (enemyName === "Void Sentinel Alpha") {
+        if (state.derelict) {
+            state.derelict.bossDefeated = true;
+        }
+        // Force drop of one of the blueprints
+        const blueprintPool = ["Quantum Shield Core Recipe", "Plasma Targeting HUD Recipe"];
+        finalLoot = blueprintPool[Math.floor(Math.random() * blueprintPool.length)];
+    }
 
     // Clear enemy immediately to prevent further interactions
     state.enemy = null;
@@ -1552,8 +1561,13 @@ export function winCombat() {
     }
     checkAchievement("combat");
     
-    // Inventory & Credits
-    state.inventory.push(finalLoot);
+    // Inventory/Cargo & Credits
+    if (state.derelict && state.derelict.active) {
+        state.derelict.currentLoot.push(finalLoot);
+        addLog(`You secured the ${finalLoot} in your derelict cargo.`);
+    } else {
+        state.inventory.push(finalLoot);
+    }
     state.character.credits = (state.character.credits || 0) + creditsGained;
 
     // Log
@@ -1567,8 +1581,13 @@ export function winCombat() {
         if (equipmentPool.length > 0) {
             const randomEquip = equipmentPool[Math.floor(Math.random() * equipmentPool.length)];
             const rolledEquip = rollRarity(randomEquip, isBoss ? 0.25 : 0.05);
-            state.inventory.push(rolledEquip);
-            addLog(`🎁 Lucky! You found a rare equipment drop: ${rolledEquip}!`);
+            if (state.derelict && state.derelict.active) {
+                state.derelict.currentLoot.push(rolledEquip);
+                addLog(`🎁 Lucky! You found a rare equipment drop: ${rolledEquip} (secured in cargo)!`);
+            } else {
+                state.inventory.push(rolledEquip);
+                addLog(`🎁 Lucky! You found a rare equipment drop: ${rolledEquip}!`);
+            }
         }
     }
 

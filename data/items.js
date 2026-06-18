@@ -41,5 +41,9 @@ export const items = {
 
   // Accessories
   "Shield Generator": { type: "accessory", category: "equipment", stats: { defense: 3 }, description: "Generates a personal forcefield.", price: 600, stackable: false },
-  "Targeting HUD": { type: "accessory", category: "equipment", stats: { attack: 3 }, description: "Improves accuracy and damage.", price: 600, stackable: false }
+  "Targeting HUD": { type: "accessory", category: "equipment", stats: { attack: 3 }, description: "Improves accuracy and damage.", price: 600, stackable: false },
+  "Quantum Shield Core": { type: "accessory", category: "equipment", stats: { defense: 10 }, description: "A legendary accessory that forms an impenetrable energy field.", price: 3000, rarity: "Legendary", stackable: false },
+  "Plasma Targeting HUD": { type: "accessory", category: "equipment", stats: { attack: 10 }, description: "A legendary accessory that grants extreme tactical targeting data.", price: 3000, rarity: "Legendary", stackable: false },
+  "Quantum Shield Core Recipe": { type: "material", category: "material", recipeId: "quantum_shield_core", description: "Use this blueprint from inventory to discover the Quantum Shield Core crafting recipe.", price: 1000, stackable: true },
+  "Plasma Targeting HUD Recipe": { type: "material", category: "material", recipeId: "plasma_targeting_hud", description: "Use this blueprint from inventory to discover the Plasma Targeting HUD crafting recipe.", price: 1000, stackable: true }
 };

@@ -243,6 +243,24 @@ export function createInventoryItemButton(itemName, count, item) {
 
         if (item && ["weapon", "armor", "accessory"].includes(item.type)) {
             if (equipItem) equipItem(itemName);
+        } else if (item && item.recipeId) {
+            import('../crafting.js').then(m => {
+                import('../../data/recipes.js').then(rModule => {
+                    const recipeDef = rModule.recipes[item.recipeId];
+                    if (recipeDef) {
+                        const success = m.discoverRecipe(item.recipeId, recipeDef);
+                        if (success) {
+                            const index = state.inventory.indexOf(itemName);
+                            if (index > -1) {
+                                state.inventory.splice(index, 1);
+                            }
+                            updateUI();
+                        } else {
+                            addLog("You already know this recipe.");
+                        }
+                    }
+                });
+            });
         } else if (applyQuestItem) {
             const applied = applyQuestItem(itemName);
             if (!applied) {

@@ -59,5 +59,18 @@ export const bosses = [
     specialAttacks: [
       { name: "Void Strike", damageMultiplier: 1.8, chance: 0.3, msg: "The Alpha strikes you from the void!" }
     ]
+  },
+  {
+    id: "boss_derelict",
+    name: "Void Sentinel Alpha",
+    locations: ["derelict"],
+    hp: 260, attack: 22, defense: 7,
+    drops: ["Quantum Shield Core Recipe", "Plasma Targeting HUD Recipe"],
+    phases: [
+      { threshold: 0.5, name: "Aura Discharged", attackBuff: 12, defenseBuff: 0, defenseNerf: 3, msg: "The Construct vents its outer plating, discharging crackling void energy!" }
+    ],
+    specialAttacks: [
+      { name: "Gravitational Collapse", damageMultiplier: 1.8, chance: 0.3, msg: "The anomaly compresses gravitational fields, causing a localized collapse!" }
+    ]
   }
 ];

@@ -267,8 +267,9 @@ function updateDerelictUI() {
         if (mapContainer) {
             mapContainer.innerHTML = '';
             const currentRoom = state.derelict.roomsExplored;
+            const bossRoom = state.derelict.bossRoom || 6;
             const startNode = Math.max(0, currentRoom - 2);
-            const endNode = startNode + 4;
+            const endNode = Math.min(bossRoom, startNode + 4);
             
             for (let i = startNode; i <= endNode; i++) {
                 if (i > startNode) {
@@ -277,26 +278,55 @@ function updateDerelictUI() {
                     mapContainer.appendChild(line);
                 }
                 
-                const node = document.createElement('div');
-                node.className = `w-12 h-12 rounded-full border-2 flex flex-col justify-center items-center font-mono text-sm relative ${
+                let nodeClass = `w-12 h-12 rounded-full border-2 flex flex-col justify-center items-center font-mono text-sm relative ${
                     i === currentRoom
                         ? 'border-red-500 bg-red-950/40 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.5)] animate-pulse'
                         : i < currentRoom
                             ? 'border-gray-500 bg-gray-800 text-gray-400'
-                            : 'border-gray-800 bg-black text-gray-700'
+                            : i === bossRoom
+                                ? 'border-yellow-600 bg-yellow-950/10 text-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.3)] animate-pulse'
+                                : 'border-gray-800 bg-black text-gray-700'
                 }`;
+                
+                const node = document.createElement('div');
                 
                 if (i === 0) {
                     node.innerHTML = '🚪<span class="text-[9px] absolute -bottom-5 text-gray-400 font-bold">Airlock</span>';
                 } else if (i === currentRoom) {
-                    node.innerHTML = '👤<span class="text-[9px] absolute -bottom-5 text-red-400 font-bold">You</span>';
+                    if (i === bossRoom) {
+                        if (state.derelict.bossDefeated) {
+                            node.innerHTML = '✨<span class="text-[9px] absolute -bottom-5 text-green-400 font-bold">CLEARED</span>';
+                            nodeClass = `w-12 h-12 rounded-full border-2 flex flex-col justify-center items-center font-mono text-sm relative border-green-500 bg-green-950/20 text-green-300 shadow-[0_0_15px_rgba(34,197,94,0.4)]`;
+                        } else {
+                            node.innerHTML = '💀<span class="text-[9px] absolute -bottom-5 text-red-500 font-bold">BOSS</span>';
+                        }
+                    } else {
+                        node.innerHTML = '👤<span class="text-[9px] absolute -bottom-5 text-red-400 font-bold">You</span>';
+                    }
                 } else if (i < currentRoom) {
                     node.innerHTML = `🛡️<span class="text-[9px] absolute -bottom-5 text-gray-500 font-bold font-mono">Room ${i}</span>`;
+                } else if (i === bossRoom) {
+                    node.innerHTML = '💀<span class="text-[9px] absolute -bottom-5 text-yellow-500 font-bold">BOSS</span>';
                 } else {
                     node.innerHTML = `?<span class="text-[9px] absolute -bottom-5 text-gray-700 font-bold font-mono">Room ${i}</span>`;
                 }
                 
+                node.className = nodeClass;
                 mapContainer.appendChild(node);
+            }
+        }
+        
+        // Update Action Buttons
+        const exploreBtn = document.getElementById('derelictExploreBtn');
+        if (exploreBtn) {
+            if (state.derelict.bossDefeated) {
+                exploreBtn.disabled = true;
+                exploreBtn.textContent = "Clear!";
+                exploreBtn.className = "py-3 px-4 bg-gray-800 border border-gray-700 text-gray-500 rounded font-bold transition-colors cursor-not-allowed uppercase tracking-wider mt-auto";
+            } else {
+                exploreBtn.disabled = false;
+                exploreBtn.textContent = "Explore Deeper (-1 O₂)";
+                exploreBtn.className = "py-3 px-4 bg-red-800 hover:bg-red-700 text-white rounded font-bold transition-colors shadow-[0_0_10px_rgba(153,27,27,0.5)] border border-red-600 uppercase tracking-wider mt-auto";
             }
         }
         
