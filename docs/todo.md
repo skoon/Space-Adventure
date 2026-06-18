@@ -11,6 +11,8 @@
 - [x] Victory screen after boss defeats
 - [x] Fix "startGame is not defined" error (Duplicate applyQuestItem in systems/quests.js)
 - [x] **Cybernetic Augmentation Clinic** - Progression layer with 4 cyber slots (Head, Arms, Torso, Nervous System), active combat benefits (Reflex Boosters, Sub-dermal Plating, Targeting Matrix, Synaptic Accelerator), and credit/material surgical requirements.
+- [x] **Cybernetic Augmentation Synergies** - Pairs of cybernetic implants unlock active synergies: Target Lock (Head+Arms: Crit stacking in Berserker stance), Nanite Shielding (Torso+Nervous: Lyra heals grant DEF boost), Cybernetic Overcharge (Head+Torso: Reduces ability energy costs by 10), and Neural Overdrive (Arms+Nervous: 20% chance to refund 1 AP on ability use).
+
 
 ## 🎮 Combat Enhancements
 

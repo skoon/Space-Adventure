@@ -13,7 +13,7 @@ import {
     enemyTurn,
     useSpecialAbility,
     encounterEnemy,
-    useCompanionAbility,
+    triggerCompanionAbility,
     useShieldWall
 } from '../../systems/combat.js';
 
@@ -402,7 +402,7 @@ describe('Cybernetic Augmentation Synergies', () => {
 
         // Command companion (restores 25 HP)
         // AP costs 1
-        useCompanionAbility();
+        triggerCompanionAbility();
 
         expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('Dr. Lyra uses Nano-Heal'));
         expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('Nanite Shielding grants temporary defense'));

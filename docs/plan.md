@@ -81,16 +81,21 @@
 - **Populated Slot Warning:** Warns the player with a confirmation dialog before overwriting an existing save slot.
 - **Start Menu Integration:** Displays save slots and metadata, with options to load, delete, or overwrite slots.
 
+### Cybernetic Overcharge & Skill Synergies (Completed)
+**How it works:** Connect the Cybernetics system to the character's skill tree/combat.
+**Mechanics:**
+- **Augmentation Synergy**: Sets of 2 implants unlock synergies:
+  - *Target Lock (Head+Arms):* In Berserker stance, each non-critical hit increases Crit Chance by +20% (stacks until next Critical Hit).
+  - *Nanite Shielding (Torso+Nervous):* Dr. Lyra's Nano-Heal also grants you a Shield Boost (+6 DEF) for 2 turns.
+  - *Cybernetic Overcharge (Head+Torso):* Reduces the Energy cost of all active abilities by 10.
+  - *Neural Overdrive (Arms+Nervous):* Grants a 20% chance to refund 1 AP after using an active class ability.
+- **Clinic UI Integration:** Displays active synergies in the med-bay Surgical Suite clinic tab with active status indicator and descriptions.
+
 ---
 
 ## 🔮 Future / Planned Ideas
 
-### 1. Cybernetic Overcharge & Skill Synergies
-**How it works:** Connect the Cybernetics system to the character's skill tree.
-**Mechanics:**
-- **Augmentation Synergy**: Installing specific implant sets (e.g., Arms + Head implants) unlocks unique passive traits, like "Target Lock" (+20% Critical Stacking in Berserker stance) or "Nanite Shielding" (Companion Lyra's heals also grant temporary defense).
-
-### 2. Derelict Ship Boss Raids & Unique Blueprints
+### 1. Derelict Ship Boss Raids & Unique Blueprints
 **How it works:** Expand derelict ship exploration with rare end-room Boss encounters.
 **Mechanics:**
 - **Legendary Blueprint Drops**: Defeating a Derelict Boss drops rare blueprints (e.g., "Quantum Shield Core Recipe").
