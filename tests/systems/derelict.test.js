@@ -2,7 +2,7 @@ jest.mock('../../systems/achievements.js', () => ({
     checkAchievement: jest.fn()
 }));
 
-import { initDerelict, startDerelictRun, exploreRoom, escapeShip, failRun } from '../../systems/derelict.js';
+import { initDerelict, startDerelictRun, exploreRoom, escapeShip, failRun, turnLeft, turnRight, uTurn } from '../../systems/derelict.js';
 import { checkAchievement } from '../../systems/achievements.js';
 
 describe('Derelict System tests', () => {
@@ -84,7 +84,7 @@ describe('Derelict System tests', () => {
         expect(mockState.derelict.active).toBe(true);
         expect(mockState.derelict.oxygen).toBeGreaterThanOrEqual(10);
         expect(mockState.derelict.oxygen).toBeLessThanOrEqual(15);
-        expect(mockState.derelict.roomsExplored).toBe(0);
+        expect(mockState.derelict.roomsExplored).toBe(1); // Starting room is 1st room visited
         expect(mockState.derelict.currentLoot).toEqual([]);
         expect(mockState.derelict.destination).toBe(destination);
         expect(mockUi.showDerelictScreen).toHaveBeenCalled();
@@ -99,16 +99,18 @@ describe('Derelict System tests', () => {
         });
 
         test('exploreRoom deducts oxygen and increments roomsExplored', () => {
+            mockState.derelict.map[2][1] = 0; // Ensure corridor is open
             jest.spyOn(Math, 'random').mockReturnValue(0.95); // Empty room roll
             exploreRoom();
 
             expect(mockState.derelict.oxygen).toBe(9);
-            expect(mockState.derelict.roomsExplored).toBe(1);
+            expect(mockState.derelict.roomsExplored).toBe(2);
             expect(mockUi.updateUI).toHaveBeenCalled();
         });
 
         test('exploreRoom rolls combat event', () => {
-            jest.spyOn(Math, 'random').mockReturnValue(0.1); // Combat range (< 0.42 with 1 room depth bonus)
+            mockState.derelict.map[2][1] = 0; // Ensure corridor is open
+            jest.spyOn(Math, 'random').mockReturnValue(0.1); // Combat chance check (< 0.15)
             exploreRoom();
 
             expect(mockCombat.encounterEnemy).toHaveBeenCalled();
@@ -116,16 +118,12 @@ describe('Derelict System tests', () => {
         });
 
         test('exploreRoom rolls loot event and finds item', () => {
-            // Mock random so that we pass the loot range but fail the equipment chance
-            // loot is 0.40 - 0.70. Let's make it 0.5.
-            // Math.random for equipment chance needs to fail (e.g. return 0.99)
-            // Math.random for item select returns 0.0
+            mockState.derelict.map[2][1] = 3; // Loot cell
             let randomCalls = 0;
             jest.spyOn(Math, 'random').mockImplementation(() => {
                 randomCalls++;
-                if (randomCalls === 1) return 0.5; // Event roll: loot
-                if (randomCalls === 2) return 0.99; // Equipment chance check: fail
-                if (randomCalls === 3) return 0.5; // High-tier loot check: fail
+                if (randomCalls === 1) return 0.99; // Equipment chance check: fail
+                if (randomCalls === 2) return 0.5; // High-tier loot check: fail
                 return 0.0; // Index in base loot pool ("Scrap Metal")
             });
 
@@ -136,22 +134,17 @@ describe('Derelict System tests', () => {
         });
 
         test('exploreRoom rolls hazard event and takes damage', () => {
-            // Math.random() for event roll returns 0.8 (Hazard is 0.70 - 0.90)
-            // Math.random() for hazard damage returns 0.5
-            let randomCalls = 0;
-            jest.spyOn(Math, 'random').mockImplementation(() => {
-                randomCalls++;
-                if (randomCalls === 1) return 0.8; // Hazard roll
-                return 0.5; // damage roll: 5 + floor(0.5 * 10) + depth = 5 + 5 + 1 = 11 damage
-            });
+            mockState.derelict.map[2][1] = 2; // Hazard cell
+            jest.spyOn(Math, 'random').mockReturnValue(0.5); // Damage roll: 5 + floor(0.5*10) + roomsExplored (2) = 12
 
             exploreRoom();
 
-            expect(mockState.character.hp).toBe(89); // 100 - 11
-            expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining(' ruptured! You took 11 damage.'));
+            expect(mockState.character.hp).toBe(88); // 100 - 12
+            expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining(' ruptured! You took 12 damage.'));
         });
 
         test('exploreRoom fails run immediately when oxygen reaches 0', () => {
+            mockState.derelict.map[2][1] = 0; // Ensure corridor is open
             mockState.derelict.oxygen = 1;
             jest.spyOn(Math, 'random').mockReturnValue(0.95); // Empty room roll
 
@@ -197,26 +190,61 @@ describe('Derelict System tests', () => {
     describe('Derelict Boss Raid triggers', () => {
         test('reaching the boss room triggers encounterBoss', () => {
             startDerelictRun(destination);
-            mockState.derelict.roomsExplored = 5; // next room is 6 (boss room)
+            mockState.derelict.map[2][1] = 4; // Boss room cell
             mockState.derelict.oxygen = 5;
             
             exploreRoom();
             
-            expect(mockState.derelict.roomsExplored).toBe(6);
             expect(mockCombat.encounterBoss).toHaveBeenCalled();
             expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('ANOMALY SOURCE DETECTED'));
         });
 
         test('cannot explore further once boss is defeated', () => {
             startDerelictRun(destination);
-            mockState.derelict.roomsExplored = 6;
+            // Move player to (1, 2) which has map value 0 (non-airlock)
+            mockState.derelict.x = 1;
+            mockState.derelict.y = 2;
+            mockState.derelict.map[2][1] = 0;
             mockState.derelict.bossDefeated = true;
             mockState.derelict.oxygen = 5;
 
             exploreRoom();
 
-            expect(mockState.derelict.roomsExplored).toBe(6); // unchanged
             expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('structural integrity is failing'));
+        });
+    });
+
+    describe('Grid Navigation and Collisions', () => {
+        test('turnLeft, turnRight, and uTurn rotate directional vectors correctly', () => {
+            startDerelictRun(destination);
+            // Initially facing South (0, 1)
+            expect(mockState.derelict.dirX).toBe(0);
+            expect(mockState.derelict.dirY).toBe(1);
+
+            turnLeft(); // Turn East (1, 0)
+            expect(mockState.derelict.dirX).toBe(1);
+            expect(mockState.derelict.dirY).toBe(0);
+
+            turnRight(); // Turn South (0, 1)
+            expect(mockState.derelict.dirX).toBe(0);
+            expect(mockState.derelict.dirY).toBe(1);
+
+            uTurn(); // Turn North (0, -1)
+            expect(mockState.derelict.dirX).toBe(0);
+            expect(mockState.derelict.dirY).toBe(-1);
+        });
+
+        test('exploreRoom is blocked by walls (1)', () => {
+            startDerelictRun(destination);
+            mockState.derelict.map[2][1] = 1; // Solid wall ahead
+            mockState.derelict.oxygen = 10;
+
+            exploreRoom();
+
+            expect(mockState.derelict.x).toBe(1);
+            expect(mockState.derelict.y).toBe(1); // Blocked
+            expect(mockState.derelict.oxygen).toBe(10); // Oxygen preserved
+            expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('Solid bulkhead ahead'));
         });
     });
 });

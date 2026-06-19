@@ -1,6 +1,7 @@
 import { rollRarity } from './rarity.js';
 import { items } from '../data/items.js';
 import { checkAchievement } from './achievements.js';
+import { initDungeonRenderer } from './ui/dungeon-renderer.js';
 
 let state;
 let deps;
@@ -15,6 +16,101 @@ export function initDerelict(dependencies) {
     showScreen = deps.ui.showScreen;
     gainXp = deps.character.gainXp;
     checkQuestProgress = deps.quests.checkQuestProgress;
+    
+    initDungeonRenderer(state);
+}
+
+/**
+ * Generate a procedural 8x8 maze for the derelict ship
+ */
+export function generateDerelictMaze() {
+    const SIZE = 8;
+    const grid = Array(SIZE).fill(null).map(() => Array(SIZE).fill(1)); // All walls initially
+    
+    // DFS stack starting at (1, 1)
+    const stack = [[1, 1]];
+    grid[1][1] = 0; // Empty corridor
+    
+    while (stack.length > 0) {
+        const [cx, cy] = stack[stack.length - 1];
+        const neighbors = [];
+        
+        // Find adjacent cells 2 steps away
+        const dirs = [
+            [2, 0], [-2, 0], [0, 2], [0, -2]
+        ];
+        
+        for (const [dx, dy] of dirs) {
+            const nx = cx + dx;
+            const ny = cy + dy;
+            if (nx > 0 && nx < SIZE - 1 && ny > 0 && ny < SIZE - 1) {
+                if (grid[ny][nx] === 1) {
+                    neighbors.push([nx, ny]);
+                }
+            }
+        }
+        
+        if (neighbors.length > 0) {
+            // Pick a random neighbor
+            const [nx, ny] = neighbors[Math.floor(Math.random() * neighbors.length)];
+            // Carve intermediate corridor
+            const ix = cx + (nx - cx) / 2;
+            const iy = cy + (ny - cy) / 2;
+            grid[iy][ix] = 0;
+            grid[ny][nx] = 0;
+            
+            stack.push([nx, ny]);
+        } else {
+            stack.pop();
+        }
+    }
+    
+    // Airlock position
+    grid[1][1] = 5; // Start/Airlock node
+    
+    // Find all empty cells to place items and boss
+    const emptyCells = [];
+    for (let y = 1; y < SIZE - 1; y++) {
+        for (let x = 1; x < SIZE - 1; x++) {
+            if (grid[y][x] === 0) {
+                emptyCells.push({ x, y });
+            }
+        }
+    }
+    
+    // Set boss at the furthest reachable corridor from (1, 1)
+    let bossCell = null;
+    let maxDist = -1;
+    emptyCells.forEach(cell => {
+        const dist = Math.abs(cell.x - 1) + Math.abs(cell.y - 1);
+        if (dist > maxDist) {
+            maxDist = dist;
+            bossCell = cell;
+        }
+    });
+    
+    if (bossCell) {
+        grid[bossCell.y][bossCell.x] = 4; // Boss Sentinel Alpha
+        const idx = emptyCells.findIndex(c => c.x === bossCell.x && c.y === bossCell.y);
+        if (idx > -1) emptyCells.splice(idx, 1);
+    }
+    
+    // Distribute loot chest and hazards
+    const numLoot = Math.min(3, emptyCells.length);
+    for (let i = 0; i < numLoot; i++) {
+        const idx = Math.floor(Math.random() * emptyCells.length);
+        const cell = emptyCells.splice(idx, 1)[0];
+        grid[cell.y][cell.x] = 3; // Loot
+    }
+    
+    const numHazards = Math.min(2, emptyCells.length);
+    for (let i = 0; i < numHazards; i++) {
+        const idx = Math.floor(Math.random() * emptyCells.length);
+        const cell = emptyCells.splice(idx, 1)[0];
+        grid[cell.y][cell.x] = 2; // Hazard
+    }
+    
+    return grid;
 }
 
 /**
@@ -27,15 +123,24 @@ export function startDerelictRun(destination) {
     }
     const maxOxygen = 10 + Math.floor(Math.random() * 6); // 10-15 Oxygen
     
+    const grid = generateDerelictMaze();
+    const visited = Array(8).fill(null).map(() => Array(8).fill(false));
+    visited[1][1] = true;
+    
     state.derelict = {
         active: true,
         oxygen: maxOxygen,
         maxOxygen: maxOxygen,
-        roomsExplored: 0,
+        roomsExplored: 1, // Start room counts as explored
         currentLoot: [],
         destination: destination,
-        bossRoom: 6,
-        bossDefeated: false
+        bossDefeated: false,
+        map: grid,
+        visited: visited,
+        x: 1,
+        y: 1,
+        dirX: 0,
+        dirY: 1 // Start facing South
     };
 
     state.previousGameState = state.gameState;
@@ -44,20 +149,58 @@ export function startDerelictRun(destination) {
     addLog("🚨 DISTRESS SIGNAL INTERCEPTED 🚨");
     addLog(`You docked with a derelict vessel. Life support is offline. You have ${maxOxygen} units of oxygen.`);
     
-    // Switch to derelict UI (handled in ui.js later)
+    // Switch to derelict UI
     if (deps.ui.showDerelictScreen) {
         deps.ui.showDerelictScreen();
     }
 }
 
 /**
- * Explore deeper into the derelict
+ * Rotate player camera left (CCW)
+ */
+export function turnLeft() {
+    if (!state.derelict || !state.derelict.active) return;
+    const dirX = state.derelict.dirX;
+    const dirY = state.derelict.dirY;
+    state.derelict.dirX = dirY === 0 ? 0 : dirY;
+    state.derelict.dirY = -dirX === 0 ? 0 : -dirX;
+    addLog("🔄 Turned left.");
+    updateUI();
+}
+
+/**
+ * Rotate player camera right (CW)
+ */
+export function turnRight() {
+    if (!state.derelict || !state.derelict.active) return;
+    const dirX = state.derelict.dirX;
+    const dirY = state.derelict.dirY;
+    state.derelict.dirX = -dirY === 0 ? 0 : -dirY;
+    state.derelict.dirY = dirX === 0 ? 0 : dirX;
+    addLog("🔄 Turned right.");
+    updateUI();
+}
+
+/**
+ * Perform a U-turn (Turn around)
+ */
+export function uTurn() {
+    if (!state.derelict || !state.derelict.active) return;
+    state.derelict.dirX = -state.derelict.dirX === 0 ? 0 : -state.derelict.dirX;
+    state.derelict.dirY = -state.derelict.dirY === 0 ? 0 : -state.derelict.dirY;
+    addLog("🔄 Turned around.");
+    updateUI();
+}
+
+/**
+ * Explore deeper into the derelict (Move Forward)
  */
 export function exploreRoom() {
     if (!state.derelict || !state.derelict.active) return;
 
-    if (state.derelict.bossDefeated) {
-        addLog("⚠️ The derelict vessel's structural integrity is failing. You must escape immediately!");
+    if (state.derelict.bossDefeated && state.derelict.map[state.derelict.y][state.derelict.x] !== 5) {
+        // Boss defeated and player is not at Airlock
+        addLog("⚠️ The derelict vessel's structural integrity is failing. You must return to the Airlock and escape immediately!");
         return;
     }
 
@@ -66,9 +209,35 @@ export function exploreRoom() {
         return;
     }
 
+    const nextX = state.derelict.x + state.derelict.dirX;
+    const nextY = state.derelict.y + state.derelict.dirY;
+    
+    // Bounds check
+    const SIZE = 8;
+    if (nextX < 0 || nextX >= SIZE || nextY < 0 || nextY >= SIZE) {
+        addLog("🛑 Cannot move forward: Out of bounds.");
+        return;
+    }
+
+    // Wall check
+    const cellValue = state.derelict.map[nextY][nextX];
+    if (cellValue === 1) {
+        addLog("🛑 Solid bulkhead ahead. Choose another direction.");
+        return;
+    }
+
     // Deduct oxygen
     state.derelict.oxygen -= 1;
-    state.derelict.roomsExplored += 1;
+    
+    // Move player
+    state.derelict.x = nextX;
+    state.derelict.y = nextY;
+    
+    // Mark visited
+    if (!state.derelict.visited[nextY][nextX]) {
+        state.derelict.visited[nextY][nextX] = true;
+        state.derelict.roomsExplored += 1;
+    }
 
     addLog(`Venturing deeper... (Oxygen: ${state.derelict.oxygen}/${state.derelict.maxOxygen})`);
 
@@ -79,32 +248,27 @@ export function exploreRoom() {
         return;
     }
 
-    // Check boss room encounter
-    const bossRoom = state.derelict.bossRoom || 6;
-    if (state.derelict.roomsExplored === bossRoom) {
-        triggerBossCombat();
-        updateUI();
-        return;
-    }
-
-    // Roll Event
-    const roll = Math.random();
-    
-    // Depth modifiers: combat gets harder/more frequent, loot gets better
-    const depthBonus = state.derelict.roomsExplored * 0.02;
-
-    if (roll < 0.40 + depthBonus) {
-        // 40% Combat (Increases with depth)
-        triggerCombat();
-    } else if (roll < 0.70) {
-        // 30% Loot
-        findLoot();
-    } else if (roll < 0.90) {
-        // 20% Hazard
+    // Process cell value triggers
+    if (cellValue === 2) {
+        // Hazard
         triggerHazard();
+        state.derelict.map[nextY][nextX] = 0; // Clear hazard
+    } else if (cellValue === 3) {
+        // Loot
+        findLoot();
+        state.derelict.map[nextY][nextX] = 0; // Clear loot
+    } else if (cellValue === 4) {
+        // Boss Encounter
+        triggerBossCombat();
+    } else if (cellValue === 5) {
+        addLog("🚪 Airlock reached. Ready for escape.");
     } else {
-        // 10% Empty Room
-        addLog("The room is empty save for floating debris.");
+        // 0 = Empty Corridor: small chance of random ambush (15%)
+        if (Math.random() < 0.15) {
+            triggerCombat();
+        } else {
+            addLog("The corridor is silent.");
+        }
     }
 
     updateUI();

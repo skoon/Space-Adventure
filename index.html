@@ -421,15 +421,40 @@
               </div>
             </div>
 
-            <!-- Vessel Schematic / Map -->
-            <div class="bg-black/70 border border-red-950/80 rounded p-3 mb-4 flex flex-col items-center justify-center min-h-[120px] relative z-10">
-              <h3 class="text-red-400 font-mono text-xs uppercase tracking-wider mb-2 self-start flex items-center gap-1">
-                <span class="inline-block w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
-                VESSEL SCHEMATIC / STRUCTURAL SCANNER
-              </h3>
-              <!-- Grid/Path of rooms -->
-              <div id="derelictMapContainer" class="flex items-center justify-center gap-2 w-full p-2 overflow-x-auto">
-                 <!-- Generated dynamically in updateDerelictUI -->
+            <!-- Vessel 3D Feed & Minimap Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 relative z-10">
+              <!-- Left/Center Column: 3D Viewport -->
+              <div class="md:col-span-2 flex flex-col items-center justify-center bg-black/80 border border-red-950/80 rounded p-3 relative min-h-[260px]">
+                <h3 class="text-cyan-400 font-mono text-xs uppercase tracking-wider mb-2 self-start flex items-center gap-1">
+                  <span class="inline-block w-2 h-2 rounded-full bg-cyan-500 animate-ping"></span>
+                  3D VISUAL FEED - CORRIDOR PERSPECTIVE
+                </h3>
+                <canvas id="dungeonCanvas" width="480" height="240" class="w-full max-w-full bg-black border border-cyan-950 rounded shadow-[0_0_15px_rgba(0,255,204,0.1)]"></canvas>
+              </div>
+
+              <!-- Right Column: Navigation & Radar -->
+              <div class="flex flex-col gap-3">
+                <!-- Radar minimap -->
+                <div class="bg-black/90 border border-red-950/80 rounded p-3 flex flex-col items-center justify-center flex-grow">
+                  <h4 class="text-cyan-400 font-mono text-[10px] uppercase tracking-wider mb-2 self-start flex items-center gap-1">
+                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
+                    TACTICAL RADAR
+                  </h4>
+                  <canvas id="minimapCanvas" width="128" height="128" class="bg-black border border-cyan-950 rounded"></canvas>
+                </div>
+
+                <!-- Navigation controls -->
+                <div class="bg-black/60 border border-gray-800 rounded p-3 flex flex-col gap-2 items-center justify-center">
+                  <span class="text-[10px] text-gray-500 font-mono uppercase tracking-wider font-bold">MANUAL STEERING</span>
+                  <div class="grid grid-cols-3 gap-2">
+                    <div></div>
+                    <button onclick="exploreRoom()" class="w-10 h-10 flex items-center justify-center bg-cyan-950 hover:bg-cyan-900 active:bg-cyan-800 border border-cyan-600 rounded text-cyan-400 font-bold transition-all shadow-[0_0_8px_rgba(6,182,212,0.2)]" title="Move Forward">▲</button>
+                    <div></div>
+                    <button onclick="turnLeft()" class="w-10 h-10 flex items-center justify-center bg-cyan-950 hover:bg-cyan-900 active:bg-cyan-800 border border-cyan-600 rounded text-cyan-400 font-bold transition-all shadow-[0_0_8px_rgba(6,182,212,0.2)]" title="Turn Left">◀</button>
+                    <button onclick="uTurn()" class="w-10 h-10 flex items-center justify-center bg-cyan-950 hover:bg-cyan-900 active:bg-cyan-800 border border-cyan-600 rounded text-cyan-400 font-bold transition-all shadow-[0_0_8px_rgba(6,182,212,0.2)]" title="U-Turn">▼</button>
+                    <button onclick="turnRight()" class="w-10 h-10 flex items-center justify-center bg-cyan-950 hover:bg-cyan-900 active:bg-cyan-800 border border-cyan-600 rounded text-cyan-400 font-bold transition-all shadow-[0_0_8px_rgba(6,182,212,0.2)]" title="Turn Right">▶</button>
+                  </div>
+                </div>
               </div>
             </div>
 
