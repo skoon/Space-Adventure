@@ -90,15 +90,53 @@ export function sellItem(itemName) {
     return true;
 }
 
+function getRegionalPriceModifier(locationId, itemName) {
+    if (!locationId) return 1.0;
+    
+    // Terra Prime
+    if (locationId === 'terra_prime') {
+        if (itemName === 'Scrap Metal' || itemName === 'Rusty Pipe') return 0.75;
+        if (itemName === 'Plasma Core' || itemName === 'Carbon Nanotubes') return 1.25;
+    }
+    // Xylo Delta
+    if (locationId === 'xylo_delta') {
+        if (itemName === 'Cargo Container') return 0.70;
+        if (itemName === 'Energy Cell' || itemName === 'Nano Stimpack') return 1.30;
+    }
+    // Inferno-IX
+    if (locationId === 'inferno_ix') {
+        if (itemName === 'Titanium Ingot' || itemName === 'Tungsten Ore') return 0.65;
+        if (itemName === 'Quantum Chip' || itemName === 'Circuit Board') return 1.25;
+    }
+    // Crio-Prime
+    if (locationId === 'crio_prime') {
+        if (itemName === 'Alien Crystal' || itemName === 'Bio-Gel') return 0.65;
+        if (itemName === 'Quantum Chip' || itemName === 'Carbon Nanotubes') return 1.25;
+    }
+    
+    return 1.0;
+}
+
 /**
  * Get item price
  */
 export function getItemPrice(itemName) {
     const item = items[itemName];
     if (!item) return 0;
-    const basePrice = item.price || 10;
+    
+    let basePrice = item.price || 10;
+    
+    // Apply dynamic market price if it's a commodity
+    if (state.market && state.market.prices && state.market.prices[itemName] !== undefined) {
+        basePrice = state.market.prices[itemName];
+    }
+    
+    // Apply regional price modifier
+    const regMod = getRegionalPriceModifier(state.currentLocation, itemName);
+    basePrice = Math.floor(basePrice * regMod);
+    
     const faction = getLocalShopFaction();
-    return Math.floor(basePrice * getPriceMultiplier(faction));
+    return Math.max(1, Math.floor(basePrice * getPriceMultiplier(faction)));
 }
 
 /**
@@ -107,11 +145,22 @@ export function getItemPrice(itemName) {
 export function getItemSellPrice(itemName) {
     const item = items[itemName];
     if (!item) return 0;
-    const basePrice = item.price || 10;
+    
+    let basePrice = item.price || 10;
+    
+    // Apply dynamic market price if it's a commodity
+    if (state.market && state.market.prices && state.market.prices[itemName] !== undefined) {
+        basePrice = state.market.prices[itemName];
+    }
+    
+    // Apply regional price modifier
+    const regMod = getRegionalPriceModifier(state.currentLocation, itemName);
+    basePrice = Math.floor(basePrice * regMod);
+    
     const baseSellPrice = Math.floor(basePrice / 2);
     const faction = getLocalShopFaction();
     const mult = getPriceMultiplier(faction);
-    return Math.floor(baseSellPrice * (2.0 - mult)); // Friendly = higher sell price, Hostile = lower sell price
+    return Math.max(1, Math.floor(baseSellPrice * (2.0 - mult))); // Friendly = higher sell price, Hostile = lower sell price
 }
 
 /**

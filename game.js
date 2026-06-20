@@ -15,6 +15,7 @@ import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI
 import { initInventory, openCombatItemMenu, closeCombatItemMenu, useCombatItem } from './systems/inventory.js';
 import { initLocations, travelTo, getLocationDetails, getUnlockedLocations } from './systems/locations.js';
 import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem, claimAllOrders } from './systems/shop.js';
+import { initMarket } from './systems/market.js';
 import { initCrafting, craftItem, discoverRecipe, getKnownRecipes, canCraft } from './systems/crafting.js';
 import { initSettings, getDifficulty, setDifficulty } from './systems/settings.js';
 import { initShip, upgradeModule } from './systems/ship.js';
@@ -233,6 +234,12 @@ function initializeGame() {
 
   // Initialize Shop
   initShop({
+    ...deps,
+    ui: { addLog, updateUI }
+  });
+
+  // Initialize Market
+  initMarket({
     ...deps,
     ui: { addLog, updateUI }
   });

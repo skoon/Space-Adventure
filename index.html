@@ -1024,6 +1024,13 @@
           >
             Sell
           </button>
+          <button
+            onclick="switchShopTab('market')"
+            id="shopTabMarket"
+            class="px-6 py-2 text-gray-400 font-bold hover:text-white flex items-center gap-1"
+          >
+            📊 Commodities Exchange
+          </button>
         </div>
 
         <div
@@ -1038,6 +1045,27 @@
           class="grid grid-cols-1 md:grid-cols-2 gap-4 h-96 overflow-y-auto pr-2 hidden"
         >
           <!-- Sell Items injected here -->
+        </div>
+
+        <div
+          id="shopMarketContainer"
+          class="flex flex-col gap-4 h-96 overflow-y-auto pr-2 hidden"
+        >
+          <!-- Live Commodities Exchange view -->
+          <div class="bg-black/40 border border-yellow-900/50 rounded p-3 text-sm">
+            <div class="text-xs text-yellow-500 font-mono uppercase tracking-wider mb-1 font-bold">Galactic Commodities News Feed</div>
+            <div id="shopMarketNewsTicker" class="text-gray-200 font-bold font-mono text-sm leading-relaxed animate-pulse">
+              <!-- News ticker injected here -->
+            </div>
+          </div>
+          
+          <div id="shopMarketLockedWarning" class="bg-black/60 border border-red-900 rounded p-6 text-center text-red-400 font-bold hidden">
+            ⚠️ COMMODITIES EXCHANGE OFFLINE: You must travel to the Galactic Nexus Hub to access live stock trading and sector-wide commodities commerce.
+          </div>
+          
+          <div id="shopMarketGrid" class="grid grid-cols-1 gap-2">
+            <!-- Commodities injected here -->
+          </div>
         </div>
 
         <div class="mt-6 text-center">

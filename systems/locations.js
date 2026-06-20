@@ -4,6 +4,7 @@
  */
 
 import { checkAchievement } from './achievements.js';
+import { rollMarketEvent } from './market.js';
 
 // State object reference
 let state;
@@ -253,6 +254,9 @@ function completeTravel(location) {
             addLog(`🩺 Medbay healed you for ${state.character.hp - oldHp} HP during travel.`);
         }
     }
+
+    // Trigger dynamic market fluctuation
+    rollMarketEvent();
 
     // Achievement check
     checkAchievement("travel", { locationId: location.id });

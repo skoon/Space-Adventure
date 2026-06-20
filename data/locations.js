@@ -72,5 +72,18 @@ export const locations = {
     lootTable: ["Alien Crystal", "Bio-Gel", "Quantum Chip", "Credits"],
     environment: "High Gravity",
     controllingFaction: "federation"
+  },
+  "galactic_nexus": {
+    id: "galactic_nexus",
+    name: "Galactic Nexus Hub",
+    description: "The primary commerce and social hub of the sector. Features a live commodities exchange.",
+    hazardLevel: 1,
+    engineLevelReq: 1,
+    coordinates: { x: 450, y: 250 },
+    theme: "theme-space",
+    travelCost: 150,
+    lootTable: ["Data Chip", "Scrap Metal", "Quantum Chip", "Credits"],
+    controllingFaction: "federation",
+    isNexusHub: true
   }
 };
