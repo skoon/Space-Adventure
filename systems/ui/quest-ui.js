@@ -162,17 +162,41 @@ export function renderJobBoardList() {
 
         boardQuests.forEach(quest => {
             const card = document.createElement("div");
-            card.className = "bg-gray-800/80 p-4 border border-cyan-900/40 rounded flex flex-col justify-between shadow-inner";
+            
+            // Determine category, styling, and badges
+            let categoryBadge = "";
+            let cardClass = "";
+            let btnClass = "";
+            
+            if (quest.isMainStory) {
+                categoryBadge = `<span class="px-2 py-0.5 rounded text-[9px] font-black bg-yellow-950/80 text-yellow-400 border border-yellow-800/60 uppercase tracking-wider mb-2 inline-block">Main Story</span>`;
+                cardClass = "bg-yellow-950/10 p-4 border border-yellow-900/40 rounded flex flex-col justify-between shadow-inner hover:border-yellow-500/40 transition-all duration-300";
+                btnClass = "w-full py-2 px-3 bg-yellow-950/60 hover:bg-yellow-900/85 border border-yellow-850 text-yellow-450 rounded font-bold font-mono text-[10px] uppercase tracking-widest transition-all shadow-[0_0_6px_rgba(245,158,11,0.12)]";
+            } else if (quest.requiredFaction) {
+                const factionName = quest.requiredFaction.faction.toUpperCase();
+                categoryBadge = `<span class="px-2 py-0.5 rounded text-[9px] font-black bg-purple-950/80 text-purple-400 border border-purple-800/60 uppercase tracking-wider mb-2 inline-block">Faction: ${factionName}</span>`;
+                cardClass = "bg-purple-950/10 p-4 border border-purple-900/40 rounded flex flex-col justify-between shadow-inner hover:border-purple-500/40 transition-all duration-300";
+                btnClass = "w-full py-2 px-3 bg-purple-950/60 hover:bg-purple-900/85 border border-purple-850 text-purple-450 rounded font-bold font-mono text-[10px] uppercase tracking-widest transition-all shadow-[0_0_6px_rgba(168,85,247,0.12)]";
+            } else {
+                categoryBadge = `<span class="px-2 py-0.5 rounded text-[9px] font-black bg-cyan-950/80 text-cyan-400 border border-cyan-800/60 uppercase tracking-wider mb-2 inline-block">Side Contract</span>`;
+                cardClass = "bg-gray-800/60 p-4 border border-cyan-900/30 rounded flex flex-col justify-between shadow-inner hover:border-cyan-500/40 transition-all duration-300";
+                btnClass = "w-full py-2 px-3 bg-cyan-950/60 hover:bg-cyan-900/85 border border-cyan-800 text-cyan-400 rounded font-bold font-mono text-[10px] uppercase tracking-widest transition-all shadow-[0_0_6px_rgba(6,182,212,0.12)]";
+            }
+
+            card.className = cardClass;
 
             let rewardsText = "";
             if (quest.rewards) {
                 if (quest.rewards.xp) rewardsText += `${quest.rewards.xp} XP `;
-                if (quest.rewards.items) rewardsText += `+ [${quest.rewards.items.join(", ")}]`;
+                if (quest.rewards.items && quest.rewards.items.length > 0) rewardsText += `+ [${quest.rewards.items.join(", ")}]`;
             }
 
             card.innerHTML = `
                 <div class="mb-4">
-                    <h3 class="text-sm font-bold text-cyan-400 mb-2 font-mono uppercase tracking-wide">${quest.title}</h3>
+                    <div class="flex justify-between items-start flex-wrap gap-1 mb-1">
+                        ${categoryBadge}
+                    </div>
+                    <h3 class="text-sm font-bold text-cyan-200 mb-2 font-mono uppercase tracking-wide">${quest.title}</h3>
                     <p class="text-xs text-gray-300 mb-2 font-sans leading-relaxed">${quest.description}</p>
                     <div class="text-[10px] text-yellow-500 font-mono mt-3">
                         Rewards: ${rewardsText}
@@ -180,7 +204,7 @@ export function renderJobBoardList() {
                 </div>
                 <button
                     id="acceptBtn_${quest.id}"
-                    class="w-full py-2 px-3 bg-cyan-950/60 hover:bg-cyan-900/85 border border-cyan-800 text-cyan-400 rounded font-bold font-mono text-[10px] uppercase tracking-widest transition-all shadow-[0_0_6px_rgba(6,182,212,0.15)]"
+                    class="${btnClass}"
                 >
                     Accept Contract
                 </button>

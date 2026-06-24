@@ -45,13 +45,13 @@ export function createCharacter(event) {
 
     // Base stats vary by role
     const roleStats = {
-        Warrior: { hp: 120, attack: 12, defense: 8, maxEnergy: 100 },
-        Rogue: { hp: 90, attack: 15, defense: 5, maxEnergy: 120 },
-        Scientist: { hp: 100, attack: 10, defense: 10, maxEnergy: 150 }
+        Warrior: { hp: 120, attack: 12, defense: 8, maxEnergy: 100, strength: 12, agility: 8, intelligence: 6, charisma: 8 },
+        Rogue: { hp: 90, attack: 15, defense: 5, maxEnergy: 120, strength: 8, agility: 12, intelligence: 8, charisma: 8 },
+        Scientist: { hp: 100, attack: 10, defense: 10, maxEnergy: 150, strength: 6, agility: 8, intelligence: 12, charisma: 10 }
     };
 
     // Default stats if role not found
-    const stats = roleStats[role] || { hp: 100, attack: 10, defense: 10, maxEnergy: 100 };
+    const stats = roleStats[role] || { hp: 100, attack: 10, defense: 10, maxEnergy: 100, strength: 8, agility: 8, intelligence: 8, charisma: 8 };
 
     state.character = {
         name,
@@ -65,6 +65,10 @@ export function createCharacter(event) {
         defense: stats.defense,
         energy: stats.maxEnergy,
         maxEnergy: stats.maxEnergy,
+        strength: stats.strength,
+        agility: stats.agility,
+        intelligence: stats.intelligence,
+        charisma: stats.charisma,
         ap: 3,
         maxAp: 3,
         equipment: {
@@ -75,6 +79,12 @@ export function createCharacter(event) {
         skillPoints: 0,
         unlockedSkills: [],
         statPoints: 0,
+        narrativePoints: 0,
+        storyline: {
+            act: 1,
+            alignment: "neutral",
+            variables: {}
+        },
         inventory: [],
         activeQuests: {},
         completedQuests: [],
@@ -137,13 +147,14 @@ export function gainXp(amount) {
         state.character.maxEnergy += statIncreases.maxEnergy;
         state.character.energy = state.character.maxEnergy;
         
-        // Award 5 stat points and 1 skill point per level
+        // Award 5 stat points, 1 narrative attribute point, and 1 skill point per level
         state.character.statPoints = (state.character.statPoints || 0) + 5;
+        state.character.narrativePoints = (state.character.narrativePoints || 0) + 1;
         state.character.skillPoints = (state.character.skillPoints || 0) + 1;
         state.character.unlockedSkills = state.character.unlockedSkills || [];
 
         showLevelUpNotification(state.character.level, statIncreases);
-        addLog(`🎉 LEVEL UP! You reached Level ${state.character.level}! You gained 5 Attribute points!`);
+        addLog(`🎉 LEVEL UP! You reached Level ${state.character.level}! You gained 5 Combat Stat points and 1 Narrative Attribute point!`);
     }
 
     updateUI();

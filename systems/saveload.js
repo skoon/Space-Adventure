@@ -213,6 +213,39 @@ export function loadGame(slot) {
             };
         }
 
+        // Retroactive narrative attributes setup
+        if (state.character) {
+            if (state.character.strength === undefined) {
+                const role = state.character.role || "Warrior";
+                if (role === "Warrior") {
+                    state.character.strength = 12;
+                    state.character.agility = 8;
+                    state.character.intelligence = 6;
+                    state.character.charisma = 8;
+                } else if (role === "Rogue") {
+                    state.character.strength = 8;
+                    state.character.agility = 12;
+                    state.character.intelligence = 8;
+                    state.character.charisma = 8;
+                } else { // Scientist
+                    state.character.strength = 6;
+                    state.character.agility = 8;
+                    state.character.intelligence = 12;
+                    state.character.charisma = 10;
+                }
+            }
+            if (state.character.narrativePoints === undefined) {
+                state.character.narrativePoints = 0;
+            }
+            if (!state.character.storyline) {
+                state.character.storyline = {
+                    act: 1,
+                    alignment: "neutral",
+                    variables: {}
+                };
+            }
+        }
+
         // Clear notifications
         state.levelUpNotification = null;
         state.victoryMessage = null;

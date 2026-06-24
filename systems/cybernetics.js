@@ -11,28 +11,32 @@ export const IMPLANTS = {
         id: 'targeting_matrix',
         name: 'Targeting Matrix',
         slot: 'head',
-        description: 'Increases standard critical damage multiplier by +0.5x (also increases Warrior Power Strike and Rogue Assassinate).',
+        description: 'Increases standard critical damage multiplier by +0.5x. Grants +3 Intelligence.',
+        intelligence: 3,
         cost: { credits: 250, materials: { 'Quantum Chip': 1, 'Circuit Board': 2 } }
     },
     reflex_boosters: {
         id: 'reflex_boosters',
         name: 'Reflex Boosters',
         slot: 'arms',
-        description: 'Grants a 35% chance to start combat with +1 initial Action Point (AP).',
+        description: 'Grants a 35% chance to start combat with +1 initial Action Point (AP). Grants +3 Agility.',
+        agility: 3,
         cost: { credits: 300, materials: { 'Robotic Arm': 2, 'Circuit Board': 2 } }
     },
     subdermal_plating: {
         id: 'subdermal_plating',
         name: 'Sub-dermal Plating',
         slot: 'torso',
-        description: 'Converts 15% of incoming physical damage into energy drain instead of health loss.',
+        description: 'Converts 15% of incoming physical damage into energy drain instead of health loss. Grants +3 Strength.',
+        strength: 3,
         cost: { credits: 400, materials: { 'Titanium Ingot': 2, 'Nanites': 4 } }
     },
     synaptic_accelerator: {
         id: 'synaptic_accelerator',
         name: 'Synaptic Accelerator',
         slot: 'nervous',
-        description: 'Increases Dodge Action success chance by +15% (for a total of 45% dodge chance).',
+        description: 'Increases Dodge Action success chance by +15%. Grants +3 Agility.',
+        agility: 3,
         cost: { credits: 200, materials: { 'Bio-Gel': 3, 'Carbon Nanotubes': 2 } }
     }
 };

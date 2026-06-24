@@ -11,7 +11,7 @@ import { initCharacter, createCharacter, gainXp, getCharacterAvatar, useHealItem
 import { initExploration, simulateExploration, travelDeeper } from './systems/exploration.js';
 import { initEvents, generateRandomEvent, handleEvent } from './systems/events.js';
 import { initSaveLoad, saveGame, loadGame, exportGame, importGame, autoSave, initializeSaveSystem } from './systems/saveload.js';
-import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog, showTravelScreen, showSettingsModal, showStatsAllocationUI, closeStatsAllocationUI, allocateStat, showAchievementsUI, closeAchievementsUI, switchShipTab, switchOperationsTab, updateQuickCrewPanel, showDerelictScreen } from './systems/ui.js';
+import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog, showTravelScreen, showSettingsModal, showStatsAllocationUI, closeStatsAllocationUI, allocateStat, showAchievementsUI, closeAchievementsUI, switchShipTab, switchOperationsTab, updateQuickCrewPanel, showDerelictScreen, showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl } from './systems/ui.js';
 import { initInventory, openCombatItemMenu, closeCombatItemMenu, useCombatItem } from './systems/inventory.js';
 import { initLocations, travelTo, getLocationDetails, getUnlockedLocations } from './systems/locations.js';
 import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem, claimAllOrders } from './systems/shop.js';
@@ -204,7 +204,7 @@ function initializeGame() {
   // Initialize Quests
   initQuests({
     ...deps,
-    ui: { addLog, updateUI, showVictoryMessage, showSaveMessage, showDialog }
+    ui: { addLog, updateUI, showVictoryMessage, showSaveMessage, showDialog, showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl }
   });
 
   // Initialize Combat

@@ -16,9 +16,10 @@ jest.mock('../../systems/ship.js', () => ({
 }));
 
 import { loadGame, initSaveLoad } from '../../systems/saveload.js';
-import { initQuests, acceptQuest, evaluateChoice, checkChoiceRequirements, triggerChoiceStepIfActive } from '../../systems/quests.js';
+import { initQuests, acceptQuest, evaluateChoice, checkChoiceRequirements, triggerChoiceStepIfActive, getEffectiveAttribute } from '../../systems/quests.js';
 import { initShop, getPriceMultiplier, getLocalShopFaction, getItemPrice, getItemSellPrice } from '../../systems/shop.js';
 import { initLocations, travelTo } from '../../systems/locations.js';
+import { items } from '../../data/items.js';
 
 describe('Branching Quests & Factions Integration tests', () => {
     let mockState;
@@ -383,6 +384,121 @@ describe('Branching Quests & Factions Integration tests', () => {
 
             expect(mockState.gameState).toBe('exploring');
             expect(mockState.enemy).toBeNull();
+        });
+    });
+
+    describe('Narrative Attributes & Skill Check Rolls', () => {
+        test('getEffectiveAttribute calculates base + gear + cybernetics', () => {
+            mockState.character.intelligence = 10;
+            
+            // Gear accessory with stats.intelligence
+            items["Quantum Visor"] = { type: "accessory", category: "equipment", stats: { intelligence: 3 }, price: 100 };
+            mockDeps.data.items["Quantum Visor"] = items["Quantum Visor"];
+            mockState.character.equipment.accessory = "Quantum Visor";
+            
+            // Cybernetics head implant with intelligence bonus
+            mockState.character.cybernetics = { head: "targeting_matrix", arms: null, torso: null, nervous: null };
+            
+            // Effective intelligence: 10 base + 3 accessory + 3 implant = 16
+            const val = getEffectiveAttribute('intelligence');
+            expect(val).toBe(16);
+        });
+
+        test('evaluateChoice executes d20 roll and branches correctly on success', () => {
+            mockState.character.intelligence = 10; // modifier = 5
+            mockQuestsData.quest_roll_test = {
+                id: "quest_roll_test",
+                steps: [
+                    {
+                        type: "choice",
+                        choices: [
+                            {
+                                text: "Hack terminal",
+                                roll: { attribute: "intelligence", dc: 15, successStep: 1, failureStep: 2 }
+                            }
+                        ]
+                    },
+                    { type: "choice", choices: [] },
+                    { type: "choice", choices: [] }
+                ]
+            };
+            
+            acceptQuest('quest_roll_test');
+            
+            // Mock Math.random to roll a 10 (d20 = 10). Total = 10 + 5 = 15 >= 15 (DC) -> Success
+            jest.spyOn(Math, 'random').mockReturnValue(0.49); // (0.49 * 20) + 1 = 9.8 + 1 = 10.8 -> Math.floor is 10
+            
+            evaluateChoice('quest_roll_test', 0);
+            
+            expect(mockState.character.activeQuests['quest_roll_test'].currentStep).toBe(1);
+        });
+
+        test('evaluateChoice executes d20 roll and branches correctly on failure', () => {
+            mockState.character.intelligence = 10; // modifier = 5
+            mockQuestsData.quest_roll_test = {
+                id: "quest_roll_test",
+                steps: [
+                    {
+                        type: "choice",
+                        choices: [
+                            {
+                                text: "Hack terminal",
+                                roll: { attribute: "intelligence", dc: 15, successStep: 1, failureStep: 2 }
+                            }
+                        ]
+                    },
+                    { type: "choice", choices: [] },
+                    { type: "choice", choices: [] }
+                ]
+            };
+            
+            acceptQuest('quest_roll_test');
+            
+            // Mock Math.random to roll a 4 (d20 = 4). Total = 4 + 5 = 9 < 15 (DC) -> Failure
+            jest.spyOn(Math, 'random').mockReturnValue(0.19); // (0.19 * 20) + 1 = 3.8 + 1 = 4.8 -> Math.floor is 4
+            
+            evaluateChoice('quest_roll_test', 0);
+            
+            expect(mockState.character.activeQuests['quest_roll_test'].currentStep).toBe(2);
+        });
+        
+        test('storyline quest accepts successor quest automatically on completion', () => {
+            mockState.character.storyline = { act: 1, alignment: "neutral" };
+            
+            mockQuestsData.quest_parent = {
+                id: "quest_parent",
+                title: "Parent Quest",
+                steps: [
+                    {
+                        type: "choice",
+                        choices: [
+                            {
+                                text: "End choice",
+                                successorQuests: { default: "quest_child" }
+                            }
+                        ]
+                    }
+                ]
+            };
+            
+            mockQuestsData.quest_child = {
+                id: "quest_child",
+                title: "Child Quest",
+                steps: []
+            };
+            
+            acceptQuest('quest_parent');
+            
+            jest.useFakeTimers();
+            evaluateChoice('quest_parent', 0);
+            jest.runAllTimers();
+            
+            // The parent quest should be deleted from active and marked completed
+            expect(mockState.character.activeQuests['quest_parent']).toBeUndefined();
+            expect(mockState.character.completedQuests).toContain('quest_parent');
+            
+            // The child quest should be automatically accepted and active!
+            expect(mockState.character.activeQuests['quest_child']).toBeDefined();
         });
     });
 });

@@ -20,6 +20,7 @@ import {
 import { showSaveLoadUI } from './ui/saveload-ui.js';
 
 import { initAttributesUI, showStatsAllocationUI, closeStatsAllocationUI, allocateStat, updateAttributesBtnGlow } from './ui/attributes-ui.js';
+import { initDialogueUI, showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl } from './ui/dialogue-ui.js';
 import { initUpgrades } from './upgrades.js';
 import { checkAchievement } from './achievements.js';
 import { initAchievementsUI, showAchievementsUI, closeAchievementsUI } from './ui/achievements-ui.js';
@@ -43,7 +44,8 @@ export {
     showDialog, hideDialog,
     showStatsAllocationUI, closeStatsAllocationUI, allocateStat,
     showAchievementsUI, closeAchievementsUI,
-    showJobBoard
+    showJobBoard,
+    showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl
 };
 
 import { items } from '../data/items.js';
@@ -108,6 +110,7 @@ export function initUI(dependencies) {
     initAchievementsUI(deps);
     initCompanionsUI(deps, { updateUI, showDialog });
     initCyberneticsUI(deps);
+    initDialogueUI(deps);
 
     // Initialize Difficulty Selector (Start Screen)
     const difficultySelect = document.getElementById("difficultySelect");

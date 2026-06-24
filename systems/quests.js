@@ -4,6 +4,7 @@
  */
 
 import { items } from '../data/items.js';
+import { IMPLANTS } from './cybernetics.js';
 
 // State object reference
 let state;
@@ -196,6 +197,16 @@ export function completeQuest(questId) {
     showVictoryMessage(`Quest Completed: ${quest.title}`);
 
     updateUI();
+
+    // Storyline successor quest auto-accept
+    if (state.character.storyline && state.character.storyline.nextQuestId) {
+        const nextQuestId = state.character.storyline.nextQuestId;
+        delete state.character.storyline.nextQuestId;
+        addLog(`[!] Continuing storyline...`);
+        setTimeout(() => {
+            acceptQuest(nextQuestId);
+        }, 1000);
+    }
 }
 
 /**
@@ -203,6 +214,51 @@ export function completeQuest(questId) {
  */
 export function getQuest(questId) {
     return quests[questId];
+}
+
+/**
+ * Helper to calculate effective narrative attribute including equipment and cybernetics
+ */
+export function getEffectiveAttribute(attributeName) {
+    if (!state.character) return 0;
+    
+    let baseVal = state.character[attributeName] || 0;
+    let gearBonus = 0;
+    
+    // Equipment Bonuses
+    if (state.character.equipment) {
+        const equip = state.character.equipment;
+        ['weapon', 'armor', 'accessory'].forEach(slot => {
+            const itemId = equip[slot];
+            if (itemId) {
+                const item = items[itemId];
+                if (item) {
+                    if (item.stats && item.stats[attributeName] !== undefined) {
+                        gearBonus += item.stats[attributeName];
+                    } else if (item[attributeName] !== undefined) {
+                        gearBonus += item[attributeName];
+                    }
+                }
+            }
+        });
+    }
+    
+    // Cybernetics Bonuses
+    let cyberBonus = 0;
+    if (state.character.cybernetics) {
+        const cyb = state.character.cybernetics;
+        ['head', 'arms', 'torso', 'nervous'].forEach(slot => {
+            const implantId = cyb[slot];
+            if (implantId && IMPLANTS && IMPLANTS[implantId]) {
+                const implant = IMPLANTS[implantId];
+                if (implant[attributeName] !== undefined) {
+                    cyberBonus += implant[attributeName];
+                }
+            }
+        });
+    }
+    
+    return baseVal + gearBonus + cyberBonus;
 }
 
 /**
@@ -224,7 +280,9 @@ export function checkChoiceRequirements(requires) {
         const { name, value } = requires.stat;
         let playerVal = 0;
 
-        if (name === "attack" || name === "defense") {
+        if (name === "strength" || name === "agility" || name === "intelligence" || name === "charisma") {
+            playerVal = getEffectiveAttribute(name);
+        } else if (name === "attack" || name === "defense") {
             let baseVal = state.character[name] || 0;
             if (state.character.equipment) {
                 const equip = state.character.equipment;
@@ -359,125 +417,207 @@ export function evaluateChoice(questId, choiceIndex) {
 
     addLog(`Choice selected: ${choice.text}`);
 
-    // Grant choice rewards
-    if (choice.rewards) {
-        if (choice.rewards.xp) {
-            const gainXpFn = deps?.character?.gainXp;
-            if (gainXpFn) {
-                gainXpFn(choice.rewards.xp);
-            } else {
-                state.character.xp += choice.rewards.xp;
+    // Helper to apply all choice consequences
+    const applyChoiceConsequences = (nextStepVal) => {
+        // Intercept Act III ending sequence to trigger the theatrical epilogue crawl
+        if (questId === "story_act3" && nextStepVal === 5 && state.character.storyline && !state.character.storyline.crawled) {
+            let endingType = "coalition";
+            if (currentStepIndex === 1) endingType = "federation";
+            else if (currentStepIndex === 2) endingType = "corsairs";
+            else if (currentStepIndex === 3) endingType = "syndicate";
+            
+            if (deps.ui && deps.ui.showEpilogueCrawl) {
+                state.character.storyline.crawled = true;
+                deps.ui.showEpilogueCrawl(endingType, () => {
+                    applyChoiceConsequences(5);
+                });
+                return;
             }
-            addLog(`Choice Reward: +${choice.rewards.xp} XP`);
         }
-        if (choice.rewards.credits) {
-            state.character.credits = (state.character.credits || 0) + choice.rewards.credits;
-            addLog(`Choice Reward: +${choice.rewards.credits} credits`);
+
+        // Grant choice rewards
+        if (choice.rewards) {
+            if (choice.rewards.xp) {
+                const gainXpFn = deps?.character?.gainXp;
+                if (gainXpFn) {
+                    gainXpFn(choice.rewards.xp);
+                } else {
+                    state.character.xp += choice.rewards.xp;
+                }
+                addLog(`Choice Reward: +${choice.rewards.xp} XP`);
+            }
+            if (choice.rewards.credits) {
+                state.character.credits = (state.character.credits || 0) + choice.rewards.credits;
+                addLog(`Choice Reward: +${choice.rewards.credits} credits`);
+            }
+            if (choice.rewards.items) {
+                choice.rewards.items.forEach(item => {
+                    state.inventory.push(item);
+                    addLog(`Choice Reward: +1 ${item}`);
+                });
+            }
         }
-        if (choice.rewards.items) {
-            choice.rewards.items.forEach(item => {
-                state.inventory.push(item);
-                addLog(`Choice Reward: +1 ${item}`);
+
+        // Apply Faction reputation
+        if (choice.reputation && state.character.factions) {
+            for (const [factionId, amount] of Object.entries(choice.reputation)) {
+                state.character.factions[factionId] = (state.character.factions[factionId] || 0) + amount;
+                state.character.factions[factionId] = Math.max(-100, Math.min(100, state.character.factions[factionId]));
+                const sign = amount >= 0 ? '+' : '';
+                addLog(`Reputation: ${factionId.toUpperCase()} ${sign}${amount}`);
+            }
+        }
+
+        // Apply NPC disposition
+        if (choice.disposition && state.character.npcs) {
+            for (const [npcId, amount] of Object.entries(choice.disposition)) {
+                if (state.character.npcs[npcId]) {
+                    state.character.npcs[npcId].disposition = (state.character.npcs[npcId].disposition || 0) + amount;
+                    state.character.npcs[npcId].disposition = Math.max(-100, Math.min(100, state.character.npcs[npcId].disposition));
+                    const sign = amount >= 0 ? '+' : '';
+                    addLog(`Disposition: ${npcId.toUpperCase()} ${sign}${amount}`);
+                }
+            }
+        }
+
+        // Apply companion trust
+        if (choice.companionTrust && state.companions) {
+            const activeComp = state.activeCompanion;
+            if (activeComp && choice.companionTrust[activeComp] !== undefined) {
+                const amount = choice.companionTrust[activeComp];
+                if (state.companions[activeComp]) {
+                    state.companions[activeComp].trust = (state.companions[activeComp].trust || 0) + amount;
+                    const sign = amount >= 0 ? '+' : '';
+                    addLog(`👥 Companion Trust: ${activeComp.toUpperCase()} ${sign}${amount}`);
+                }
+            }
+        }
+
+        // Apply memory flags
+        if (choice.memoryFlags && state.character.npcs) {
+            choice.memoryFlags.forEach(flag => {
+                const npcId = flag.split('_')[0];
+                if (state.character.npcs[npcId]) {
+                    if (!state.character.npcs[npcId].memoryFlags.includes(flag)) {
+                        state.character.npcs[npcId].memoryFlags.push(flag);
+                    }
+                }
             });
         }
-    }
 
-    // Apply Faction reputation
-    if (choice.reputation && state.character.factions) {
-        for (const [factionId, amount] of Object.entries(choice.reputation)) {
-            state.character.factions[factionId] = (state.character.factions[factionId] || 0) + amount;
-            state.character.factions[factionId] = Math.max(-100, Math.min(100, state.character.factions[factionId]));
-            const sign = amount >= 0 ? '+' : '';
-            addLog(`Reputation: ${factionId.toUpperCase()} ${sign}${amount}`);
-        }
-    }
-
-    // Apply NPC disposition
-    if (choice.disposition && state.character.npcs) {
-        for (const [npcId, amount] of Object.entries(choice.disposition)) {
-            if (state.character.npcs[npcId]) {
-                state.character.npcs[npcId].disposition = (state.character.npcs[npcId].disposition || 0) + amount;
-                state.character.npcs[npcId].disposition = Math.max(-100, Math.min(100, state.character.npcs[npcId].disposition));
-                const sign = amount >= 0 ? '+' : '';
-                addLog(`Disposition: ${npcId.toUpperCase()} ${sign}${amount}`);
-            }
-        }
-    }
-
-    // Apply memory flags
-    if (choice.memoryFlags && state.character.npcs) {
-        choice.memoryFlags.forEach(flag => {
-            const npcId = flag.split('_')[0];
-            if (state.character.npcs[npcId]) {
-                if (!state.character.npcs[npcId].memoryFlags.includes(flag)) {
-                    state.character.npcs[npcId].memoryFlags.push(flag);
+        // Apply successor quests if any
+        if (choice.successorQuests && state.character.storyline) {
+            const alignment = state.character.storyline.alignment || "neutral";
+            const nextQ = choice.successorQuests.default || choice.successorQuests[alignment] || Object.values(choice.successorQuests)[0];
+            state.character.storyline.nextQuestId = nextQ;
+            
+            // Set alignment if choice sets faction rep
+            if (choice.reputation) {
+                const highestRepFaction = Object.entries(choice.reputation).reduce((a, b) => b[1] > a[1] ? b : a, ["neutral", 0])[0];
+                if (highestRepFaction !== "neutral") {
+                    state.character.storyline.alignment = highestRepFaction;
                 }
             }
-        });
-    }
+        }
 
-    if (choice.log) {
-        addLog(choice.log);
-    }
+        if (choice.log) {
+            addLog(choice.log);
+        }
 
-    const triggerCombatData = choice.triggerCombat;
+        const triggerCombatData = choice.triggerCombat;
 
-    // Advance step
-    activeQuest.progress = 0;
-    const nextStepVal = choice.nextStepIndex !== undefined ? choice.nextStepIndex : (currentStepIndex + 1);
-    activeQuest.currentStep = nextStepVal;
+        // Advance step
+        activeQuest.progress = 0;
+        activeQuest.currentStep = nextStepVal;
 
-    addLog(`✅ Quest Choice Processed!`);
+        addLog(`✅ Quest Choice Processed!`);
 
-    // Check if quest completed
-    if (activeQuest.currentStep >= quest.steps.length) {
-        completeQuest(questId);
-    } else {
-        updateUI();
-        // Trigger new step immediately if it is a choice step
-        triggerChoiceStepIfActive(questId);
-    }
+        // Check if quest completed
+        if (activeQuest.currentStep >= quest.steps.length) {
+            completeQuest(questId);
+        } else {
+            updateUI();
+            // Trigger new step immediately if it is a choice step
+            triggerChoiceStepIfActive(questId);
+        }
 
-    // Trigger combat if specified
-    if (triggerCombatData) {
-        setTimeout(() => {
-            if (triggerCombatData.boss && deps.combat && deps.combat.encounterBoss) {
-                deps.combat.encounterBoss();
-            } else if (deps.combat && deps.combat.encounterEnemy) {
-                const enemyTemplate = deps.data.enemies.find(e => e.name === triggerCombatData.enemyName) || 
-                                      deps.data.bosses.find(b => b.name === triggerCombatData.enemyName);
-                
-                if (enemyTemplate) {
-                    const difficulty = deps.settings?.getDifficulty() || { enemyHpModifier: 1.0, enemyDmgModifier: 1.0 };
-                    const levelScale = 1 + ((state.character.level - 1) * 0.15);
-                    const enemy = { 
-                        ...enemyTemplate,
-                        hp: Math.floor(enemyTemplate.hp * difficulty.enemyHpModifier * levelScale),
-                        attack: Math.floor(enemyTemplate.attack * difficulty.enemyDmgModifier * levelScale),
-                        maxHp: Math.floor(enemyTemplate.hp * difficulty.enemyHpModifier * levelScale)
-                    };
-                    if (triggerCombatData.boss) {
-                        enemy.isBoss = true;
-                    }
-                    state.enemy = enemy;
-                    state.character.ap = state.character.maxAp || 3;
-                    state.companionCooldown = 0;
-                    state.playerStatusEffects = [];
-                    state.enemyStatusEffects = [];
-                    state.gameState = "combat";
+        // Trigger combat if specified
+        if (triggerCombatData) {
+            setTimeout(() => {
+                if (triggerCombatData.boss && deps.combat && deps.combat.encounterBoss) {
+                    deps.combat.encounterBoss();
+                } else if (deps.combat && deps.combat.encounterEnemy) {
+                    const enemyTemplate = deps.data.enemies.find(e => e.name === triggerCombatData.enemyName) || 
+                                          deps.data.bosses.find(b => b.name === triggerCombatData.enemyName);
                     
-                    if (deps.ui && deps.ui.showScreen) {
-                        deps.ui.showScreen("combat");
+                    if (enemyTemplate) {
+                        const difficulty = deps.settings?.getDifficulty() || { enemyHpModifier: 1.0, enemyDmgModifier: 1.0 };
+                        const levelScale = 1 + ((state.character.level - 1) * 0.15);
+                        const enemy = { 
+                            ...enemyTemplate,
+                            hp: Math.floor(enemyTemplate.hp * difficulty.enemyHpModifier * levelScale),
+                            attack: Math.floor(enemyTemplate.attack * difficulty.enemyDmgModifier * levelScale),
+                            maxHp: Math.floor(enemyTemplate.hp * difficulty.enemyHpModifier * levelScale)
+                        };
+                        if (triggerCombatData.boss) {
+                            enemy.isBoss = true;
+                        }
+                        state.enemy = enemy;
+                        state.character.ap = state.character.maxAp || 3;
+                        state.companionCooldown = 0;
+                        state.playerStatusEffects = [];
+                        state.enemyStatusEffects = [];
+                        state.gameState = "combat";
+                        
+                        if (deps.ui && deps.ui.showScreen) {
+                            deps.ui.showScreen("combat");
+                        }
+                        if (deps.combat && deps.combat.updateCombatUI) {
+                            deps.combat.updateCombatUI();
+                        }
+                        addLog(`⚔️ COMBAT TRIGGERED: You are fighting ${state.enemy.name}!`);
+                    } else {
+                        deps.combat.encounterEnemy();
                     }
-                    if (deps.combat && deps.combat.updateCombatUI) {
-                        deps.combat.updateCombatUI();
-                    }
-                    addLog(`⚔️ COMBAT TRIGGERED: You are fighting ${state.enemy.name}!`);
-                } else {
-                    deps.combat.encounterEnemy();
                 }
-            }
-        }, 150);
+            }, 150);
+        }
+    };
+
+    // If the choice has a roll specification
+    const rollSpec = choice.roll;
+    if (rollSpec) {
+        const attrName = rollSpec.attribute;
+        const dc = rollSpec.dc;
+        const attrVal = getEffectiveAttribute(attrName);
+        const modifier = Math.floor(attrVal / 2);
+        const d20 = Math.floor(Math.random() * 20) + 1;
+        const total = d20 + modifier;
+        const isSuccess = total >= dc;
+        const nextStepVal = isSuccess ? rollSpec.successStep : rollSpec.failureStep;
+
+        const executeCommit = () => {
+            const sign = modifier >= 0 ? '+' : '';
+            addLog(`🎲 ROLL RESULT: Rolled ${d20} ${sign}${modifier} = ${total} (VS. DC ${dc}) -> ${isSuccess ? 'SUCCESS' : 'FAILURE'}!`);
+            applyChoiceConsequences(nextStepVal);
+        };
+
+        if (deps.ui && deps.ui.showDialogueRoll) {
+            deps.ui.showDialogueRoll({
+                attribute: attrName,
+                dc: dc,
+                rollValue: d20,
+                modifier: modifier,
+                total: total,
+                isSuccess: isSuccess,
+                onComplete: executeCommit
+            });
+        } else {
+            executeCommit();
+        }
+    } else {
+        const nextStepVal = choice.nextStepIndex !== undefined ? choice.nextStepIndex : (currentStepIndex + 1);
+        applyChoiceConsequences(nextStepVal);
     }
 }
 

@@ -100,71 +100,80 @@
 - **Legendary Accessories:** Once discovered, players can craft the legendary-tier `Quantum Shield Core` (+10 defense) and `Plasma Targeting HUD` (+10 attack) accessories in the crafting tab defined in [recipes.js](file:///mnt/d/source/Roogames/Space%20Adventure/data/recipes.js).
 - **Integration & Verification:** Fully integrated into derelict exploration [derelict.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/derelict.js), combat results [combat.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/combat.js), and map UI [ui.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/ui.js). Covered by unit tests in [derelict.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/derelict.test.js), [combat.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/combat.test.js), and [crafting.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/crafting.test.js).
 
+### Pseudo-3D First-Person "Dungeon Crawler" View (Completed)
+**How it works:** Replaces the schematic node-based map view during derelict ship exploration with a retro-modern pseudo-3D first-person perspective corridor view rendered on an HTML5 Canvas.
+**Mechanics:**
+- **Procedural Maze Generation:** When docking with a derelict in [derelict.js](file:///d:/source/Roogames/Space%20Adventure/systems/derelict.js), an 8x8 grid-based maze is procedurally generated with walls, hallways, locked doors, and terminals, tracking player coordinates at `state.derelict.x` and `state.derelict.y`.
+- **Raycasting Perspective Render Engine:** Renders the player's immediate perspective in a new canvas module [dungeon-renderer.js](file:///d:/source/Roogames/Space%20Adventure/systems/ui/dungeon-renderer.js) by projecting rays through a 60-degree field of view to compute wall distances, rendering flat billboards/sprites representing chests, terminals, hazards, and enemy units with depth shading (ambient space fog).
+- **Directional Keyboard Navigation:** Binds controls and keyboard keys (W/A/S/D or arrow keys) in [index.html](file:///d:/source/Roogames/Space%20Adventure/index.html) to turn left/right and move forward with strict wall collision checks.
+- **Tactical Radar Minimap:** Renders a localized top-down radar overlay displaying explored cells, nearby signatures, and the path back to the airlock.
+- **Event Trigger Integration:** Hooks coordinates into the event engine in [derelict.js](file:///d:/source/Roogames/Space%20Adventure/systems/derelict.js) to trigger combat, hazard checks, loot discovery, and the Void Sentinel Alpha fight. Verified in [derelict.test.js](file:///d:/source/Roogames/Space%20Adventure/tests/systems/derelict.test.js).
+
+### Space Station Hub & Dynamic Market Economy (Completed)
+**How it works:** Introduces a major social and trading port ("Galactic Nexus Hub" / "Space Hub") featuring a fluctuating stock and commodity market that responds to simulated galactic news events.
+**Mechanics:**
+- **Dynamic Commodity Trading:** Prices for rare resources (Scrap Metal, Titanium Ingot, Plasma Core, Circuit Board, Carbon Nanotubes, Quantum Chip, Alien Crystal, Cargo Container) defined in [market.js](file:///d:/source/Roogames/Space%20Adventure/systems/market.js) fluctuate based on supply, demand, and news events.
+- **News Event Tickers:** Triggers random sector news headlines (e.g., Syndicate Blockade, Solar Flare, Mining Boom, Pirate Raids) that apply dynamic price multipliers.
+- **Market Exchange UI:** A dedicated interface card in [shop-ui.js](file:///d:/source/Roogames/Space%20Adventure/systems/ui/shop-ui.js) displaying active headlines, current buying/selling prices, and 5-tick historical price trend sparklines.
+- **Interstellar Arbitrage:** Players can buy resources low in friendly outposts, load them into their cargo hold, and travel to other sectors to sell high, risking pirate intercepts in transit. Covered by unit tests in [market.test.js](file:///d:/source/Roogames/Space%20Adventure/tests/systems/market.test.js).
+
 ---
 
 ## 🔮 Future / Planned Ideas
 
-### 1. Pseudo-3D First-Person "Dungeon Crawler" View
-**How it works:** Replaces the current schematic node-based map view during derelict ship exploration with a retro-modern pseudo-3D first-person wireframe/perspective corridor view rendered on an HTML5 Canvas.
-**Mechanics:**
-- **Procedural Maze Generation:** When docking with a derelict in [derelict.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/derelict.js), a grid-based maze (e.g., 8x8 layout) is procedurally generated with walls, hallways, locked doors, and terminals.
-- **Raycasted/Wireframe Rendering:** The interface in [ui.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/ui.js) renders the player's immediate perspective—showing corridors, intersections, crates, hazards, or approaching enemies.
-- **Directional Navigation:** Players navigate using discrete controls (Turn Left, Turn Right, Move Forward) or arrow keys.
-- **Tactical Minimap:** A localized radar overlay displays visited cells, nearby signatures, and the path back to the airlock.
-**Implementation Plan:**
-- [ ] **Step 1: Grid Map & Player State Definition**
-  - Define player direction using a cardinal angle or direction vectors (North, South, East, West).
-  - Update `startDerelictRun` in [derelict.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/derelict.js) to initialize map data as an 8x8 grid matrix containing wall, hallway, airlock, loot, and boss nodes.
-  - Track coordinates `state.derelict.x` and `state.derelict.y`.
-- [ ] **Step 2: 3D Perspective Raycasting Engine**
-  - Create a canvas rendering system in a new module [dungeon-renderer.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/ui/dungeon-renderer.js).
-  - Implement a basic raycaster projecting rays through a 60-degree field of view to compute wall distances and line heights.
-  - Implement depth shading (darker colors for distant walls) to simulate ambient space fog.
-  - Draw vertical line bands representing flat walls, corridors, and doors.
-- [ ] **Step 3: UI Viewport & Keyboard Navigation**
-  - Add a `<canvas id="dungeonCanvas">` viewport element in [index.html](file:///mnt/d/source/Roogames/Space%20Adventure/index.html).
-  - Bind keyboard keys (W/A/S/D or Arrow keys) for navigation and rotate controls.
-  - Restrict movement into walls or locked doors using boundary-collision checks.
-- [ ] **Step 4: Interactive Entities & Sprites**
-  - Draw flat billboards/sprites inside the 3D viewport representing chests, terminals, hazards, and enemy units.
-  - Render a top-down minimap widget on the UI showing explored cells and player directional arrow.
-- [ ] **Step 5: Event Trigger Integration**
-  - Hook collision/location coordinates into the event engine in [derelict.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/derelict.js) to trigger combat, hazard checks, loot discovery, and the Void Sentinel Alpha fight.
-  - Update tests in [derelict.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/derelict.test.js) to assert grid movement, collision bounds, and boss room coordination.
-
-### 2. Space Station Hub & Dynamic Market Economy
-**How it works:** Introduces a major social/trading port ("Galactic Nexus Hub") featuring a fluctuating stock and commodity market that responds to simulated galactic news events.
-**Mechanics:**
-- **Dynamic Commodity Trading:** Prices for rare resources (e.g., Quantum Chips, Plasma Cores, Carbon Nanotubes) fluctuate based on supply, demand, and news tickers (e.g., "Syndicate Outpost Blockaded").
-- **Trade Cargo Hold:** Players can buy resources low in friendly sectors and travel to sell high in other ports, risking space pirate intercepts.
-- **Market Interface:** Integrates with [shop.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/shop.js) to display price trends, graphs, and stock tickers.
-
-### 3. Crew Cabin & Companion Social Loop
+### 1. Crew Cabin & Companion Social Loop
 **How it works:** Expands the companion system into an interactive Spacecraft Cabin screen where players can engage in dialogue with crew members, resolve disputes, and unlock personal loyalty quests.
 **Mechanics:**
 - **Banter & Disposition Events:** Traveling between planets triggers random inter-crew conversations. Resolving these dialogues increases companion trust and unlocks unique synergy traits.
 - **Loyalty Missions:** Reaching high trust thresholds unlocks companion-specific dungeon crawls or choice-driven side-stories.
-- **Cabin UI:** A dedicated ship interior tab integrated with [companions.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/companions.js) allows the captain to inspect crew rooms, gift items, and configure passive bonuses.
+- **Cabin UI:** A dedicated ship interior tab integrated with [companions.js](file:///d:/source/Roogames/Space%20Adventure/systems/companions.js) allows the captain to inspect crew rooms, gift items, and configure passive bonuses.
 
-### 4. Advanced Cybernetic Modding & Tech Tree Specialization
+### 2. Advanced Cybernetic Modding & Tech Tree Specialization
 **How it works:** Introduces minor sub-augment mod slots for cybernetic implants and unlocks deep class-based active and passive skill paths.
 **Mechanics:**
-- **Nanite Mod Chips:** Each implant installed in [cybernetics.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/cybernetics.js) gains 2 sub-slots to insert custom nanite chips (e.g., +5% critical strike chance, fire resistance, +10 HP).
-- **Stability Management:** Slotting too many mods increases "System Instability," leading to occasional status gltiches during combat if exceeded.
+- **Nanite Mod Chips:** Each implant installed in [cybernetics.js](file:///d:/source/Roogames/Space%20Adventure/systems/cybernetics.js) gains 2 sub-slots to insert custom nanite chips (e.g., +5% critical strike chance, fire resistance, +10 HP).
+- **Stability Management:** Slotting too many mods increases "System Instability," leading to occasional status glitches during combat if exceeded.
 - **Specialization Tree:** Adds distinct branching tech trees (Heavy Combat, Nano-Biotech, Cyber-Hacking) using specialization points.
 
-### 5. Fleet Command Carrier Upgrades & Tactical Grid Battles
+### 3. Fleet Command Carrier Upgrades & Tactical Grid Battles
 **How it works:** Allows the player to purchase fighter wings and command an escort squadron, shifting space combat into tactical turn-based grid battles.
 **Mechanics:**
 - **Fighter Pilot Recruitment:** Hire pilot crew members with unique fighter commands and loadouts.
-- **Grid-Based Space Combat:** Space battles transition from text options in [ship.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/ship.js) to a tactical grid where fleet positioning, fire arcs, and shield sectors dictate victory.
+- **Grid-Based Space Combat:** Space battles transition from text options in [ship.js](file:///d:/source/Roogames/Space%20Adventure/systems/ship.js) to a tactical grid where fleet positioning, fire arcs, and shield sectors dictate victory.
 - **Carrier Hangar Bays:** Upgrade ship modules to construct fighter hangars, drone repair bays, and planetary bombardment artillery.
 
-### 6. Deep Interactive Dialogue Engine & Expanded NPC Questlines
-**How it works:** Expands the branching narrative dialogue system to introduce complex multi-tiered conversations with named NPCs, character memories, and consequence-based storyline branches.
+### 4. Deep Interactive Dialogue Engine & Expanded NPC Questlines
+**How it works:** Expands the branching narrative dialogue system to introduce complex multi-tiered conversations with named NPCs, character memories, stateful quest-linking, and consequence-based storyline branches.
 **Mechanics:**
 - **Tiered Choice Branching:** Multi-stage dialogues with nested conditions assessing player stats, reputation standings, previous quest outcomes, and companion trust.
 - **NPC Memory Tracker:** NPCs dynamically remember specific player choices (e.g., choosing to spare or destroy the drone), permanently altering their tone, pricing, and available quests in later acts.
-- **Quest Storyline Splits:** Narrative choices dynamically branch main questlines, enabling players to align with specific factions or NPCs, culminating in multiple distinct game-ending epilogues.
+- **Quest Storyline Splits & Linking:** Narrative choices dynamically branch main questlines, enabling players to align with specific factions or NPCs, culminating in multiple distinct game-ending epilogues.
 - **Dialogue UI Enhancements:** A revamped dialogue card overlay displaying NPC emotions, action rolls, and success percentages based on character specializations.
-- **Integration & Verification:** Integrated into [quests.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/quests.js) and verified via narrative tests in [branching_quests.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/branching_quests.test.js).
+- **Integration & Verification:** Integrated into [quests.js](file:///d:/source/Roogames/Space%20Adventure/systems/quests.js) and verified via narrative tests in [branching_quests.test.js](file:///d:/source/Roogames/Space%20Adventure/tests/systems/branching_quests.test.js).
+
+**Implementation Plan:**
+- [ ] **Step 1: Linkable Quest Chains & Storyline State Machine**
+  - Add a successor/trigger mechanism in [quests.js](file:///d:/source/Roogames/Space%20Adventure/data/quests.js) (e.g., `unlocksQuest` field or choice-specific next quests).
+  - Update `completeQuest` in [quests.js](file:///d:/source/Roogames/Space%20Adventure/systems/quests.js) to automatically trigger and accept the next quest in the chain.
+  - Introduce a `state.storyline` object to track the active narrative branch, current Act, and global story milestones.
+- [ ] **Step 2: Enhanced NPC Dialogue Engine & State-Dependent Chats**
+  - Refactor NPC interactions in planetary hubs to use dynamic dialogue trees instead of static texts.
+  - Support conditional dialogue nodes that check active memory flags, character stats, or active inventory items.
+  - Implement a dynamic roll mechanism for skill checks (e.g., rolling a virtual 20-sided die with modifiers based on player stats).
+- [ ] **Step 3: Immersive Dialogue UI Overlay & Animations**
+  - Build a gorgeous, retro-themed dialogue overlay card in a new UI module or in [ui.js](file:///d:/source/Roogames/Space%20Adventure/systems/ui.js).
+  - Render NPC nameplates, faction alignment indicators, and visual mood indicators (e.g., Neutral, Pleased, Hostile).
+  - Add micro-animations for option hover states, dice rolling, and quest acceptance/completion banners.
+- [ ] **Step 4: Branching Main Storyline & Faction Quest Boards**
+  - Add a "Quest Board" interface in planetary hubs, allowing players to accept sidequests and faction contracts.
+  - Design a cohesive 3-Act Main Storyline:
+    - *Act I: The Signal* (investigating ancient tech, choosing which faction to share findings with).
+    - *Act II: The Faction War* (running faction-specific sabotage, diplomacy, or security missions).
+    - *Act III: The Galactic Crucible* (final showdown or alliance summit, triggering one of 3 unique endings based on reputation).
+  - Add character-specific companion quests that unlock once trust thresholds are met.
+- [ ] **Step 5: Testing & Verification Suite**
+  - Expand [branching_quests.test.js](file:///d:/source/Roogames/Space%20Adventure/tests/systems/branching_quests.test.js) to cover multi-quest chaining, choice state persistence, and ending path triggers.
+  - Verify that the save/load system correctly serializes and restores the entire storyline state and NPC memory matrices.
+
+### 5. Generalize the primary game engine.
+**The Goal:** The goal is to create a generic game engine so that other settings like fantasy, superhero, or steampunk can be used with the primary engine.

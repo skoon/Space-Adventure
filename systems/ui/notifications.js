@@ -3,6 +3,8 @@
  * Handles dialogs, alerts, and notifications
  */
 
+import { showDialogue, hideDialogue } from './dialogue-ui.js';
+
 let levelUpNotification = null;
 let victoryMessage = null;
 
@@ -124,6 +126,39 @@ function processDialogQueue() {
  * Show dialog modal (Queues the request)
  */
 export function showDialog(title, text, options = []) {
+    const combined = `${title} ${text}`.toLowerCase();
+    const isNarrative = options.length > 0 || 
+                       combined.includes("vance") || 
+                       combined.includes("nesta") || 
+                       combined.includes("thorne") || 
+                       combined.includes("elyse") || 
+                       combined.includes("mainframe") || 
+                       combined.includes("terminal") || 
+                       combined.includes("signal") || 
+                       combined.includes("s.a.m.") || 
+                       combined.includes("ai");
+
+    if (isNarrative) {
+        const finalOptions = options.map(opt => {
+            return {
+                ...opt,
+                action: () => {
+                    if (opt.action) opt.action();
+                    // If the action is hideDialog, map it to hideDialogue
+                    if (opt.action === hideDialog) {
+                        hideDialogue();
+                    } else {
+                        hideDialogue();
+                    }
+                }
+            };
+        });
+        
+        const finalOpts = finalOptions.length > 0 ? finalOptions : [{ text: "Continue", action: hideDialogue }];
+        showDialogue(title, text, finalOpts);
+        return;
+    }
+
     dialogQueue.push({ title, text, options });
     processDialogQueue();
 }
