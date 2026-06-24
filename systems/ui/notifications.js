@@ -127,16 +127,25 @@ function processDialogQueue() {
  */
 export function showDialog(title, text, options = []) {
     const combined = `${title} ${text}`.toLowerCase();
-    const isNarrative = options.length > 0 || 
-                       combined.includes("vance") || 
-                       combined.includes("nesta") || 
-                       combined.includes("thorne") || 
-                       combined.includes("elyse") || 
-                       combined.includes("mainframe") || 
-                       combined.includes("terminal") || 
-                       combined.includes("signal") || 
-                       combined.includes("s.a.m.") || 
-                       combined.includes("ai");
+    
+    // Explicitly exclude system save/load screens from the premium narrative overlay
+    const isSystemMenu = title === "Save Game" || 
+                         title === "Load Game" || 
+                         title === "Start New Game" || 
+                         text.includes("saveLoadSlotsContainer");
+
+    const isNarrative = !isSystemMenu && (
+                        options.length > 0 || 
+                        combined.includes("vance") || 
+                        combined.includes("nesta") || 
+                        combined.includes("thorne") || 
+                        combined.includes("elyse") || 
+                        combined.includes("mainframe") || 
+                        combined.includes("terminal") || 
+                        combined.includes("signal") || 
+                        combined.includes("s.a.m.") || 
+                        /\bai\b/i.test(combined)
+    );
 
     if (isNarrative) {
         const finalOptions = options.map(opt => {
@@ -171,6 +180,13 @@ export function hideDialog() {
     if (modal) {
         modal.style.display = "none";
     }
+    
+    // Also hide premium dialogue overlay if it was open
+    const overlay = document.getElementById("dialogueOverlay");
+    if (overlay) {
+        overlay.style.display = "none";
+    }
+    
     isDialogOpen = false;
 
     // Process next item in queue, slight delay for visual transition
