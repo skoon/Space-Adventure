@@ -27,6 +27,18 @@ const NPCS = {
         avatar: "👩‍🔬",
         factionClass: "text-purple-400 border-purple-900/50"
     },
+    mercer: {
+        name: "Jax 'Sparky' Mercer",
+        faction: "Independent",
+        avatar: "🔧",
+        factionClass: "text-amber-400 border-amber-900/50"
+    },
+    delegates: {
+        name: "Summit Delegates",
+        faction: "Joint Council",
+        avatar: "🏛️",
+        factionClass: "text-teal-400 border-teal-900/50"
+    },
     ai: {
         name: "Ship AI (S.A.M.)",
         faction: "Systems AI",
@@ -70,6 +82,12 @@ function identifySpeaker(title, text) {
     }
     if (combined.includes("thorne") || combined.includes("elyse")) {
         return { ...NPCS.thorne, key: "thorne" };
+    }
+    if (combined.includes("mercer") || combined.includes("sparky")) {
+        return { ...NPCS.mercer, key: "mercer" };
+    }
+    if (combined.includes("delegate") || combined.includes("summit") || combined.includes("assembly") || combined.includes("crucible")) {
+        return { ...NPCS.delegates, key: "delegates" };
     }
     if (combined.includes("mainframe") || combined.includes("terminal") || combined.includes("encryption") || combined.includes("firewall") || combined.includes("signal")) {
         return { ...NPCS.terminal, key: "terminal" };

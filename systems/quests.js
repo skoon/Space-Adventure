@@ -157,6 +157,17 @@ export function completeQuest(questId) {
     if (!state.character || !state.character.activeQuests[questId]) return;
 
     const quest = quests[questId];
+    const activeQuest = state.character.activeQuests[questId];
+
+    // Prevent main story quests (and scavenger's gamble side quest) from auto-completing in space.
+    // They must be turned in explicitly at their respective NPC.
+    const isSpecialTurnInQuest = quest.isMainStory || questId === "quest_branch_02";
+    if (isSpecialTurnInQuest && !activeQuest.turnedInByNpc) {
+        activeQuest.readyToTurnIn = true;
+        addLog(`[!] OBJECTIVES COMPLETE: Return to the quest-giver NPC in their district to hand in '${quest.title}' and claim your rewards.`);
+        updateUI();
+        return;
+    }
 
     // Grant Rewards
     if (quest.rewards) {
@@ -390,6 +401,14 @@ export function triggerChoiceStepIfActive(questId) {
 
     const step = quest.steps[currentStepIndex];
     if (step && step.type === "choice") {
+        // Prevent story-branching choices from triggering automatically in the void.
+        // They must be triggered at the NPC.
+        const isSpecialBranchingQuest = questId === "quest_branch_01" || questId === "story_act2_fed" || questId === "story_act2_cor" || questId === "story_act2_syn" || questId === "story_act3";
+        if (isSpecialBranchingQuest && !activeQuest.atNpc) {
+            // Do not pop up the dialog. Instead, log that they need to return.
+            addLog(`[!] NARRATIVE EVENT READY: Return to the sector liaison/NPC in their district to proceed with '${quest.title}'.`);
+            return;
+        }
         showBranchingChoiceDialog(questId, step);
     }
 }

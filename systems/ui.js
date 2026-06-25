@@ -8,6 +8,7 @@
 import { initLogger, addLog, updateMissionLog, updateCombatLog } from './ui/logger.js';
 import { initQuestUI, toggleQuestLog, switchQuestTab, renderQuestList, showJobBoard } from './ui/quest-ui.js';
 import { initTravelUI, showTravelScreen, travelToLocation } from './ui/travel-ui.js';
+import { initDistrictsUI, showDistricts } from './ui/districts-ui.js';
 import { initShopUI, showShop, switchShopTab, updateShopUI } from './ui/shop-ui.js';
 import { initInventoryUI, updateInventory, createInventoryItemButton } from './ui/inventory-ui.js';
 import { initCraftingUI, showCraftingUI, updateCraftingUI } from './ui/crafting-ui.js';
@@ -45,7 +46,8 @@ export {
     showStatsAllocationUI, closeStatsAllocationUI, allocateStat,
     showAchievementsUI, closeAchievementsUI,
     showJobBoard,
-    showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl
+    showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl,
+    showDistricts
 };
 
 import { items } from '../data/items.js';
@@ -111,6 +113,7 @@ export function initUI(dependencies) {
     initCompanionsUI(deps, { updateUI, showDialog });
     initCyberneticsUI(deps);
     initDialogueUI(deps);
+    initDistrictsUI(deps);
 
     // Initialize Difficulty Selector (Start Screen)
     const difficultySelect = document.getElementById("difficultySelect");
@@ -240,6 +243,12 @@ export function updateUI() {
     // Update Derelict UI if active
     if (state.gameState === "derelict" && state.derelict) {
         updateDerelictUI();
+    }
+
+    // Update districts modal if open
+    const districtsModal = document.getElementById('districtsModal');
+    if (districtsModal && !districtsModal.classList.contains('hidden') && districtsModal.style.display !== 'none') {
+        import('./ui/districts-ui.js').then(m => m.renderDistricts());
     }
 }
 
