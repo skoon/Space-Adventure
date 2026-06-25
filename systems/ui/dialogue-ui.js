@@ -4,6 +4,8 @@
  * and animated d20 virtual dice rolls.
  */
 
+import { t } from '../theme-engine.js';
+
 let state;
 let updateUI;
 let deps;
@@ -138,10 +140,10 @@ export function showDialogue(title, text, options = []) {
     const npcMood = document.getElementById("dialogueNpcMood");
     
     if (npcAvatar) npcAvatar.textContent = speaker.avatar;
-    if (npcName) npcName.textContent = speaker.name;
+    if (npcName) npcName.textContent = t(speaker.name);
     
     if (npcFaction) {
-        npcFaction.textContent = speaker.faction.toUpperCase();
+        npcFaction.textContent = t(speaker.faction).toUpperCase();
         npcFaction.className = `dialogue-npc-faction border px-2 py-0.5 rounded text-xs font-semibold tracking-wider ${speaker.factionClass}`;
     }
     
@@ -162,8 +164,8 @@ export function showDialogue(title, text, options = []) {
     const choicesList = document.getElementById("dialogueChoicesList");
     const rollBox = document.getElementById("dialogueRollBox");
 
-    if (dialogueTitleText) dialogueTitleText.textContent = title.toUpperCase();
-    if (textBody) textBody.innerHTML = text;
+    if (dialogueTitleText) dialogueTitleText.textContent = t(title).toUpperCase();
+    if (textBody) textBody.innerHTML = t(text);
     
     // Hide roll box by default
     if (rollBox) rollBox.style.display = "none";
@@ -181,7 +183,7 @@ export function showDialogue(title, text, options = []) {
             const button = document.createElement("button");
             
             // Check if it's a skill check to format the badge nicely
-            let buttonText = option.text;
+            let buttonText = t(option.text);
             let checkClass = "dialogue-choice-btn";
             
             if (buttonText.startsWith("[")) {
@@ -367,7 +369,7 @@ export function showEpilogueCrawl(endingType, onComplete) {
         `
     };
 
-    const crawlHtml = texts[endingType] || texts.coalition;
+    const crawlHtml = t(texts[endingType] || texts.coalition);
     content.innerHTML = crawlHtml;
 
     // Show the overlay

@@ -3,6 +3,8 @@
  * Handles crafting interface and equipment upgrades UI
  */
 
+import { t } from '../theme-engine.js';
+
 let state;
 let items;
 
@@ -23,7 +25,7 @@ export function showCraftingUI() {
     modal.id = 'craftingModal';
     modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4';
     
-    modal.innerHTML = `
+    modal.innerHTML = t(`
         <div class="bg-gray-800 border-2 border-purple-500 rounded-lg max-w-4xl w-full p-6 relative shadow-[0_0_15px_rgba(168,85,247,0.5)]">
             <button onclick="document.getElementById('craftingModal').remove()" 
                     class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold">&times;</button>
@@ -47,7 +49,7 @@ export function showCraftingUI() {
             <div id="recipeList" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2"></div>
             <div id="upgradePanel" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2"></div>
         </div>
-    `;
+    `);
     
     document.body.appendChild(modal);
     updateCraftingUI();
@@ -70,7 +72,7 @@ export function updateCraftingUI() {
     const knownRecipes = state.character.knownRecipes || {};
     
     if (Object.keys(knownRecipes).length === 0) {
-        list.innerHTML = '<div class="col-span-2 text-center text-gray-500 italic p-8">No recipes known yet. Explore the galaxy to discover crafting schematics!</div>';
+        list.innerHTML = t('<div class="col-span-2 text-center text-gray-500 italic p-8">No recipes known yet. Explore the galaxy to discover crafting schematics!</div>');
         return;
     }
     
@@ -94,7 +96,7 @@ export function updateCraftingUI() {
         const card = document.createElement("div");
         card.className = `bg-gray-700 p-4 rounded border-l-4 ${canCraft ? 'border-green-500' : 'border-gray-600 opacity-75'}`;
         
-        card.innerHTML = `
+        card.innerHTML = t(`
             <div class="flex justify-between items-start mb-2">
                 <div class="font-bold text-yellow-400 text-lg">${recipe.name}</div>
                 ${canCraft ? '<span class="text-xs bg-green-900 text-green-300 px-2 py-1 rounded">Ready</span>' : ''}
@@ -111,7 +113,7 @@ export function updateCraftingUI() {
                     ${!canCraft ? 'disabled' : ''}>
                 ${canCraft ? 'Combine Materials' : 'Missing Materials'}
             </button>
-        `;
+        `);
         list.appendChild(card);
     });
 }
@@ -159,7 +161,7 @@ export function updateUpgradeUI() {
     }
 
     if (ownedEquip.length === 0) {
-        list.innerHTML = '<div class="col-span-2 text-center text-gray-500 italic p-8 font-semibold">No upgradeable equipment found in inventory or equipped slots.</div>';
+        list.innerHTML = t('<div class="col-span-2 text-center text-gray-500 italic p-8 font-semibold">No upgradeable equipment found in inventory or equipped slots.</div>');
         return;
     }
 
@@ -226,7 +228,7 @@ export function updateUpgradeUI() {
             const card = document.createElement("div");
             card.className = `bg-gray-700 p-4 rounded border-l-4 ${isMax ? 'border-yellow-500 opacity-80' : (canUpgrade ? 'border-green-500' : 'border-gray-600')}`;
 
-            card.innerHTML = `
+            card.innerHTML = t(`
                 <div class="flex justify-between items-start mb-1">
                     <div>
                         <span class="font-bold text-yellow-400 text-base">${eq.name}</span>
@@ -253,7 +255,7 @@ export function updateUpgradeUI() {
                         MAX LEVEL REACHED
                     </button>
                 `}
-            `;
+            `);
             list.appendChild(card);
         });
     });

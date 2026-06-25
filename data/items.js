@@ -1,3 +1,4 @@
+// Sci-Fi Space Items
 export const items = {
   "Energy Cell": { type: "consumable", category: "consumable", effect: "heal", value: 30, description: "Restores 30 HP", price: 50, stackable: true},
   "Nano Stimpack": { type: "consumable", category: "consumable", effect: "heal", value: 50, description: "Restores 50 HP", price: 100, stackable: true },
@@ -24,7 +25,6 @@ export const items = {
   "Medical Synthesizer": { type: "material", category: "material", description: "A medical synthesizer for creating medical supplies.", price: 1500, stackable: true },
   "Cargo Container": { type: "material", category: "material", description: "A heavy shipping crate containing valuable cargo.", price: 400, stackable: true },
   
-
   // Weapons
   "Plasma Rifle": { type: "weapon", category: "equipment", stats: { attack: 5 }, description: "A powerful energy weapon.", price: 500, stackable: false },
   "Enhanced Plasma Rifle": { type: "weapon", category: "equipment", stats: { attack: 8 }, description: "An upgraded energy weapon with alien tech.", price: 1000, stackable: false },

@@ -1,4 +1,4 @@
-export const recipes = {
+const recipeEntries = {
   "advanced_heal": {
       id: "advanced_heal",
       name: "Advanced Medkit",
@@ -52,3 +52,5 @@ export const recipes = {
       description: "A legendary accessory that grants extreme tactical targeting data."
   }
 };
+
+export const recipes = recipeEntries;

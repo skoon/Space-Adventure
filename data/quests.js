@@ -1,4 +1,4 @@
-export const quests = {
+const questEntries = {
   "quest_001": {
     id: "quest_001",
     title: "First Contact",
@@ -795,3 +795,4 @@ export const quests = {
   }
 };
 
+export const quests = questEntries;

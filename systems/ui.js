@@ -30,6 +30,7 @@ import { initCyberneticsUI } from './ui/cybernetics-ui.js';
 import { getActiveCompanion } from './companions.js';
 import { renderDungeon } from './ui/dungeon-renderer.js';
 import { SKILL_TREES, hasSkill, unlockSkill } from './skills.js';
+import { applyThemeToDOM } from './theme-engine.js';
 
 // Re-export for external use
 export { 
@@ -135,6 +136,7 @@ export function initUI(dependencies) {
 
     // Apply initial theme
     updateTheme();
+    applyThemeToDOM();
 }
 
 /**
@@ -250,6 +252,9 @@ export function updateUI() {
     if (districtsModal && !districtsModal.classList.contains('hidden') && districtsModal.style.display !== 'none') {
         import('./ui/districts-ui.js').then(m => m.renderDistricts());
     }
+
+    // Apply the active theme terminology to the DOM
+    applyThemeToDOM();
 }
 
 function updateDerelictUI() {

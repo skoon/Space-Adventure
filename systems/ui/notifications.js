@@ -4,6 +4,7 @@
  */
 
 import { showDialogue, hideDialogue } from './dialogue-ui.js';
+import { t } from '../theme-engine.js';
 
 let levelUpNotification = null;
 let victoryMessage = null;
@@ -46,7 +47,7 @@ export function showVictoryMessage(message) {
     victoryMessage = message;
     const victoryEl = document.getElementById("victoryMessage");
     if (victoryEl) {
-        victoryEl.innerHTML = `<span class="text-2xl">✨</span> <span>${message}</span>`;
+        victoryEl.innerHTML = `<span class="text-2xl">✨</span> <span>${t(message)}</span>`;
         victoryEl.style.display = "flex";
         victoryEl.style.alignItems = "center";
         victoryEl.style.gap = "0.5rem";
@@ -63,7 +64,7 @@ export function showVictoryMessage(message) {
 export function showSaveMessage(message) {
     const saveMsg = document.getElementById("saveMessage");
     if (saveMsg) {
-        saveMsg.textContent = message;
+        saveMsg.textContent = t(message);
         saveMsg.style.display = "block";
         setTimeout(() => {
             saveMsg.style.display = "none";
@@ -90,8 +91,8 @@ function processDialogQueue() {
         return;
     }
 
-    document.getElementById("dialogTitle").textContent = title;
-    document.getElementById("dialogText").innerHTML = text;
+    document.getElementById("dialogTitle").textContent = t(title);
+    document.getElementById("dialogText").innerHTML = t(text);
 
     const optionsContainer = document.getElementById("dialogOptions");
     optionsContainer.innerHTML = "";
@@ -104,7 +105,7 @@ function processDialogQueue() {
 
     currentOptions.forEach(option => {
         const button = document.createElement("button");
-        button.textContent = option.text;
+        button.textContent = t(option.text);
         
         if (option.disabled) {
             button.className = "px-6 py-2 bg-gray-800 border border-gray-700 rounded font-bold text-gray-500 cursor-not-allowed opacity-50";

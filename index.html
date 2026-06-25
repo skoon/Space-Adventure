@@ -16,6 +16,7 @@
       <div class="flex items-center justify-between">
         <h1
           class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent"
+          data-term="gameTitle"
         >
           Galactic Odyssey
         </h1>
@@ -26,6 +27,7 @@
             onclick="import('./systems/ui/saveload-ui.js').then(m => m.exitToMainMenu())"
             class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm font-bold transition-colors"
             title="Exit to Main Menu"
+            data-term="exit"
           >
             🚪 Exit
           </button>
@@ -33,6 +35,7 @@
             onclick="import('./systems/ui/saveload-ui.js').then(m => m.showSaveLoadUI('save'))"
             class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold transition-colors"
             title="Save Game"
+            data-term="save"
           >
             💾 Save
           </button>
@@ -40,6 +43,7 @@
             onclick="import('./systems/ui/saveload-ui.js').then(m => m.showSaveLoadUI('load'))"
             class="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold transition-colors"
             title="Load Game"
+            data-term="load"
           >
             📂 Load
           </button>
@@ -47,6 +51,7 @@
             onclick="exportGame()"
             class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold transition-colors"
             title="Export Save"
+            data-term="export"
           >
             📤 Export
           </button>
@@ -54,6 +59,7 @@
             onclick="importGame()"
             class="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-bold transition-colors"
             title="Import Save"
+            data-term="import"
           >
             📥 Import
           </button>
@@ -70,6 +76,7 @@
           >
             <h2
               class="text-4xl md:text-6xl font-bold mb-8 text-center bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent"
+              data-term="gameTitle"
             >
               Galactic Odyssey
             </h2>
@@ -262,13 +269,13 @@
                       <span class="font-bold text-yellow-400"><span id="characterAp"></span>/<span id="characterMaxAp"></span></span>
                     </div>
                     <div class="bg-black/30 border border-gray-800/50 p-1.5 rounded flex justify-between items-center">
-                      <span class="text-gray-500">CR</span>
+                      <span class="text-gray-500" data-term="currencyAbbrev">CR</span>
                       <span id="characterCredits" class="font-bold text-yellow-400">0</span>
                     </div>
                   </div>
                 </div>
                 <div class="flex justify-between items-center border-t border-gray-800/80 pt-2 mt-2 text-[11px] font-mono text-gray-300">
-                  <span class="text-gray-500">📦 Pending Orders</span>
+                  <span class="text-gray-500" data-term="pendingOrders">📦 Pending Orders</span>
                   <span id="characterPendingOrders" class="font-bold text-yellow-400">0</span>
                 </div>
               </div>
@@ -318,7 +325,7 @@
                   </div>
                   <!-- Inventory Grid (Right) -->
                   <div class="md:w-2/3 flex flex-col">
-                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-mono mb-2">Cargo Hold</div>
+                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-mono mb-2" data-term="cargoHold">Cargo Hold</div>
                     <div id="inventory" class="flex flex-wrap gap-2 overflow-y-auto flex-grow max-h-[220px] content-start custom-scrollbar-cyan"></div>
                   </div>
                 </div>
@@ -349,7 +356,7 @@
               
               <!-- Column 2: Mission Log Screen -->
               <div class="lg:col-span-1 bg-gray-900/60 border border-cyan-800/50 rounded-lg p-4 shadow-[0_0_15px_rgba(6,182,212,0.1)] flex flex-col min-h-[340px]">
-                <h2 class="text-xs font-bold text-cyan-400 mb-2 tracking-widest uppercase font-mono">>> Operations Log <<</h2>
+                <h2 class="text-xs font-bold text-cyan-400 mb-2 tracking-widest uppercase font-mono" data-term="operationsLog">>> Operations Log <<</h2>
                 <div id="missionLog" class="max-h-[240px] overflow-y-auto pr-2 custom-scrollbar-cyan text-xs font-mono text-cyan-300/90 space-y-1 flex-grow"></div>
               </div>
               
@@ -358,34 +365,34 @@
             <!-- Row 3: Action Console (Bottom Panel) -->
             <div class="bg-gray-900/50 border border-gray-800 rounded-lg p-3 shadow-inner">
               <div class="grid grid-cols-5 gap-3">
-                <button onclick="travelDeeper()" class="py-2 px-3 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-800 text-purple-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(168,85,247,0.15)]">
+                <button onclick="travelDeeper()" data-term="travelDeeper" class="py-2 px-3 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-800 text-purple-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(168,85,247,0.15)]">
                   Travel Deeper
                 </button>
                 <button onclick="useHealItem()" id="healButton" class="py-2 px-3 bg-gray-900 text-gray-500 rounded font-bold border border-gray-800 cursor-not-allowed text-xs uppercase tracking-wider font-mono" disabled>
                   Use Heal Item
                 </button>
-                <button onclick="import('./systems/ui.js').then((m) => m.showShop())" class="py-2 px-3 bg-yellow-950/60 hover:bg-yellow-900/80 border border-yellow-800 text-yellow-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono">
+                <button onclick="import('./systems/ui.js').then((m) => m.showShop())" data-term="tradeShop" class="py-2 px-3 bg-yellow-950/60 hover:bg-yellow-900/80 border border-yellow-800 text-yellow-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono">
                   🛒 Trade / Shop
                 </button>
                 <button onclick="import('./systems/ui.js').then((m) => m.showCraftingUI())" class="py-2 px-3 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-800 text-purple-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono">
                   🔨 Crafting
                 </button>
-                <button onclick="import('./systems/ui.js').then((m) => m.showJobBoard())" class="py-2 px-3 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-800 text-cyan-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(6,182,212,0.15)]">
+                <button onclick="import('./systems/ui.js').then((m) => m.showJobBoard())" data-term="jobBoard" class="py-2 px-3 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-800 text-cyan-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(6,182,212,0.15)]">
                   📋 Job Board
                 </button>
-                <button onclick="import('./systems/ui.js').then((m) => m.showSkillsUI())" class="py-2 px-3 bg-blue-950/60 hover:bg-blue-900/80 border border-blue-800 text-blue-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(59,130,246,0.15)]">
+                <button onclick="import('./systems/ui.js').then((m) => m.showSkillsUI())" data-term="skillsTalents" class="py-2 px-3 bg-blue-950/60 hover:bg-blue-900/80 border border-blue-800 text-blue-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(59,130,246,0.15)]">
                   ✨ Skills & Talents
                 </button>
-                <button id="attributesBtn" onclick="import('./systems/ui.js').then((m) => m.showStatsAllocationUI())" class="py-2 px-3 bg-teal-950/60 hover:bg-teal-900/80 border border-teal-800 text-teal-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono">
+                <button id="attributesBtn" onclick="import('./systems/ui.js').then((m) => m.showStatsAllocationUI())" data-term="attributes" class="py-2 px-3 bg-teal-950/60 hover:bg-teal-900/80 border border-teal-800 text-teal-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono">
                   📊 Attributes
                 </button>
-                <button onclick="import('./systems/ui.js').then((m) => m.showShipUI())" class="py-2 px-3 bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-800 text-indigo-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(99,102,241,0.15)]">
+                <button onclick="import('./systems/ui.js').then((m) => m.showShipUI())" data-term="shipHub" class="py-2 px-3 bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-800 text-indigo-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(99,102,241,0.15)]">
                   🚀 Ship Hub
                 </button>
-                <button onclick="import('./systems/events.js').then((m) => m.scanForSignals())" class="py-2 px-3 bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-800 text-emerald-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(16,185,129,0.15)]">
+                <button onclick="import('./systems/events.js').then((m) => m.scanForSignals())" data-term="scanSignals" class="py-2 px-3 bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-800 text-emerald-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(16,185,129,0.15)]">
                   📡 Scan Signals
                 </button>
-                <button id="achievementsBtn" onclick="import('./systems/ui.js').then((m) => m.showAchievementsUI())" class="py-2 px-3 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-800 text-amber-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(245,158,11,0.15)]">
+                <button id="achievementsBtn" onclick="import('./systems/ui.js').then((m) => m.showAchievementsUI())" data-term="achievements" class="py-2 px-3 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-800 text-amber-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(245,158,11,0.15)]">
                   🏆 Achievements
                 </button>
                 <button id="districtsBtn" onclick="import('./systems/ui.js').then((m) => m.showDistricts())" class="py-2 px-3 bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-800 text-indigo-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(99,102,241,0.15)]">
@@ -403,15 +410,15 @@
             <!-- Pulsing red danger background -->
             <div class="absolute inset-0 bg-red-900 opacity-10 animate-pulse pointer-events-none"></div>
             
-            <h2 class="text-3xl font-bold text-red-500 mb-2 text-center cyber-glow-text tracking-widest uppercase">
+            <h2 class="text-3xl font-bold text-red-500 mb-2 text-center cyber-glow-text tracking-widest uppercase" data-term="derelictTitle">
               ⚠️ DERELICT VESSEL
             </h2>
-            <p class="text-center text-gray-400 mb-4 text-sm">Life support offline. Immediate danger detected.</p>
+            <p class="text-center text-gray-400 mb-4 text-sm" data-term="derelictDesc">Life support offline. Immediate danger detected.</p>
             
             <div class="grid grid-cols-2 gap-4 mb-4 relative z-10">
               <div class="bg-black/50 p-3 rounded border border-red-800">
                 <div class="flex justify-between items-center mb-1">
-                  <span class="text-gray-300 font-bold">OXYGEN RESERVE</span>
+                  <span class="text-gray-300 font-bold" data-term="oxygenLabel">OXYGEN RESERVE</span>
                   <span id="derelictOxygenText" class="text-cyan-400 font-bold">10/10</span>
                 </div>
                 <div class="w-full bg-gray-800 rounded-full h-3">
@@ -472,6 +479,7 @@
               <button
                 id="derelictExploreBtn"
                 onclick="exploreRoom()"
+                data-term="exploreDeeper"
                 class="py-3 px-4 bg-red-800 hover:bg-red-700 text-white rounded font-bold transition-colors shadow-[0_0_10px_rgba(153,27,27,0.5)] border border-red-600 uppercase tracking-wider"
               >
                 Explore Deeper (-1 O₂)
@@ -479,6 +487,7 @@
               <button
                 id="derelictEscapeBtn"
                 onclick="escapeShip()"
+                data-term="escapeToShip"
                 class="py-3 px-4 bg-blue-700 hover:bg-blue-600 text-white rounded font-bold transition-colors shadow-[0_0_10px_rgba(29,78,216,0.5)] border border-blue-500 uppercase tracking-wider"
               >
                 Escape to Ship

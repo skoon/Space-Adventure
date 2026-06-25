@@ -4,6 +4,7 @@
  */
 
 import { IMPLANTS, getActiveSynergies } from '../cybernetics.js';
+import { t } from '../theme-engine.js';
 
 let state;
 let deps;
@@ -21,7 +22,7 @@ export function renderCyberneticsTab() {
     if (!container) return;
 
     if (!state || !state.character) {
-        container.innerHTML = `<div class="text-center text-gray-500 py-6">No active character profile loaded.</div>`;
+        container.innerHTML = t(`<div class="text-center text-gray-500 py-6">No active character profile loaded.</div>`);
         return;
     }
 
@@ -183,7 +184,7 @@ export function renderCyberneticsTab() {
         </div>
     `;
 
-    container.innerHTML = html;
+    container.innerHTML = t(html);
 }
 
 /**

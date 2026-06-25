@@ -1,3 +1,4 @@
+// Sci-Fi Space Locations
 export const locations = {
   "terra_prime": {
     id: "terra_prime",

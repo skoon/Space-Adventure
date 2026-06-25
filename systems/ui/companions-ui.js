@@ -4,6 +4,7 @@
  */
 
 import { COMPANIONS, getActiveCompanion, setActiveCompanion, recruitCompanion, talkToCompanion, giftToCompanion, giftCreditsToCompanion, getRecruitCost, canRecruitCompanion } from '../companions.js';
+import { t } from '../theme-engine.js';
 
 let state;
 let updateUI, showDialog;
@@ -61,10 +62,10 @@ export function renderCompanionsTab() {
         nameRole.className = 'flex-grow';
         const name = document.createElement('div');
         name.className = 'font-bold text-white text-base';
-        name.textContent = data.name;
+        name.textContent = t(data.name);
         const role = document.createElement('div');
         role.className = 'text-xs text-cyan-400 font-mono';
-        role.textContent = data.role;
+        role.textContent = t(data.role);
 
         nameRole.appendChild(name);
         nameRole.appendChild(role);
@@ -91,19 +92,19 @@ export function renderCompanionsTab() {
                 standingMsg = `<p class="text-[10px] text-gray-400">Allied Faction: <span class="text-cyan-400 uppercase font-mono">${data.alliedFaction}</span> (Friendly standing: 50% off, Hostile: Locked)</p>`;
             }
             
-            recruitInfo.innerHTML = `
+            recruitInfo.innerHTML = t(`
                 <p>Ability: <strong>${data.abilityName}</strong></p>
                 <p class="italic">"${data.dialogues.recruit}"</p>
                 ${standingMsg}
                 <div class="pt-2">
                     <span class="text-yellow-500 font-bold">Cost: ${cost} credits</span> ${discountText}
                 </div>
-            `;
+            `);
             topSec.appendChild(recruitInfo);
 
             // Recruit button
             const recruitBtn = document.createElement('button');
-            recruitBtn.textContent = `Hire ${data.name}`;
+            recruitBtn.textContent = t(`Hire ${data.name}`);
             recruitBtn.disabled = !canRecruit || credits < cost;
             recruitBtn.className = `w-full py-2 px-3 mt-4 rounded font-bold text-xs transition-colors ${
                 (canRecruit && credits >= cost)
@@ -142,7 +143,7 @@ export function renderCompanionsTab() {
             // Trust Progress
             const trustHeader = document.createElement('div');
             trustHeader.className = 'flex justify-between text-gray-400 font-mono';
-            trustHeader.innerHTML = `<span>${levelLabel}</span><span>${currentTrustVal}/${maxTrustVal} XP</span>`;
+            trustHeader.innerHTML = t(`<span>${levelLabel}</span><span>${currentTrustVal}/${maxTrustVal} XP</span>`);
             
             const progressBg = document.createElement('div');
             progressBg.className = 'w-full bg-gray-900 rounded-full h-2 border border-gray-800';
@@ -154,7 +155,7 @@ export function renderCompanionsTab() {
             // Ability Desc
             const abilityText = document.createElement('p');
             abilityText.className = 'text-gray-300 mt-2';
-            abilityText.innerHTML = `Skill: <strong class="text-cyan-400">${data.abilityName}</strong><br><span class="text-gray-400">${data.abilityDesc}</span>`;
+            abilityText.innerHTML = t(`Skill: <strong class="text-cyan-400">${data.abilityName}</strong><br><span class="text-gray-400">${data.abilityDesc}</span>`);
 
             trustSec.appendChild(trustHeader);
             trustSec.appendChild(progressBg);
@@ -167,7 +168,7 @@ export function renderCompanionsTab() {
 
             const talkBtn = document.createElement('button');
             talkBtn.className = 'w-full py-1 px-2 bg-indigo-900/60 hover:bg-indigo-800/80 border border-indigo-700/50 rounded font-bold text-xs text-indigo-200 transition-colors';
-            talkBtn.innerHTML = '💬 Chat';
+            talkBtn.innerHTML = t('💬 Chat');
             talkBtn.onclick = () => {
                 const text = talkToCompanion(id);
                 showDialog(`💬 Crew Comm: ${data.name}`, `"${text}"`, [{ text: "Close", action: () => {} }]);
@@ -198,7 +199,7 @@ export function renderCompanionsTab() {
                             ? 'bg-amber-950/40 hover:bg-amber-900/50 border-amber-800 text-amber-200' 
                             : 'bg-gray-900/80 hover:bg-gray-800 border-gray-700 text-gray-300'
                     }`;
-                    giftBtn.innerHTML = `<span>🎁 ${giftName}</span><span class="font-bold">${isPreferred ? '+25 XP 🔥' : '+10 XP'}</span>`;
+                    giftBtn.innerHTML = t(`<span>🎁 ${giftName}</span><span class="font-bold">${isPreferred ? '+25 XP 🔥' : '+10 XP'}</span>`);
                     giftBtn.onclick = () => {
                         giftToCompanion(id, giftName);
                         renderCompanionsTab();
@@ -214,7 +215,7 @@ export function renderCompanionsTab() {
                 creditsBtn.className = `w-full py-1 px-2 text-[10px] font-mono bg-emerald-950/40 border border-emerald-800 text-emerald-200 hover:bg-emerald-900/50 rounded transition-colors text-left flex justify-between items-center ${
                     credits < 100 ? 'opacity-50 cursor-not-allowed' : ''
                 }`;
-                creditsBtn.innerHTML = `<span>💵 Fund Research (100 cr)</span><span class="font-bold">+10 XP</span>`;
+                creditsBtn.innerHTML = t(`<span>💵 Fund Research (100 cr)</span><span class="font-bold">+10 XP</span>`);
                 creditsBtn.disabled = credits < 100;
                 creditsBtn.onclick = () => {
                     giftCreditsToCompanion(id, 100);
@@ -226,10 +227,10 @@ export function renderCompanionsTab() {
             // Active/Set Active Action
             const actionBtn = document.createElement('button');
             if (activeId === id) {
-                actionBtn.textContent = 'Active Crew Member';
+                actionBtn.textContent = t('Active Crew Member');
                 actionBtn.className = 'w-full py-2 px-3 mt-4 rounded font-bold text-xs bg-cyan-950 border border-cyan-800 text-cyan-300 cursor-default';
             } else {
-                actionBtn.textContent = 'Deploy Companion';
+                actionBtn.textContent = t('Deploy Companion');
                 actionBtn.className = 'w-full py-2 px-3 mt-4 rounded font-bold text-xs bg-gray-800 border border-gray-700 text-white hover:bg-gray-700 transition-colors';
                 actionBtn.onclick = () => {
                     setActiveCompanion(id);

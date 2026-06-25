@@ -3,6 +3,8 @@
  * Handles adding logs and updating log displays
  */
 
+import { t } from '../theme-engine.js';
+
 let state;
 let renderCache;
 let missionLogElement;
@@ -19,9 +21,10 @@ export function initLogger(deps, cache) {
  * Add log entry with timestamp
  */
 export function addLog(message) {
+    const translatedMessage = t(message);
     const now = new Date();
     const timeStr = now.toLocaleTimeString();
-    const logEntry = `[${timeStr}] ${message}`;
+    const logEntry = `[${timeStr}] ${translatedMessage}`;
     
     if (state && state.log) {
         state.log.push(logEntry);
