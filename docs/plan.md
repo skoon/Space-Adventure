@@ -117,16 +117,17 @@
 - **Market Exchange UI:** A dedicated interface card in [shop-ui.js](file:///d:/source/Roogames/Space%20Adventure/systems/ui/shop-ui.js) displaying active headlines, current buying/selling prices, and 5-tick historical price trend sparklines.
 - **Interstellar Arbitrage:** Players can buy resources low in friendly outposts, load them into their cargo hold, and travel to other sectors to sell high, risking pirate intercepts in transit. Covered by unit tests in [market.test.js](file:///d:/source/Roogames/Space%20Adventure/tests/systems/market.test.js).
 
----
 
-## 🔮 Future / Planned Ideas
 
-### 1. Crew Cabin & Companion Social Loop
+### Crew Cabin & Companion Social Loop
 **How it works:** Expands the companion system into an interactive Spacecraft Cabin screen where players can engage in dialogue with crew members, resolve disputes, and unlock personal loyalty quests.
 **Mechanics:**
 - **Banter & Disposition Events:** Traveling between planets triggers random inter-crew conversations. Resolving these dialogues increases companion trust and unlocks unique synergy traits.
 - **Loyalty Missions:** Reaching high trust thresholds unlocks companion-specific dungeon crawls or choice-driven side-stories.
 - **Cabin UI:** A dedicated ship interior tab integrated with [companions.js](file:///d:/source/Roogames/Space%20Adventure/systems/companions.js) allows the captain to inspect crew rooms, gift items, and configure passive bonuses.
+---
+
+## 🔮 Future / Planned Ideas
 
 ### 2. Advanced Cybernetic Modding & Tech Tree Specialization
 **How it works:** Introduces minor sub-augment mod slots for cybernetic implants and unlocks deep class-based active and passive skill paths.

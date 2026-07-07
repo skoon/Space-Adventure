@@ -45,5 +45,8 @@ export const items = {
   "Quantum Shield Core": { type: "accessory", category: "equipment", stats: { defense: 10 }, description: "A legendary accessory that forms an impenetrable energy field.", price: 3000, rarity: "Legendary", stackable: false },
   "Plasma Targeting HUD": { type: "accessory", category: "equipment", stats: { attack: 10 }, description: "A legendary accessory that grants extreme tactical targeting data.", price: 3000, rarity: "Legendary", stackable: false },
   "Quantum Shield Core Recipe": { type: "material", category: "material", recipeId: "quantum_shield_core", description: "Use this blueprint from inventory to discover the Quantum Shield Core crafting recipe.", price: 1000, stackable: true },
-  "Plasma Targeting HUD Recipe": { type: "material", category: "material", recipeId: "plasma_targeting_hud", description: "Use this blueprint from inventory to discover the Plasma Targeting HUD crafting recipe.", price: 1000, stackable: true }
+  "Plasma Targeting HUD Recipe": { type: "material", category: "material", recipeId: "plasma_targeting_hud", description: "Use this blueprint from inventory to discover the Plasma Targeting HUD crafting recipe.", price: 1000, stackable: true },
+  "Cybernetic Core": { type: "material", category: "material", description: "A high-fidelity CPU core required for cybernetic diagnostics and retrofits.", price: 0, stackable: true },
+  "Encryption Key": { type: "material", category: "material", description: "A cryptographic key used to unlock restricted data sectors in medical androids.", price: 0, stackable: true },
+  "Bounty Hunter Emblem": { type: "material", category: "material", description: "Proof of defeating a Void Corsair Bounty Hunter, needed to clear outstanding debts.", price: 0, stackable: true }
 };

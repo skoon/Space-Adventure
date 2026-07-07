@@ -302,6 +302,31 @@ function triggerBossCombat() {
 }
 
 function findLoot() {
+    // Loyalty Quest Items injection
+    if (state.character && state.character.activeQuests) {
+        if (state.character.activeQuests.loyalty_vance && 
+            state.character.activeQuests.loyalty_vance.progress === 0 && 
+            !state.derelict.currentLoot.includes("Cybernetic Core") && 
+            !state.inventory.includes("Cybernetic Core")) {
+            
+            const item = "Cybernetic Core";
+            state.derelict.currentLoot.push(item);
+            addLog(`📦 You secured the quest item: ${item}!`);
+            return;
+        }
+        
+        if (state.character.activeQuests.loyalty_lyra && 
+            state.character.activeQuests.loyalty_lyra.progress === 0 && 
+            !state.derelict.currentLoot.includes("Encryption Key") && 
+            !state.inventory.includes("Encryption Key")) {
+            
+            const item = "Encryption Key";
+            state.derelict.currentLoot.push(item);
+            addLog(`📦 You secured the quest item: ${item}!`);
+            return;
+        }
+    }
+
     // Add a chance to find random equipment (scaled with rooms explored)
     const equipmentChance = 0.05 + (state.derelict.roomsExplored * 0.03);
     if (Math.random() < equipmentChance) {

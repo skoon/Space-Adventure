@@ -792,6 +792,213 @@ const questEntries = {
         ]
       }
     ]
+  },
+  "loyalty_vance": {
+    id: "loyalty_vance",
+    title: "Vance: The Core Choice",
+    description: "Secure a Cybernetic Core from a derelict ship to upgrade Vance's cybernetic chassis.",
+    type: "collect",
+    target: "Cybernetic Core",
+    amount: 1,
+    rewards: { xp: 200 },
+    isMainStory: false,
+    steps: [
+      {
+        type: "collect",
+        target: "Cybernetic Core",
+        amount: 1,
+        rewards: { xp: 50 },
+        dialog: {
+          title: "Core Retrieved",
+          text: "You secured the Cybernetic Core. Return to the spacecraft crew cabins and speak to Vance to begin the retrofit."
+        }
+      },
+      {
+        type: "choice",
+        dialogTitle: "Vance's Retrofit Choice",
+        dialogText: "Vance connects the core to the ship diagnostics. 'Alright Captain, I need to decide how to route the core pathways. We can go Military (boosts Attack/Criticals) or Organic (smooths Reflexes/Defense). What's your call?'",
+        choices: [
+          {
+            text: "Route to Military Targeting (unlocks Vance Attack passive: Overcharged Shield and boosts Attack).",
+            nextStepIndex: 2,
+            rewards: { xp: 100 },
+            disposition: { vance: 25 },
+            log: "You retrofitted Vance's systems with Military Targeting."
+          },
+          {
+            text: "Route to Organic Synapses (unlocks Vance Defense passive: Heavy Plating and boosts Defense).",
+            nextStepIndex: 3,
+            rewards: { xp: 100 },
+            disposition: { vance: 25 },
+            log: "You retrofitted Vance's systems with Organic Synapses."
+          }
+        ]
+      },
+      {
+        type: "choice",
+        dialogTitle: "Military Retrofit Complete",
+        dialogText: "Vance's cybernetic arm spins and locking guides engage. 'I feel the power flow. Heavy weapons lock calibrated. Ready to blast some metal, Captain.'",
+        choices: [
+          {
+            text: "Complete Vance's Loyalty Quest.",
+            nextStepIndex: 4,
+            log: "Loyalty Quest Completed: Vance Retrofit Complete (Military)."
+          }
+        ]
+      },
+      {
+        type: "choice",
+        dialogTitle: "Organic Retrofit Complete",
+        dialogText: "Vance rolls his shoulders, synthetic skin knitting over the plating. 'My reflexes feel... smoother. Less heavy metal, more human. Feels good. Thanks, Captain.'",
+        choices: [
+          {
+            text: "Complete Vance's Loyalty Quest.",
+            nextStepIndex: 4,
+            log: "Loyalty Quest Completed: Vance Retrofit Complete (Organic)."
+          }
+        ]
+      }
+    ]
+  },
+  "loyalty_lyra": {
+    id: "loyalty_lyra",
+    title: "Lyra: The Memory Lock",
+    description: "Locate a Syndicate Encryption Key on a derelict ship to decrypt Lyra's restricted medical memories.",
+    type: "collect",
+    target: "Encryption Key",
+    amount: 1,
+    rewards: { xp: 200 },
+    isMainStory: false,
+    steps: [
+      {
+        type: "collect",
+        target: "Encryption Key",
+        amount: 1,
+        rewards: { xp: 50 },
+        dialog: {
+          title: "Key Located",
+          text: "The Syndicate Encryption Key is secured. Return to the spacecraft crew cabins and speak to Dr. Lyra."
+        }
+      },
+      {
+        type: "choice",
+        dialogTitle: "Lyra's Memory Core Choice",
+        dialogText: "Dr. Lyra slots the key into her head casing. 'Decrypting... I see my development files. The Syndicate programmed me with a strict logic safety override. Purging it will unlock my empathy protocols, but keeping it ensures maximum computational efficiency. Captain, what is your recommendation?'",
+        choices: [
+          {
+            text: "Keep logic parameters (unlocks Lyra logic passives, increases scientific focus).",
+            nextStepIndex: 2,
+            rewards: { xp: 100 },
+            disposition: { lyra: 25 },
+            log: "You recommended keeping Lyra's logical parameters intact."
+          },
+          {
+            text: "Purge logic parameters and unlock empathy (unlocks Lyra medical passives).",
+            nextStepIndex: 3,
+            rewards: { xp: 100 },
+            disposition: { lyra: 25 },
+            log: "You recommended unlocking Lyra's emotional empathy protocols."
+          }
+        ]
+      },
+      {
+        type: "choice",
+        dialogTitle: "Logic Core Optimized",
+        dialogText: "Lyra's eyes pulse a brilliant cold purple. 'Diagnostic routines optimized. Empathy subroutines disabled. My loyalty to your mission is mathematically absolute.'",
+        choices: [
+          {
+            text: "Complete Lyra's Loyalty Quest.",
+            nextStepIndex: 4,
+            log: "Loyalty Quest Completed: Lyra Core Optimized (Logic)."
+          }
+        ]
+      },
+      {
+        type: "choice",
+        dialogTitle: "Empathy Circuits Active",
+        dialogText: "Lyra's expression softens, her vocal modulator adopting a warmer tone. 'I... I feel. The coldness in my circuitry is gone. Thank you, Captain, for showing me what it means to be human.'",
+        choices: [
+          {
+            text: "Complete Lyra's Loyalty Quest.",
+            nextStepIndex: 4,
+            log: "Loyalty Quest Completed: Lyra Core Optimized (Empathy)."
+          }
+        ]
+      }
+    ]
+  },
+  "loyalty_apex": {
+    id: "loyalty_apex",
+    title: "Apex: The Corsair Debt",
+    description: "Defeat the Void Corsair Bounty Hunter during travel to reclaim Apex's bounty.",
+    type: "collect",
+    target: "Bounty Hunter Emblem",
+    amount: 1,
+    rewards: { xp: 200 },
+    isMainStory: false,
+    steps: [
+      {
+        type: "collect",
+        target: "Bounty Hunter Emblem",
+        amount: 1,
+        rewards: { xp: 50 },
+        dialog: {
+          title: "Bounty Hunter Defeated",
+          text: "You defeated the Void Corsair Bounty Hunter. Return to the spacecraft crew cabins and speak to Apex."
+        }
+      },
+      {
+        type: "choice",
+        dialogTitle: "Apex's Settle Choice",
+        dialogText: "Apex looks at the bounty emblem. 'They won't stop coming until my bounty is formally settled in the Corsair registry. We can pay off the broker for 300 credits, or I can forge a fake death certificate using my old syndicate connection. What should we do?'",
+        choices: [
+          {
+            text: "Pay off the Corsair broker (costs 300 credits).",
+            requires: {
+              stat: { name: "credits", value: 300 }
+            },
+            nextStepIndex: 2,
+            rewards: { xp: 150 },
+            disposition: { apex: 25 },
+            log: "You spent 300 credits to pay off Apex's bounty."
+          },
+          {
+            text: "Forge a death certificate using Underworld Connections (requires AGI >= 12).",
+            requires: {
+              stat: { name: "agility", value: 12 }
+            },
+            nextStepIndex: 3,
+            rewards: { xp: 150 },
+            disposition: { apex: 25 },
+            log: "Using agility, you successfully forged a fake death certificate."
+          }
+        ]
+      },
+      {
+        type: "choice",
+        dialogTitle: "Debt Settled Clean",
+        dialogText: "Apex sighs in massive relief. 'The registry is clear. I'm a free man. No more looking over my shoulder. Let's make some real credits, boss.'",
+        choices: [
+          {
+            text: "Complete Apex's Loyalty Quest.",
+            nextStepIndex: 4,
+            log: "Loyalty Quest Completed: Apex Free."
+          }
+        ]
+      },
+      {
+        type: "choice",
+        dialogTitle: "Underworld Fraud Successful",
+        dialogText: "Apex laughs as the fake registry update propagates. 'Ha! The Corsairs bought it! They think I'm vaporized. You're a genius, Captain.'",
+        choices: [
+          {
+            text: "Complete Apex's Loyalty Quest.",
+            nextStepIndex: 4,
+            log: "Loyalty Quest Completed: Apex Fake Death Successful."
+          }
+        ]
+      }
+    ]
   }
 };
 

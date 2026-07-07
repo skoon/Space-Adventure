@@ -59,7 +59,8 @@ function getGameState() {
         companions: state.companions || {},
         activeCompanion: state.activeCompanion || null,
         companionCooldown: state.companionCooldown || 0,
-        currentLocation: state.currentLocation || "terra_prime" // Fix missing location bug
+        currentLocation: state.currentLocation || "terra_prime", // Fix missing location bug
+        activeCrewDirective: state.activeCrewDirective || null
     };
 }
 
@@ -142,6 +143,7 @@ export function loadGame(slot) {
         }
         state.activeCompanion = saveData.activeCompanion || null;
         state.companionCooldown = saveData.companionCooldown || 0;
+        state.activeCrewDirective = saveData.activeCrewDirective || null;
         
         // Restore currentLocation
         state.currentLocation = saveData.currentLocation || "terra_prime";

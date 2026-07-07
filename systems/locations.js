@@ -148,6 +148,11 @@ export function travelTo(locationId) {
 function checkForAmbushFaction(destLocation) {
     if (!state.character || !state.character.factions) return null;
     
+    // Check if Apex's loyalty quest is active and emblem not collected yet
+    if (state.character.activeQuests && state.character.activeQuests.loyalty_apex && state.character.activeQuests.loyalty_apex.progress === 0) {
+        return 'corsair_bounty_hunter';
+    }
+    
     // 1. Check destination controlling faction: double ambush chance (up to 100%) if hostile
     if (destLocation && destLocation.controllingFaction) {
         const factionId = destLocation.controllingFaction;
@@ -208,6 +213,16 @@ function triggerTravelAmbush(factionId, location) {
             xp: 40,
             drops: ["Circuit Board", "Quantum Chip"]
         };
+    } else if (factionId === 'corsair_bounty_hunter') {
+        enemyTemplate = {
+            name: "Void Corsair Bounty Hunter",
+            hp: 90,
+            maxHp: 90,
+            attack: 16,
+            defense: 5,
+            xp: 50,
+            drops: ["Bounty Hunter Emblem"]
+        };
     } else {
         return;
     }
@@ -229,7 +244,7 @@ function triggerTravelAmbush(factionId, location) {
     state.enemyStatusEffects = [];
     state.gameState = "combat";
 
-    addLog(`🚨 AMBUSH! Hostile ${factionId === 'corsairs' ? 'Void Corsair' : 'Federation'} forces intercepted your ship in transit!`);
+    addLog(`🚨 AMBUSH! Hostile ${factionId === 'corsairs' ? 'Void Corsair' : (factionId === 'corsair_bounty_hunter' ? 'Void Corsair Bounty Hunter' : 'Federation')} forces intercepted your ship in transit!`);
 
     import('./ui.js').then(ui => {
         ui.showScreen("combat");
@@ -260,6 +275,14 @@ function completeTravel(location) {
 
     // Achievement check
     checkAchievement("travel", { locationId: location.id });
+
+    // Trigger crew banter
+    if (state.companions) {
+        const unlockedCompanions = Object.keys(state.companions).filter(id => state.companions[id].unlocked);
+        if (unlockedCompanions.length > 0 && Math.random() < 0.35) {
+            import('./companions.js').then(m => m.triggerCrewBanter());
+        }
+    }
 
     updateUI();
 }

@@ -3,7 +3,12 @@
  * Coordinates UI rendering for companions inside the spacecraft hub
  */
 
-import { COMPANIONS, getActiveCompanion, setActiveCompanion, recruitCompanion, talkToCompanion, giftToCompanion, giftCreditsToCompanion, getRecruitCost, canRecruitCompanion } from '../companions.js';
+import { 
+    COMPANIONS, getActiveCompanion, setActiveCompanion, recruitCompanion, 
+    talkToCompanion, giftToCompanion, giftCreditsToCompanion, getRecruitCost, 
+    canRecruitCompanion, CREW_PASSIVES, setActiveCrewDirective 
+} from '../companions.js';
+import { acceptQuest } from '../quests.js';
 import { t } from '../theme-engine.js';
 
 let state;
@@ -29,11 +34,133 @@ export function renderCompanionsTab() {
 
     // Outer layout wrapper (terminal style)
     const wrapper = document.createElement('div');
-    wrapper.className = 'space-y-4';
+    wrapper.className = 'space-y-6';
+
+    // ==========================================
+    // 1. CAPTAIN'S CABIN DIRECTIVES & SYNERGIES PANEL
+    // ==========================================
+    const directivesPanel = document.createElement('div');
+    directivesPanel.className = 'p-4 rounded border border-cyan-800 bg-cyan-950/20 shadow-[0_0_12px_rgba(6,182,212,0.15)]';
+    
+    const directivesHeader = document.createElement('div');
+    directivesHeader.className = 'border-b border-cyan-800 pb-2 mb-3 flex flex-col md:flex-row md:items-center justify-between gap-2';
+    
+    const directivesTitle = document.createElement('h3');
+    directivesTitle.className = 'text-base font-bold text-cyan-400 tracking-wider font-mono';
+    directivesTitle.textContent = t('>> CABIN DIRECTIVES & SYNERGY MODULE <<');
+    
+    const activeDirectiveLabel = document.createElement('div');
+    activeDirectiveLabel.className = 'text-xs font-mono bg-black/50 border border-cyan-800 px-3 py-1 rounded';
+    const activeDirName = state.activeCrewDirective ? t(CREW_PASSIVES[state.activeCrewDirective].name) : t('NONE');
+    activeDirectiveLabel.innerHTML = t(`Active Directive: <span class="text-cyan-400 font-bold">${activeDirName}</span>`);
+    
+    directivesHeader.appendChild(directivesTitle);
+    directivesHeader.appendChild(activeDirectiveLabel);
+    directivesPanel.appendChild(directivesHeader);
+
+    // Scan for unlocked passives
+    const vanceTrust = state.companions?.vance?.unlocked ? (state.companions.vance.trust || 0) : 0;
+    const lyraTrust = state.companions?.lyra?.unlocked ? (state.companions.lyra.trust || 0) : 0;
+    const apexTrust = state.companions?.apex?.unlocked ? (state.companions.apex.trust || 0) : 0;
+
+    const unlockedDirectives = [];
+    if (vanceTrust >= 50) unlockedDirectives.push("heavy_plating");
+    if (vanceTrust >= 100) unlockedDirectives.push("overcharged_shield");
+    if (lyraTrust >= 50) unlockedDirectives.push("nano_healer");
+    if (lyraTrust >= 100) unlockedDirectives.push("emergency_protocol");
+    if (apexTrust >= 50) unlockedDirectives.push("precision_focus");
+    if (apexTrust >= 100) unlockedDirectives.push("weakpoint_analysis");
+
+    // Synergies (requires both companion trusts >= 50)
+    if (vanceTrust >= 50 && lyraTrust >= 50) unlockedDirectives.push("steel_fortress");
+    if (vanceTrust >= 50 && apexTrust >= 50) unlockedDirectives.push("scrapper_smugglers");
+    if (lyraTrust >= 50 && apexTrust >= 50) unlockedDirectives.push("tactical_doctor");
+
+    if (unlockedDirectives.length === 0) {
+        const noDirectivesMsg = document.createElement('div');
+        noDirectivesMsg.className = 'text-xs text-gray-500 italic py-2';
+        noDirectivesMsg.textContent = t('No Cabin Directives or Synergy Traits unlocked. (Build Trust with companions to Level 2+ to unlock.)');
+        directivesPanel.appendChild(noDirectivesMsg);
+    } else {
+        const directivesGrid = document.createElement('div');
+        directivesGrid.className = 'grid grid-cols-1 md:grid-cols-2 gap-3';
+        
+        unlockedDirectives.forEach(dirId => {
+            const data = CREW_PASSIVES[dirId];
+            const isActive = state.activeCrewDirective === dirId;
+            
+            const dirCard = document.createElement('div');
+            dirCard.className = `p-3 rounded border text-xs flex flex-col justify-between transition-all bg-black/30 ${
+                isActive 
+                    ? 'border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)] bg-cyan-950/10' 
+                    : 'border-gray-800 hover:border-gray-700'
+            }`;
+            
+            const cardInfo = document.createElement('div');
+            cardInfo.className = 'space-y-1';
+            
+            const cardTitle = document.createElement('div');
+            cardTitle.className = `font-bold ${isActive ? 'text-cyan-400 font-mono' : 'text-gray-300'}`;
+            cardTitle.textContent = t(data.name);
+            
+            const cardDesc = document.createElement('div');
+            cardDesc.className = 'text-gray-400 text-[11px]';
+            cardDesc.textContent = t(data.desc);
+            
+            cardInfo.appendChild(cardTitle);
+            cardInfo.appendChild(cardDesc);
+            
+            const actionBtn = document.createElement('button');
+            actionBtn.className = `mt-3 py-1.5 px-3 rounded font-mono font-bold text-[10px] w-full transition-all ${
+                isActive 
+                    ? 'bg-red-950/40 border border-red-800 text-red-400 hover:bg-red-900/50' 
+                    : 'bg-cyan-950/40 border border-cyan-800 text-cyan-300 hover:bg-cyan-900/50'
+            }`;
+            actionBtn.textContent = isActive ? t('DEACTIVATE DIRECTIVE') : t('ACTIVATE DIRECTIVE');
+            actionBtn.onclick = () => {
+                if (isActive) {
+                    setActiveCrewDirective(null);
+                } else {
+                    setActiveCrewDirective(dirId);
+                }
+                renderCompanionsTab();
+            };
+            
+            dirCard.appendChild(cardInfo);
+            dirCard.appendChild(actionBtn);
+            directivesGrid.appendChild(dirCard);
+        });
+        
+        directivesPanel.appendChild(directivesGrid);
+    }
+    wrapper.appendChild(directivesPanel);
+
+    // ==========================================
+    // 2. CREW CABINS SECTION
+    // ==========================================
+    const cabinsTitle = document.createElement('h3');
+    cabinsTitle.className = 'text-base font-bold text-gray-300 tracking-wider font-mono';
+    cabinsTitle.textContent = t('>> CREW CABINS & HOUSING <<');
+    wrapper.appendChild(cabinsTitle);
 
     // Roster grid
     const grid = document.createElement('div');
-    grid.className = 'grid grid-cols-1 md:grid-cols-3 gap-4';
+    grid.className = 'grid grid-cols-1 md:grid-cols-3 gap-6';
+
+    const cabinRooms = {
+        vance: {
+            title: "Vance's Heavy Scrap Workshop",
+            desc: "The room is littered with copper wiring, half-dismantled weapon chassis, and a heavy scent of hydraulic oil. A makeshift workbench dominates the corner."
+        },
+        lyra: {
+            title: "Dr. Lyra's Clinical Lab",
+            desc: "Sterile and impeccably clean. Fluorescent tubes illuminate shelves of bio-gels, a neat surgical cot, and a terminal displaying DNA sequence graphs."
+        },
+        apex: {
+            title: "Apex's Smuggler Holdout",
+            desc: "Draped in dim amber lights. A Sabacc table sits in the center with holograms of playing cards. Crates of unlabeled contraband are piled against the wall."
+        }
+    };
 
     Object.keys(COMPANIONS).forEach(id => {
         const data = COMPANIONS[id];
@@ -44,7 +171,7 @@ export function renderCompanionsTab() {
         card.className = `p-4 rounded border flex flex-col justify-between h-full bg-black/40 ${
             isUnlocked 
                 ? (activeId === id ? 'border-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.4)]' : 'border-gray-700') 
-                : 'border-gray-800 opacity-60'
+                : 'border-gray-900 opacity-50 bg-black/60 border-dashed'
         }`;
 
         // Top section: Avatar & Basic info
@@ -140,6 +267,13 @@ export function renderCompanionsTab() {
             const trustSec = document.createElement('div');
             trustSec.className = 'space-y-2 text-xs mt-2';
             
+            // Cabin Title & Inspect Text
+            const roomData = cabinRooms[id] || { title: "Crew Cabin", desc: "A cozy crew cabin." };
+            const cabinDescBox = document.createElement('div');
+            cabinDescBox.className = 'p-2 rounded bg-black/30 border border-gray-800 text-[11px] text-gray-400 italic mb-2 line-clamp-3 leading-relaxed';
+            cabinDescBox.innerHTML = t(`<strong>${roomData.title}</strong><br>${roomData.desc}`);
+            topSec.appendChild(cabinDescBox);
+
             // Trust Progress
             const trustHeader = document.createElement('div');
             trustHeader.className = 'flex justify-between text-gray-400 font-mono';
@@ -155,12 +289,45 @@ export function renderCompanionsTab() {
             // Ability Desc
             const abilityText = document.createElement('p');
             abilityText.className = 'text-gray-300 mt-2';
-            abilityText.innerHTML = t(`Skill: <strong class="text-cyan-400">${data.abilityName}</strong><br><span class="text-gray-400">${data.abilityDesc}</span>`);
+            abilityText.innerHTML = t(`Active Skill: <strong class="text-cyan-400">${data.abilityName}</strong><br><span class="text-gray-400">${data.abilityDesc}</span>`);
 
             trustSec.appendChild(trustHeader);
             trustSec.appendChild(progressBg);
             trustSec.appendChild(abilityText);
             topSec.appendChild(trustSec);
+
+            // Loyalty Mission Status Area
+            const loyaltyQuestId = `loyalty_${id}`;
+            const loyaltySec = document.createElement('div');
+            loyaltySec.className = 'mt-3 pt-2 border-t border-gray-800 text-xs';
+            
+            if (state.character.completedQuests && state.character.completedQuests.includes(loyaltyQuestId)) {
+                const questCompleteMsg = document.createElement('div');
+                questCompleteMsg.className = 'text-green-400 font-mono text-[10px] uppercase font-bold tracking-wider flex items-center gap-1.5';
+                questCompleteMsg.innerHTML = '<span>✅</span> Loyalty Mission Resolved';
+                loyaltySec.appendChild(questCompleteMsg);
+            } else if (state.character.activeQuests && state.character.activeQuests[loyaltyQuestId]) {
+                const activeQuestInfo = document.createElement('div');
+                activeQuestInfo.className = 'text-amber-400 font-mono text-[10px] uppercase font-bold tracking-wider animate-pulse flex items-center gap-1.5';
+                activeQuestInfo.innerHTML = '<span>⭐</span> Mission Active: In Progress';
+                loyaltySec.appendChild(activeQuestInfo);
+            } else if (trust >= 50) {
+                const loyaltyBtn = document.createElement('button');
+                loyaltyBtn.className = 'w-full py-1.5 px-3 rounded font-mono font-bold text-[10px] bg-yellow-600/90 hover:bg-yellow-500 text-white border border-yellow-500/30 transition-all flex items-center justify-center gap-1.5 shadow-[0_0_8px_rgba(202,138,4,0.3)]';
+                loyaltyBtn.innerHTML = '<span>⭐</span> HELP WITH LOYALTY MISSION';
+                loyaltyBtn.onclick = () => {
+                    acceptQuest(loyaltyQuestId);
+                    renderCompanionsTab();
+                    if (updateUI) updateUI();
+                };
+                loyaltySec.appendChild(loyaltyBtn);
+            } else {
+                const loyaltyLocked = document.createElement('div');
+                loyaltyLocked.className = 'text-gray-600 font-mono text-[10px] uppercase font-bold tracking-wider flex items-center gap-1.5';
+                loyaltyLocked.innerHTML = '<span>🔒</span> Loyalty Mission (Requires Trust 50)';
+                loyaltySec.appendChild(loyaltyLocked);
+            }
+            topSec.appendChild(loyaltySec);
 
             // Gifting Options from Inventory
             const interactSec = document.createElement('div');

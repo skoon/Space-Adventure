@@ -650,6 +650,9 @@ export function getAvailableQuests() {
         // Not active or completed
         if (state.character.activeQuests[q.id] || state.character.completedQuests.includes(q.id)) return false;
 
+        // Loyalty quests are accepted directly in the Crew Cabin UI
+        if (q.id.startsWith("loyalty_")) return false;
+
         // Planet Gating
         if (q.requiredPlanet && q.requiredPlanet !== state.currentLocation) return false;
 

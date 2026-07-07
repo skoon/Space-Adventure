@@ -12,10 +12,22 @@ let deps;
 
 const NPCS = {
     vance: {
-        name: "Captain Vance",
+        name: "Vance",
         faction: "Federation",
-        avatar: "👨‍✈️",
+        avatar: "🦾",
         factionClass: "text-blue-400 border-blue-900/50"
+    },
+    lyra: {
+        name: "Dr. Lyra",
+        faction: "Syndicate",
+        avatar: "🔬",
+        factionClass: "text-purple-400 border-purple-900/50"
+    },
+    apex: {
+        name: "Apex",
+        faction: "Void Corsairs",
+        avatar: "🔫",
+        factionClass: "text-red-400 border-red-900/50"
     },
     nesta: {
         name: "Envoy Nesta",
@@ -79,6 +91,12 @@ function identifySpeaker(title, text) {
     if (combined.includes("vance")) {
         return { ...NPCS.vance, key: "vance" };
     }
+    if (combined.includes("lyra")) {
+        return { ...NPCS.lyra, key: "lyra" };
+    }
+    if (combined.includes("apex")) {
+        return { ...NPCS.apex, key: "apex" };
+    }
     if (combined.includes("nesta")) {
         return { ...NPCS.nesta, key: "nesta" };
     }
@@ -106,6 +124,17 @@ function identifySpeaker(title, text) {
  */
 function getMood(npcKey) {
     if (!state.character || !state.character.npcs || !state.character.npcs[npcKey]) {
+        // Fallback check: retrieve from companions trust
+        if (state.companions && state.companions[npcKey]) {
+            const trust = state.companions[npcKey].trust || 0;
+            if (trust >= 100) {
+                return { label: "Loyal", emoji: "😇", colorClass: "mood-loyal" };
+            } else if (trust >= 50) {
+                return { label: "Friendly", emoji: "🙂", colorClass: "mood-friendly" };
+            } else {
+                return { label: "Neutral", emoji: "😐", colorClass: "mood-neutral" };
+            }
+        }
         return { label: "Neutral", emoji: "😐", colorClass: "mood-neutral" };
     }
     

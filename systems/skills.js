@@ -3,6 +3,8 @@
  * Handles character skills, abilities, and passive bonuses
  */
 
+import { getCompanionPassiveBonus } from './companions.js';
+
 let state;
 let addLog, updateUI;
 
@@ -246,13 +248,15 @@ export function getPassiveBonus(statName) {
     const role = state.character.role;
     const tree = SKILL_TREES[role];
     
-    if (!tree) return 0;
-    
-    for (const skill of tree) {
-        if (skill.type === 'passive' && hasSkill(skill.id) && skill.bonus && skill.bonus[statName]) {
-            totalBonus += skill.bonus[statName];
+    if (tree) {
+        for (const skill of tree) {
+            if (skill.type === 'passive' && hasSkill(skill.id) && skill.bonus && skill.bonus[statName]) {
+                totalBonus += skill.bonus[statName];
+            }
         }
     }
+    
+    totalBonus += getCompanionPassiveBonus(statName);
     
     return totalBonus;
 }
