@@ -78,6 +78,8 @@ export function createCharacter(event) {
         },
         skillPoints: 0,
         unlockedSkills: [],
+        specializationPoints: 0,
+        unlockedSpecializations: [],
         statPoints: 0,
         narrativePoints: 0,
         storyline: {
@@ -147,14 +149,16 @@ export function gainXp(amount) {
         state.character.maxEnergy += statIncreases.maxEnergy;
         state.character.energy = state.character.maxEnergy;
         
-        // Award 5 stat points, 1 narrative attribute point, and 1 skill point per level
+        // Award 5 stat points, 1 narrative attribute point, 1 skill point, and 1 specialization point per level
         state.character.statPoints = (state.character.statPoints || 0) + 5;
         state.character.narrativePoints = (state.character.narrativePoints || 0) + 1;
         state.character.skillPoints = (state.character.skillPoints || 0) + 1;
+        state.character.specializationPoints = (state.character.specializationPoints || 0) + 1;
         state.character.unlockedSkills = state.character.unlockedSkills || [];
+        state.character.unlockedSpecializations = state.character.unlockedSpecializations || [];
 
         showLevelUpNotification(state.character.level, statIncreases);
-        addLog(`🎉 LEVEL UP! You reached Level ${state.character.level}! You gained 5 Combat Stat points and 1 Narrative Attribute point!`);
+        addLog(`🎉 LEVEL UP! You reached Level ${state.character.level}! You gained 5 Combat Stat points, 1 Narrative Attribute point, and 1 Specialization point!`);
     }
 
     updateUI();
@@ -198,4 +202,35 @@ export function useHealItem() {
  */
 export function restartGame() {
     location.reload();
+}
+
+/**
+ * Purchase a Specialization Point at the med-bay clinic
+ */
+export function buySpecializationPoint() {
+    if (!state || !state.character) return { success: false, message: "No character profile found." };
+    
+    const costCredits = 500;
+    const costMaterial = "Quantum Chip";
+    
+    if (state.character.credits < costCredits) {
+        return { success: false, message: `Insufficient credits. Need ${costCredits} CR.` };
+    }
+    
+    const matIdx = state.inventory.indexOf(costMaterial);
+    if (matIdx === -1) {
+        return { success: false, message: `Missing required material: ${costMaterial}.` };
+    }
+    
+    // Spend resources
+    state.character.credits -= costCredits;
+    state.inventory.splice(matIdx, 1);
+    
+    // Award SP
+    state.character.specializationPoints = (state.character.specializationPoints || 0) + 1;
+    
+    if (addLog) addLog(`🦾 CYBERNETICS: Purchased 1 Neural Specialization Point at the med-bay terminal!`);
+    if (updateUI) updateUI();
+    
+    return { success: true };
 }

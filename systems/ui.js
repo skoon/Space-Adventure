@@ -29,7 +29,7 @@ import { initCompanionsUI } from './ui/companions-ui.js';
 import { initCyberneticsUI } from './ui/cybernetics-ui.js';
 import { getActiveCompanion } from './companions.js';
 import { renderDungeon } from './ui/dungeon-renderer.js';
-import { SKILL_TREES, hasSkill, unlockSkill } from './skills.js';
+import { SKILL_TREES, hasSkill, unlockSkill, SPECIALIZATION_TREES, hasSpecialization, unlockSpecialization } from './skills.js';
 import { applyThemeToDOM } from './theme-engine.js';
 
 // Re-export for external use
@@ -507,9 +507,112 @@ export function startGame() {
 export function showSkillsUI() {
     const modal = document.getElementById('skillsModal');
     if (modal) {
-        renderSkillTree();
+        switchSkillsTab('class');
         modal.classList.remove('hidden');
     }
+}
+
+/**
+ * Switch Skills tab (Class Skills vs. Neural Specializations)
+ */
+export function switchSkillsTab(tab) {
+    window.switchSkillsTab = switchSkillsTab; // bind to window context
+    
+    const btnClass = document.getElementById('btnSkillsTabClass');
+    const btnSpec = document.getElementById('btnSkillsTabSpec');
+    
+    if (tab === 'class') {
+        if (btnClass) {
+            btnClass.className = "px-4 py-1.5 bg-cyan-900/50 text-cyan-400 border border-cyan-800 rounded font-mono text-xs uppercase tracking-wider transition-all";
+        }
+        if (btnSpec) {
+            btnSpec.className = "px-4 py-1.5 bg-gray-900 text-gray-400 border border-gray-800 rounded font-mono text-xs uppercase tracking-wider transition-all";
+        }
+        renderSkillTree();
+    } else {
+        if (btnClass) {
+            btnClass.className = "px-4 py-1.5 bg-gray-900 text-gray-400 border border-gray-800 rounded font-mono text-xs uppercase tracking-wider transition-all";
+        }
+        if (btnSpec) {
+            btnSpec.className = "px-4 py-1.5 bg-cyan-900/50 text-cyan-400 border border-cyan-800 rounded font-mono text-xs uppercase tracking-wider transition-all";
+        }
+        renderSpecializationTree();
+    }
+}
+
+/**
+ * Render the Specialization Tree
+ */
+export function renderSpecializationTree() {
+    if (!state.character) return;
+    
+    const container = document.getElementById('skillTreeContainer');
+    const spDisplay = document.getElementById('skillsSpDisplay');
+    const roleDesc = document.getElementById('skillsRoleDesc');
+    
+    if (!container) return;
+    
+    spDisplay.textContent = state.character.specializationPoints || 0;
+    if (roleDesc) roleDesc.textContent = "Neural Specializations & Subroutines (Generic Enhancements)";
+    
+    container.innerHTML = '';
+    container.className = "grid grid-cols-1 md:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar-cyan";
+    
+    Object.entries(SPECIALIZATION_TREES).forEach(([pathName, pathSkills]) => {
+        const column = document.createElement('div');
+        column.className = "flex flex-col gap-4 bg-gray-900/40 p-4 border border-cyan-900/30 rounded-lg shadow-inner";
+        
+        const pathHeader = document.createElement('h4');
+        pathHeader.className = "text-xs font-bold text-cyan-400 border-b border-cyan-900/50 pb-2 mb-2 uppercase tracking-widest font-mono text-center";
+        pathHeader.textContent = `🧬 ${pathName} 🧬`;
+        column.appendChild(pathHeader);
+        
+        pathSkills.forEach(skill => {
+            const isUnlocked = hasSpecialization(skill.id);
+            const canUnlock = !isUnlocked && (!skill.requires || hasSpecialization(skill.requires));
+            const lackSp = (state.character.specializationPoints || 0) < skill.cost;
+            
+            let statusClass = "border-gray-800 bg-gray-950 opacity-40";
+            if (isUnlocked) statusClass = "border-green-500 bg-green-950/20 shadow-[0_0_8px_rgba(34,197,94,0.15)]";
+            else if (canUnlock && !lackSp) statusClass = "border-cyan-500 bg-cyan-950/20 cursor-pointer hover:bg-cyan-900/20 shadow-[0_0_8px_rgba(6,182,212,0.15)]";
+            else if (canUnlock && lackSp) statusClass = "border-yellow-600 bg-yellow-950/10";
+            
+            const node = document.createElement('div');
+            node.className = `p-3 border rounded transition-all flex items-start gap-3 ${statusClass}`;
+            
+            let costText = isUnlocked ? 'UNLOCKED' : `Cost: ${skill.cost} SP`;
+            
+            node.innerHTML = `
+                <div class="text-3xl">${skill.icon}</div>
+                <div class="flex-grow font-mono text-xs">
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="text-sm font-bold ${isUnlocked ? 'text-green-400' : 'text-cyan-300'}">${skill.name}</h3>
+                        <span class="text-[9px] font-bold ${isUnlocked ? 'text-green-400' : 'text-yellow-500'} font-mono">${costText}</span>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-1 leading-normal">${skill.description}</p>
+                    ${skill.requires && !hasSpecialization(skill.requires) 
+                        ? `<p class="text-[9px] text-red-400 mt-1 font-mono">Requires: ${pathSkills.find(s => s.id === skill.requires)?.name || skill.requires}</p>` 
+                        : ''}
+                </div>
+            `;
+            
+            if (canUnlock && !lackSp) {
+                node.onclick = () => {
+                    const res = unlockSpecialization(skill.id);
+                    if (res.success) {
+                        renderSpecializationTree();
+                        updateUI();
+                    } else {
+                        addLog(res.message);
+                    }
+                };
+            }
+            
+            column.appendChild(node);
+        });
+        
+        container.appendChild(column);
+    });
 }
 
 /**

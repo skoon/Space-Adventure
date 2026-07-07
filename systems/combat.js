@@ -2,6 +2,7 @@ import { rollRarity } from './rarity.js';
 import { items } from '../data/items.js';
 import { checkAchievement } from './achievements.js';
 import { COMPANIONS, getCompanionAbilityValue, resetCompanionTalkFlags } from './companions.js';
+import { getSystemInstability } from './cybernetics.js';
 
 // State object that holds getters/setters
 let state;
@@ -12,7 +13,7 @@ let enemies, bosses, locations, combatElements;
 // Import functions from other modules
 let addLog, updateCombatLog, showScreen, updateUI;
 let getEffectiveStats, getCharacterAvatar, getStatusEffectIcon;
-import { hasSkill, getPassiveBonus } from './skills.js';
+import { hasSkill, getPassiveBonus, hasSpecialization } from './skills.js';
 
 let gainXp, checkQuestProgress, showVictoryMessage, simulateExploration;
 let getDifficulty;
@@ -85,10 +86,30 @@ export function processStatusEffects() {
         }
     });
 
-    // We do NOT check for death here (state.character.hp <= 0 or state.enemy.hp <= 0)
-    // to avoid complex cascading state changes outside of the main loop functions. 
-    // Usually death from DOTs is handled after processStatusEffects returns to the caller,
-    // or we could add explicit checks. To keep it safe, let's let the caller check hp <= 0.
+    // Specialization Cellular Regeneration passive
+    const turnRegen = getPassiveBonus ? getPassiveBonus('turnRegen') : 0;
+    if (turnRegen > 0 && state.character.hp > 0) {
+        state.character.hp = Math.min(state.character.maxHp, state.character.hp + turnRegen);
+        addLog(`🧬 Passive: Cellular Regeneration restored ${turnRegen} HP!`);
+    }
+
+    // Cybernetic Instability Glitch Check
+    const instability = getSystemInstability ? getSystemInstability() : 0;
+    if (instability > 15) {
+        const hasGlitchImmunity = getPassiveBonus ? getPassiveBonus('glitchImmunity') : 0;
+        if (hasGlitchImmunity <= 0) {
+            const excess = instability - 15;
+            const glitchChance = excess * 0.05; // 5% per excess instability
+            if (Math.random() < glitchChance) {
+                state.character.ap = Math.max(0, (state.character.ap || 0) - 1);
+                state.character.hp = Math.max(0, state.character.hp - 10);
+                addLog("⚠️ SYSTEM WARNING: Cybernetic Glitch detected! Drained 1 AP and suffered 10 feedback damage.");
+            }
+        }
+    }
+
+    // Emergency Nanites Check
+    checkEmergencyNanites();
     
     updateCombatLog();
 
@@ -142,6 +163,7 @@ export function encounterEnemy() {
     resetCompanionTalkFlags();
     state.playerStatusEffects = [];
     state.enemyStatusEffects = [];
+    state.emergencyNanitesTriggered = false;
     state.gameState = "combat";
     showScreen("combat");
     updateCombatUI();
@@ -189,6 +211,7 @@ export function encounterBoss() {
     resetCompanionTalkFlags();
     state.playerStatusEffects = [];
     state.enemyStatusEffects = [];
+    state.emergencyNanitesTriggered = false;
     state.gameState = "combat";
     showScreen("combat");
     updateCombatUI();
@@ -346,8 +369,12 @@ export function dealStaggerDamage(amount) {
     if (!state.enemy) return;
     if (state.enemyStatusEffects.some(e => e.type === "broken")) return;
     
-    state.enemy.breakCurrent = Math.max(0, (state.enemy.breakCurrent !== undefined ? state.enemy.breakCurrent : state.enemy.breakMax || 50) - amount);
-    addLog(`⚡ Dealt ${amount} Stagger damage! (${state.enemy.breakCurrent}/${state.enemy.breakMax})`);
+    // Scale stagger damage by specialization passive bonus
+    const staggerMultiplier = getPassiveBonus('staggerMultiplier') || 0;
+    const finalAmount = Math.floor(amount * (1 + staggerMultiplier));
+    
+    state.enemy.breakCurrent = Math.max(0, (state.enemy.breakCurrent !== undefined ? state.enemy.breakCurrent : state.enemy.breakMax || 50) - finalAmount);
+    addLog(`⚡ Dealt ${finalAmount} Stagger damage! (${state.enemy.breakCurrent}/${state.enemy.breakMax})`);
     
     if (state.enemy.breakCurrent <= 0) {
         state.enemyStatusEffects.push({ type: "broken", duration: 1 });
@@ -838,6 +865,13 @@ export function playerAttack() {
     const damage = Math.floor(baseDamage * critMultiplier);
     state.enemy.hp = Math.max(0, state.enemy.hp - damage);
     
+    // Energy Siphon passive specialization check
+    const energySiphon = getPassiveBonus('energySiphon') || 0;
+    if (energySiphon > 0) {
+        state.character.energy = Math.min(state.character.maxEnergy, (state.character.energy || 0) + energySiphon);
+        addLog(`🔌 Energy Siphon: Restored ${energySiphon} Energy from basic attack!`);
+    }
+
     checkPhaseTransition();
 
     if (isCritical) {
@@ -1347,6 +1381,7 @@ export function enemyTurn() {
                     state.companionCooldown--;
                 }
                 
+                checkEmergencyNanites();
                 if (state.character.hp <= 0) {
                     addLog("You have been defeated...");
                     if (state.derelict && state.derelict.active) {
@@ -1459,6 +1494,7 @@ export function enemyTurn() {
         state.companionCooldown--;
     }
 
+    checkEmergencyNanites();
     if (state.character.hp <= 0) {
         addLog("You have been defeated...");
         if (state.derelict && state.derelict.active) {
@@ -1880,4 +1916,136 @@ export function useAcidSpray() {
     } else if (state.character.ap <= 0) {
         enemyTurn();
     }
+}
+
+/**
+ * Specialization: Check and apply Emergency Nanites cheat-death/heal trigger
+ */
+export function checkEmergencyNanites() {
+    if (!state.character || state.character.hp <= 0) return;
+    
+    // Check if player has Emergency Nanites passive
+    const emergencyHeal = getPassiveBonus('emergencyHeal') || 0;
+    if (emergencyHeal > 0 && !state.emergencyNanitesTriggered) {
+        const threshold = state.character.maxHp * 0.20;
+        if (state.character.hp < threshold) {
+            state.emergencyNanitesTriggered = true;
+            state.character.hp = Math.min(state.character.maxHp, state.character.hp + emergencyHeal);
+            
+            // Add defense shield boost (+20 shield/def)
+            state.playerStatusEffects = [
+                ...state.playerStatusEffects.filter(e => e.type !== "defenseBoost"),
+                { type: "defenseBoost", value: 20, duration: 2 }
+            ];
+            
+            addLog(`🚨 EMERGENCY NANITES ACTIVATED! Restored ${emergencyHeal} HP and boosted defense (+20 DEF for 2 turns)!`);
+            updateCombatLog();
+            updateCombatUI();
+        }
+    }
+}
+
+/**
+ * Heavy Combat Specialization Active Skill
+ * Deals 1.8x damage and 40 Stagger damage. Costs 30 Energy, 2 AP.
+ */
+export function useOverdriveStrikes() {
+    if (!state.character || !state.enemy) return;
+    
+    const hasOvercharge = state.character.cybernetics &&
+                          state.character.cybernetics.head === 'targeting_matrix' &&
+                          state.character.cybernetics.torso === 'subdermal_plating';
+    
+    const energyCost = hasOvercharge ? 20 : 30;
+    const apCost = 2;
+
+    if (state.character.ap < apCost) {
+        addLog(`⚠️ Not enough Action Points (AP). Need ${apCost} AP.`);
+        updateCombatLog();
+        return;
+    }
+    const currentEnergy = state.character.energy ?? 100;
+    if (currentEnergy < energyCost) {
+        addLog(`⚠️ Not enough Energy. Need ${energyCost} Energy.`);
+        updateCombatLog();
+        return;
+    }
+
+    state.character.ap -= apCost;
+    state.character.energy = Math.max(0, currentEnergy - energyCost);
+
+    const stats = getEffectiveStats();
+    const effectiveAttack = stats.attack + getPassiveBonus('attack');
+    const isMelted = state.enemyStatusEffects.some(e => e.type === "melted");
+    const enemyDefense = Math.max(0, state.enemy.defense - (isMelted ? 5 : 0));
+    
+    let baseDamage = Math.max(0, effectiveAttack - enemyDefense);
+    baseDamage = calculateDamageAndApplyCombos(baseDamage, "Physical");
+    
+    let mult = 1.8;
+    // Targeting Matrix synergy check
+    if (state.character.cybernetics && state.character.cybernetics.head === 'targeting_matrix') {
+        mult += 0.5;
+    }
+    if (state.combatStance === "Shadow") {
+        mult *= 2; // guaranteed crit
+        state.combatStance = "Neutral";
+        addLog("👤 You emerge from the shadows! Stance reset to Neutral.");
+    }
+
+    const damage = Math.floor(baseDamage * mult);
+    state.enemy.hp = Math.max(0, state.enemy.hp - damage);
+    
+    addLog(`💥 OVERDRIVE STRIKES! You deal ${damage} damage!`);
+    dealStaggerDamage(40);
+
+    checkPhaseTransition();
+    updateCombatLog();
+
+    if (state.enemy.hp <= 0) winCombat();
+    else if (state.character.ap <= 0) enemyTurn();
+    
+    updateCombatUI();
+    updateUI();
+}
+
+/**
+ * Cyber-Hacking Specialization Active Skill
+ * Stuns enemy for 1 turn. Costs 40 Energy, 2 AP.
+ */
+export function useSystemOverride() {
+    if (!state.character || !state.enemy) return;
+    
+    const hasOvercharge = state.character.cybernetics &&
+                          state.character.cybernetics.head === 'targeting_matrix' &&
+                          state.character.cybernetics.torso === 'subdermal_plating';
+    
+    const energyCost = hasOvercharge ? 30 : 40;
+    const apCost = 2;
+
+    if (state.character.ap < apCost) {
+        addLog(`⚠️ Not enough Action Points (AP). Need ${apCost} AP.`);
+        updateCombatLog();
+        return;
+    }
+    const currentEnergy = state.character.energy ?? 100;
+    if (currentEnergy < energyCost) {
+        addLog(`⚠️ Not enough Energy. Need ${energyCost} Energy.`);
+        updateCombatLog();
+        return;
+    }
+
+    state.character.ap -= apCost;
+    state.character.energy = Math.max(0, currentEnergy - energyCost);
+
+    // Apply Stunned status effect to enemy
+    state.enemyStatusEffects.push({ type: "stunned", duration: 1 });
+    addLog(`📡 SYSTEM OVERRIDE: You hack the enemy systems and stun ${state.enemy.name} for 1 turn!`);
+
+    updateCombatLog();
+
+    if (state.character.ap <= 0) enemyTurn();
+    
+    updateCombatUI();
+    updateUI();
 }

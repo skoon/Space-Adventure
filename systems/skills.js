@@ -4,6 +4,7 @@
  */
 
 import { getCompanionPassiveBonus } from './companions.js';
+import { getModStatsBonus } from './cybernetics.js';
 
 let state;
 let addLog, updateUI;
@@ -257,6 +258,8 @@ export function getPassiveBonus(statName) {
     }
     
     totalBonus += getCompanionPassiveBonus(statName);
+    totalBonus += getSpecializationPassiveBonus(statName);
+    totalBonus += getModStatsBonus(statName);
     
     return totalBonus;
 }
@@ -297,5 +300,195 @@ export function unlockSkill(skillId) {
     
     addLog(`✨ You unlocked a new skill: ${skill.name}!`);
     updateUI();
+    return { success: true };
+}
+
+// ============================================
+// Specialization Trees (Generic Skill System)
+// ============================================
+export const SPECIALIZATION_TREES = {
+    'Heavy Combat': [
+        {
+            id: 'spec_colossus_plating',
+            name: 'Colossus Plating',
+            type: 'passive',
+            description: '+5 Defense.',
+            cost: 1,
+            icon: '🛡️',
+            path: 'Heavy Combat',
+            tier: 1,
+            bonus: { defense: 5 }
+        },
+        {
+            id: 'spec_staggering_force',
+            name: 'Staggering Force',
+            type: 'passive',
+            description: '+20% Break/Stagger damage.',
+            cost: 1,
+            icon: '🔨',
+            path: 'Heavy Combat',
+            tier: 2,
+            requires: 'spec_colossus_plating',
+            bonus: { staggerMultiplier: 0.20 }
+        },
+        {
+            id: 'spec_overdrive_strikes',
+            name: 'Overdrive Strikes',
+            type: 'active',
+            description: 'Active: Deals 1.8x damage and 40 Stagger damage. Costs 30 Energy, 2 AP.',
+            cost: 2,
+            icon: '💥',
+            path: 'Heavy Combat',
+            tier: 3,
+            requires: 'spec_staggering_force'
+        }
+    ],
+    'Nano-Biotech': [
+        {
+            id: 'spec_cellular_regen',
+            name: 'Cellular Regeneration',
+            type: 'passive',
+            description: 'Restores 3 HP at the end of each combat turn.',
+            cost: 1,
+            icon: '🧬',
+            path: 'Nano-Biotech',
+            tier: 1,
+            bonus: { turnRegen: 3 }
+        },
+        {
+            id: 'spec_immunology_overclock',
+            name: 'Immunology Overclock',
+            type: 'passive',
+            description: 'Grants immunity to System Glitches.',
+            cost: 1,
+            icon: '💉',
+            path: 'Nano-Biotech',
+            tier: 2,
+            requires: 'spec_cellular_regen',
+            bonus: { glitchImmunity: 1 }
+        },
+        {
+            id: 'spec_emergency_nanites',
+            name: 'Emergency Nanites',
+            type: 'passive',
+            description: 'Once per combat, automatically heal 40 HP and restore 20 Shield when HP falls below 20%.',
+            cost: 2,
+            icon: '🚨',
+            path: 'Nano-Biotech',
+            tier: 3,
+            requires: 'spec_immunology_overclock',
+            bonus: { emergencyHeal: 40 }
+        }
+    ],
+    'Cyber-Hacking': [
+        {
+            id: 'spec_system_infiltrator',
+            name: 'System Infiltrator',
+            type: 'passive',
+            description: '+5% Critical Strike Chance.',
+            cost: 1,
+            icon: '💻',
+            path: 'Cyber-Hacking',
+            tier: 1,
+            bonus: { critChance: 0.05 }
+        },
+        {
+            id: 'spec_energy_siphon',
+            name: 'Energy Siphon',
+            type: 'passive',
+            description: 'Basic attacks restore 5 Energy to player and drain 5 Energy from enemy.',
+            cost: 1,
+            icon: '🔌',
+            path: 'Cyber-Hacking',
+            tier: 2,
+            requires: 'spec_system_infiltrator',
+            bonus: { energySiphon: 5 }
+        },
+        {
+            id: 'spec_system_override',
+            name: 'System Override',
+            type: 'active',
+            description: 'Active: Stuns enemy for 1 turn. Costs 40 Energy, 2 AP.',
+            cost: 2,
+            icon: '📡',
+            path: 'Cyber-Hacking',
+            tier: 3,
+            requires: 'spec_energy_siphon'
+        }
+    ]
+};
+
+/**
+ * Check if player has unlocked a specific specialization node
+ */
+export function hasSpecialization(specId) {
+    if (!state || !state.character || !state.character.unlockedSpecializations) return false;
+    return state.character.unlockedSpecializations.includes(specId);
+}
+
+/**
+ * Sum passive specialization bonuses for a specific stat
+ */
+export function getSpecializationPassiveBonus(statName) {
+    if (!state || !state.character || !state.character.unlockedSpecializations) return 0;
+    
+    let totalBonus = 0;
+    Object.values(SPECIALIZATION_TREES).forEach(tree => {
+        tree.forEach(spec => {
+            if (spec.type === 'passive' && hasSpecialization(spec.id) && spec.bonus && spec.bonus[statName] !== undefined) {
+                totalBonus += spec.bonus[statName];
+            }
+        });
+    });
+    
+    return totalBonus;
+}
+
+/**
+ * Attempt to unlock a specialization node
+ */
+export function unlockSpecialization(specId) {
+    if (!state || !state.character) return { success: false, message: "No character profile found." };
+    
+    let node = null;
+    for (const tree of Object.values(SPECIALIZATION_TREES)) {
+        node = tree.find(s => s.id === specId);
+        if (node) break;
+    }
+    
+    if (!node) return { success: false, message: "Specialization skill not found." };
+    
+    state.character.specializationPoints = state.character.specializationPoints || 0;
+    state.character.unlockedSpecializations = state.character.unlockedSpecializations || [];
+    
+    if (state.character.specializationPoints < node.cost) {
+        return { success: false, message: `Insufficient Specialization Points. Need ${node.cost} SP.` };
+    }
+    if (hasSpecialization(specId)) {
+        return { success: false, message: "Specialization already unlocked." };
+    }
+    if (node.requires && !hasSpecialization(node.requires)) {
+        return { success: false, message: "Prerequisite specialization node not unlocked." };
+    }
+    
+    // Deduct cost and unlock
+    state.character.specializationPoints -= node.cost;
+    state.character.unlockedSpecializations.push(specId);
+    
+    // Apply immediate passive boosts if any
+    if (node.bonus) {
+        if (node.bonus.maxAp) {
+            state.character.maxAp += node.bonus.maxAp;
+            state.character.ap += node.bonus.maxAp;
+        }
+        if (node.bonus.maxEnergy) {
+            state.character.maxEnergy += node.bonus.maxEnergy;
+            state.character.energy += node.bonus.maxEnergy;
+        }
+    }
+    
+    if (addLog) addLog(`✨ Specialization unlocked: ${node.name}!`);
+    if (updateUI) updateUI();
+    
     return { success: true };
 }

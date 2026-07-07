@@ -25,7 +25,7 @@ import { initUpgrades } from './systems/upgrades.js';
 import { initAchievements } from './systems/achievements.js';
 import { initCompanions } from './systems/companions.js';
 import { initCybernetics } from './systems/cybernetics.js';
-import { handleInstallImplant, handleUninstallImplant } from './systems/ui/cybernetics-ui.js';
+import { handleInstallImplant, handleUninstallImplant, handleInstallModChip, handleUninstallModChip, handleBuySpecializationPoint } from './systems/ui/cybernetics-ui.js';
 
 import { locations } from './data/locations.js';
 import { enemies, bosses } from './data/enemies.js';
@@ -430,3 +430,6 @@ window.updateQuickCrewPanel = updateQuickCrewPanel;
 // Cybernetics functions
 window.installCyberneticImplant = handleInstallImplant;
 window.uninstallCyberneticImplant = handleUninstallImplant;
+window.installModChip = handleInstallModChip;
+window.uninstallModChip = handleUninstallModChip;
+window.purchaseSpecializationPoint = handleBuySpecializationPoint;

@@ -195,6 +195,24 @@ export function loadGame(slot) {
                 nervous: null
             };
         }
+        if (state.character && !state.character.cyberneticsMods) {
+            state.character.cyberneticsMods = {
+                head: [null, null],
+                arms: [null, null],
+                torso: [null, null],
+                nervous: [null, null]
+            };
+        }
+
+        // Retroactive specialization tree setup
+        if (state.character) {
+            if (state.character.specializationPoints === undefined) {
+                state.character.specializationPoints = 0;
+            }
+            if (!state.character.unlockedSpecializations) {
+                state.character.unlockedSpecializations = [];
+            }
+        }
 
         // Retroactive factions setup
         if (state.character && !state.character.factions) {

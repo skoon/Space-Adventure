@@ -134,16 +134,17 @@
 - **Quest Storyline Splits & Linking:** Narrative choices dynamically branch main questlines, enabling players to align with specific factions or NPCs, culminating in multiple distinct game-ending epilogues.
 - **Dialogue UI Enhancements:** A revamped dialogue card overlay displaying NPC emotions, action rolls, and success percentages based on character specializations.
 - **Integration & Verification:** Integrated into [quests.js](file:///d:/source/Roogames/Space%20Adventure/systems/quests.js) and verified via narrative tests in [branching_quests.test.js](file:///d:/source/Roogames/Space%20Adventure/tests/systems/branching_quests.test.js).
+
+### Advanced Cybernetic Modding & Tech Tree Specialization (Completed)
+**How it works:** Introduces minor sub-augment mod slots for cybernetic implants and unlocks deep class-based active and passive skill paths.
+**Mechanics:**
+- **Nanite Mod Chips:** Each implant installed in [cybernetics.js](file:///mnt/d/source/Roogames/Space%20Adventure/systems/cybernetics.js) gains 2 sub-slots to insert custom nanite chips (e.g., +5% critical strike chance, fire resistance, +10 HP).
+- **Stability Management:** Slotting too many mods increases "System Instability," leading to occasional status glitches during combat if exceeded.
+- **Specialization Tree:** Adds distinct branching tech trees (Heavy Combat, Nano-Biotech, Cyber-Hacking) using specialization points.
+- **Integration & Verification:** Verified via unit tests in [cybernetics_modding.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/cybernetics_modding.test.js) and [specialization_tree.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/specialization_tree.test.js).
 ---
 
 ## 🔮 Future / Planned Ideas
-
-### 2. Advanced Cybernetic Modding & Tech Tree Specialization
-**How it works:** Introduces minor sub-augment mod slots for cybernetic implants and unlocks deep class-based active and passive skill paths.
-**Mechanics:**
-- **Nanite Mod Chips:** Each implant installed in [cybernetics.js](file:///d:/source/Roogames/Space%20Adventure/systems/cybernetics.js) gains 2 sub-slots to insert custom nanite chips (e.g., +5% critical strike chance, fire resistance, +10 HP).
-- **Stability Management:** Slotting too many mods increases "System Instability," leading to occasional status glitches during combat if exceeded.
-- **Specialization Tree:** Adds distinct branching tech trees (Heavy Combat, Nano-Biotech, Cyber-Hacking) using specialization points.
 
 ### 3. Fleet Command Carrier Upgrades & Tactical Grid Battles
 **How it works:** Allows the player to purchase fighter wings and command an escort squadron, shifting space combat into tactical turn-based grid battles.

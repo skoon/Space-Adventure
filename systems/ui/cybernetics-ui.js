@@ -1,9 +1,10 @@
 /**
  * Cybernetics Clinic UI Module
- * Renders the Cybernetic Augmentation Clinic tab inside the Spacecraft Hub Modal
+ * Renders the Cybernetic Augmentation Clinic tab inside the Spacecraft Hub Modal,
+ * supporting generic slots, implants, and mod sub-slots with instability gauges.
  */
 
-import { IMPLANTS, getActiveSynergies } from '../cybernetics.js';
+import { CYBERNETICS_CONFIG, IMPLANTS, MODS, getActiveSynergies, getSystemInstability } from '../cybernetics.js';
 import { t } from '../theme-engine.js';
 
 let state;
@@ -26,14 +27,37 @@ export function renderCyberneticsTab() {
         return;
     }
 
-    // Set default empty state for cybernetics if missing
-    state.character.cybernetics = state.character.cybernetics || { head: null, arms: null, torso: null, nervous: null };
+    // Default initialization
+    state.character.cybernetics = state.character.cybernetics || {};
+    state.character.cyberneticsMods = state.character.cyberneticsMods || {};
+    CYBERNETICS_CONFIG.slots.forEach(slot => {
+        if (state.character.cybernetics[slot.id] === undefined) {
+            state.character.cybernetics[slot.id] = null;
+        }
+        if (!state.character.cyberneticsMods[slot.id]) {
+            state.character.cyberneticsMods[slot.id] = [null, null];
+        }
+    });
 
     // Get current material counts in inventory
     const inventoryCounts = {};
     state.inventory.forEach(item => {
         inventoryCounts[item] = (inventoryCounts[item] || 0) + 1;
     });
+
+    // Filter out chips available in inventory
+    const inventoryChips = state.inventory.filter(itemName => {
+        return Object.values(MODS).some(m => m.name === itemName);
+    });
+
+    // Calculate Instability
+    const instability = getSystemInstability ? getSystemInstability() : 0;
+    const safeLimit = CYBERNETICS_CONFIG.safeLimit || 15;
+    const pct = Math.min(100, (instability / safeLimit) * 100);
+    const instabilityColor = instability > safeLimit ? 'text-red-500 animate-pulse' : 'text-cyan-400';
+    const gaugeBarColor = instability > safeLimit 
+        ? 'bg-gradient-to-r from-red-600 to-orange-500 shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse' 
+        : 'bg-gradient-to-r from-cyan-600 to-teal-500 shadow-[0_0_8px_rgba(6,182,212,0.3)]';
 
     let html = `
         <div class="p-2">
@@ -42,28 +66,55 @@ export function renderCyberneticsTab() {
                 <span class="text-yellow-400 font-bold">Credits: ${state.character.credits} CR</span>
             </div>
             
-            <p class="text-gray-400 text-xs mb-6 font-mono leading-relaxed">
+            <p class="text-gray-400 text-xs mb-4 font-mono leading-relaxed">
                 Welcome to the ship med-bay surgical suite. Below you can install specialized cybernetic augmentations. 
-                Surgical installation consumes credits and rare components. Removal requires a <span class="text-yellow-500 font-bold">50 CR</span> surgical fee and destroys the implant.
+                Surgical installation consumes credits and rare components. Removal requires a <span class="text-yellow-500 font-bold">50 CR</span> surgical fee.
             </p>
+
+            <!-- Instability Panel -->
+            <!-- Instability and SP purchase Panel -->
+            <div class="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="p-4 border border-gray-800 bg-gray-950/40 rounded-lg flex justify-between items-center gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-gray-300 font-mono">System Instability:</span>
+                            <span class="text-sm font-mono font-bold ${instabilityColor}">${instability} / ${safeLimit} Safe Limit</span>
+                        </div>
+                        <p class="text-[10px] text-gray-400 font-mono mt-1 mb-0">
+                            ${instability > safeLimit 
+                                ? '🚨 WARNING: Exceeding safe limit! Feedback glitch risk.' 
+                                : '✓ Safe Limit: Cybernetic interfaces are functioning normally.'}
+                        </p>
+                    </div>
+                    <div class="w-32 bg-gray-900 h-2.5 rounded-full overflow-hidden border border-gray-800">
+                        <div class="h-full ${gaugeBarColor} rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+                    </div>
+                </div>
+
+                <div class="p-4 border border-cyan-900/40 bg-cyan-950/5 rounded-lg flex justify-between items-center gap-4">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-cyan-400 font-mono block">Neural Terminal</span>
+                        <p class="text-[10px] text-gray-400 font-mono mt-1 mb-0">
+                            Inject Neural Adaptors. Cost: <span class="text-yellow-500 font-bold">500 CR + 1 Quantum Chip</span>
+                        </p>
+                    </div>
+                    <button onclick="window.purchaseSpecializationPoint()"
+                            class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 border border-cyan-500 text-white rounded text-[10px] font-bold uppercase tracking-wider transition-all font-mono shadow-[0_0_8px_rgba(6,182,212,0.2)]">
+                        Acquire SP
+                    </button>
+                </div>
+            </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     `;
 
-    const slots = [
-        { id: 'head', label: '🧠 Head Slot', icon: '🧠' },
-        { id: 'arms', label: '🦾 Arms Slot', icon: '🦾' },
-        { id: 'torso', label: '🛡️ Torso Slot', icon: '🛡️' },
-        { id: 'nervous', label: '⚡ Nervous System Slot', icon: '⚡' }
-    ];
-
-    slots.forEach(slot => {
+    CYBERNETICS_CONFIG.slots.forEach(slot => {
         const equippedId = state.character.cybernetics[slot.id];
         const equipped = equippedId ? IMPLANTS[equippedId] : null;
 
         html += `
             <!-- Slot Card -->
-            <div class="p-4 border ${equipped ? 'border-cyan-500/80 bg-cyan-950/10 shadow-[0_0_15px_rgba(6,182,212,0.1)]' : 'border-gray-800/80 bg-black/20'} rounded-lg relative flex flex-col justify-between min-h-[190px]">
+            <div class="p-4 border ${equipped ? 'border-cyan-500/80 bg-cyan-950/10 shadow-[0_0_15px_rgba(6,182,212,0.1)]' : 'border-gray-800/80 bg-black/20'} rounded-lg relative flex flex-col justify-between min-h-[260px]">
                 <div>
                     <div class="flex justify-between items-center mb-2 font-mono text-xs border-b border-gray-800 pb-1.5">
                         <span class="font-bold uppercase tracking-wider ${equipped ? 'text-cyan-400' : 'text-gray-400'}">${slot.label}</span>
@@ -76,12 +127,57 @@ export function renderCyberneticsTab() {
         if (equipped) {
             html += `
                     <!-- Installed Implant Info -->
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <h4 class="font-bold text-cyan-300 text-sm mb-1">${equipped.name}</h4>
-                        <p class="text-gray-400 text-xs leading-normal font-mono">${equipped.description}</p>
+                        <p class="text-gray-400 text-xs leading-normal font-mono mb-2">${equipped.description}</p>
+                    </div>
+
+                    <!-- Mod Chip Sub-slots -->
+                    <div class="mt-3 border-t border-cyan-950/40 pt-2.5">
+                        <span class="text-[10px] uppercase font-bold text-gray-400 font-mono block mb-2">Nanite Mod Slots:</span>
+            `;
+
+            for (let idx = 0; idx < 2; idx++) {
+                const chipId = state.character.cyberneticsMods[slot.id]?.[idx];
+                const chip = chipId ? MODS[chipId] : null;
+
+                if (chip) {
+                    html += `
+                        <div class="flex justify-between items-center bg-cyan-950/20 border border-cyan-800/40 p-2 rounded mb-2 text-[11px] font-mono">
+                            <div class="pr-2">
+                                <span class="text-cyan-400 font-bold text-xs">${chip.name}</span>
+                                <p class="text-[9px] text-gray-500 leading-normal">${chip.description} (+${chip.instability} Instability)</p>
+                            </div>
+                            <button onclick="window.uninstallModChip('${slot.id}', ${idx})" 
+                                    class="flex-shrink-0 px-2 py-1 bg-red-950/40 hover:bg-red-900 border border-red-900 text-red-400 rounded text-[9px] uppercase font-bold tracking-widest transition-colors font-mono">
+                                Extract (10 CR)
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="flex gap-2 items-center bg-black/30 border border-gray-900 p-2 rounded mb-2 text-[11px] font-mono">
+                            <span class="text-gray-500 font-bold uppercase text-[9px] px-1 bg-gray-900 border border-gray-800 rounded">Slot ${idx + 1} Empty</span>
+                            ${inventoryChips.length > 0 ? `
+                                <select id="modChipSelect_${slot.id}_${idx}" class="bg-gray-850 border border-cyan-900/60 rounded text-[10px] text-gray-300 font-mono py-0.5 px-1.5 flex-grow">
+                                    ${inventoryChips.map(chipName => `<option value="${chipName}">${chipName}</option>`).join('')}
+                                </select>
+                                <button onclick="window.installModChip('${slot.id}', ${idx})" 
+                                        class="px-2.5 py-0.5 bg-cyan-900/50 hover:bg-cyan-850 border border-cyan-800 text-cyan-400 rounded text-[10px] uppercase font-bold tracking-wider transition-colors font-mono">
+                                    Slot
+                                </button>
+                            ` : `
+                                <span class="text-gray-500 italic text-[10px] flex-grow text-center">No chips in inventory</span>
+                            `}
+                        </div>
+                    `;
+                }
+            }
+
+            html += `
                     </div>
                 </div>
-                <div>
+                <div class="mt-4">
                     <button onclick="window.uninstallCyberneticImplant('${slot.id}')"
                             class="w-full py-1.5 bg-red-950/60 hover:bg-red-900 border border-red-800 text-red-400 rounded text-[10px] font-bold tracking-widest transition-colors uppercase font-mono shadow-[0_0_8px_rgba(239,68,68,0.1)]">
                         🪓 Surgical Extraction (50 CR)
@@ -116,7 +212,7 @@ export function renderCyberneticsTab() {
                         </span>
                     `;
                 });
-
+ 
                 const canInstall = canAffordCredits && canAffordMaterials;
                 const buttonClass = canInstall 
                     ? "bg-cyan-600 hover:bg-cyan-500 border-cyan-500 text-white cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.3)]" 
@@ -216,6 +312,65 @@ export function handleUninstallImplant(slot) {
         } else {
             if (deps.ui.showDialog) {
                 deps.ui.showDialog("Extraction Failure", `<p class="text-red-500 font-bold">${res.message}</p>`);
+            } else {
+                alert(res.message);
+            }
+        }
+    });
+}
+
+/**
+ * Handle surgical installation of a mod chip
+ */
+export function handleInstallModChip(slot, index) {
+    const select = document.getElementById(`modChipSelect_${slot}_${index}`);
+    if (!select) return;
+    const chipName = select.value;
+    if (!chipName) return;
+
+    import('../cybernetics.js').then(m => {
+        const res = m.installModChip(slot, index, chipName);
+        if (res.success) {
+            renderCyberneticsTab();
+        } else {
+            if (deps.ui.showDialog) {
+                deps.ui.showDialog("Surgical Error", `<p class="text-red-500 font-bold">${res.message}</p>`);
+            } else {
+                alert(res.message);
+            }
+        }
+    });
+}
+
+/**
+ * Handle surgical extraction of a mod chip
+ */
+export function handleUninstallModChip(slot, index) {
+    import('../cybernetics.js').then(m => {
+        const res = m.uninstallModChip(slot, index);
+        if (res.success) {
+            renderCyberneticsTab();
+        } else {
+            if (deps.ui.showDialog) {
+                deps.ui.showDialog("Extraction Failure", `<p class="text-red-500 font-bold">${res.message}</p>`);
+            } else {
+                alert(res.message);
+            }
+        }
+    });
+}
+
+/**
+ * Handle purchasing a Specialization Point
+ */
+export function handleBuySpecializationPoint() {
+    import('../character.js').then(m => {
+        const res = m.buySpecializationPoint();
+        if (res.success) {
+            renderCyberneticsTab();
+        } else {
+            if (deps.ui.showDialog) {
+                deps.ui.showDialog("Terminal Error", `<p class="text-red-500 font-bold">${res.message}</p>`);
             } else {
                 alert(res.message);
             }

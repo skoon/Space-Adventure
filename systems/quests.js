@@ -4,7 +4,8 @@
  */
 
 import { items } from '../data/items.js';
-import { IMPLANTS } from './cybernetics.js';
+import { IMPLANTS, getModStatsBonus } from './cybernetics.js';
+import { getSpecializationPassiveBonus } from './skills.js';
 
 // State object reference
 let state;
@@ -262,14 +263,22 @@ export function getEffectiveAttribute(attributeName) {
             const implantId = cyb[slot];
             if (implantId && IMPLANTS && IMPLANTS[implantId]) {
                 const implant = IMPLANTS[implantId];
-                if (implant[attributeName] !== undefined) {
+                if (implant.stats && implant.stats[attributeName] !== undefined) {
+                    cyberBonus += implant.stats[attributeName];
+                } else if (implant[attributeName] !== undefined) {
                     cyberBonus += implant[attributeName];
                 }
             }
         });
     }
     
-    return baseVal + gearBonus + cyberBonus;
+    // Mod Chip Bonuses
+    const modBonus = getModStatsBonus ? getModStatsBonus(attributeName) : 0;
+
+    // Specialization Tree Bonuses
+    const specBonus = getSpecializationPassiveBonus ? getSpecializationPassiveBonus(attributeName) : 0;
+    
+    return baseVal + gearBonus + cyberBonus + modBonus + specBonus;
 }
 
 /**

@@ -1,45 +1,16 @@
 /**
  * Cybernetics System Module
- * Handles cybernetic slot initialization, augmentations, and surgery operations
+ * Handles cybernetic slot initialization, augmentations, surgery operations,
+ * and skinnable nanite mod chip slotting.
  */
 
+import { CYBERNETICS_CONFIG, IMPLANTS, MODS } from '../data/cybernetics.js';
+
+export { CYBERNETICS_CONFIG, IMPLANTS, MODS };
+
+// State object reference
 let state;
 let addLog, updateUI;
-
-export const IMPLANTS = {
-    targeting_matrix: {
-        id: 'targeting_matrix',
-        name: 'Targeting Matrix',
-        slot: 'head',
-        description: 'Increases standard critical damage multiplier by +0.5x. Grants +3 Intelligence.',
-        intelligence: 3,
-        cost: { credits: 250, materials: { 'Quantum Chip': 1, 'Circuit Board': 2 } }
-    },
-    reflex_boosters: {
-        id: 'reflex_boosters',
-        name: 'Reflex Boosters',
-        slot: 'arms',
-        description: 'Grants a 35% chance to start combat with +1 initial Action Point (AP). Grants +3 Agility.',
-        agility: 3,
-        cost: { credits: 300, materials: { 'Robotic Arm': 2, 'Circuit Board': 2 } }
-    },
-    subdermal_plating: {
-        id: 'subdermal_plating',
-        name: 'Sub-dermal Plating',
-        slot: 'torso',
-        description: 'Converts 15% of incoming physical damage into energy drain instead of health loss. Grants +3 Strength.',
-        strength: 3,
-        cost: { credits: 400, materials: { 'Titanium Ingot': 2, 'Nanites': 4 } }
-    },
-    synaptic_accelerator: {
-        id: 'synaptic_accelerator',
-        name: 'Synaptic Accelerator',
-        slot: 'nervous',
-        description: 'Increases Dodge Action success chance by +15%. Grants +3 Agility.',
-        agility: 3,
-        cost: { credits: 200, materials: { 'Bio-Gel': 3, 'Carbon Nanotubes': 2 } }
-    }
-};
 
 /**
  * Initialize the Cybernetics system module
@@ -51,12 +22,16 @@ export function initCybernetics(deps) {
 
     if (state && state.character) {
         if (!state.character.cybernetics) {
-            state.character.cybernetics = {
-                head: null,
-                arms: null,
-                torso: null,
-                nervous: null
-            };
+            state.character.cybernetics = {};
+            CYBERNETICS_CONFIG.slots.forEach(slot => {
+                state.character.cybernetics[slot.id] = null;
+            });
+        }
+        if (!state.character.cyberneticsMods) {
+            state.character.cyberneticsMods = {};
+            CYBERNETICS_CONFIG.slots.forEach(slot => {
+                state.character.cyberneticsMods[slot.id] = [null, null];
+            });
         }
     }
 }
@@ -75,7 +50,8 @@ export function installImplant(implantId) {
     }
 
     const slot = implant.slot;
-    state.character.cybernetics = state.character.cybernetics || { head: null, arms: null, torso: null, nervous: null };
+    state.character.cybernetics = state.character.cybernetics || {};
+    state.character.cyberneticsMods = state.character.cyberneticsMods || {};
 
     if (state.character.cybernetics[slot] === implantId) {
         return { success: false, message: `${implant.name} is already installed in this slot.` };
@@ -111,6 +87,7 @@ export function installImplant(implantId) {
 
     // Equip the implant
     state.character.cybernetics[slot] = implantId;
+    state.character.cyberneticsMods[slot] = state.character.cyberneticsMods[slot] || [null, null];
 
     if (addLog) addLog(`🦾 CYBERNETICS: Installed ${implant.name} successfully into the ${slot.toUpperCase()} slot!`);
     if (updateUI) updateUI();
@@ -141,6 +118,31 @@ export function uninstallImplant(slot) {
     // Spend surgical removal fee
     state.character.credits -= removalFee;
 
+    // Automatically recover mod chips in this implant and put back to inventory (no fee)
+    if (state.character.cyberneticsMods && state.character.cyberneticsMods[slot]) {
+        state.character.cyberneticsMods[slot].forEach((chipId, idx) => {
+            if (chipId && MODS[chipId]) {
+                const modConfig = MODS[chipId];
+                state.inventory.push(modConfig.name);
+                
+                // Deduct HP/Energy stats if this chip granted them
+                if (modConfig.stats) {
+                    if (modConfig.stats.maxHp) {
+                        state.character.maxHp -= modConfig.stats.maxHp;
+                        state.character.hp = Math.min(state.character.hp, state.character.maxHp);
+                    }
+                    if (modConfig.stats.maxEnergy) {
+                        state.character.maxEnergy -= modConfig.stats.maxEnergy;
+                        state.character.energy = Math.min(state.character.energy, state.character.maxEnergy);
+                    }
+                }
+                
+                state.character.cyberneticsMods[slot][idx] = null;
+                if (addLog) addLog(`🦾 CYBERNETICS: Recovered ${modConfig.name} from extracted implant.`);
+            }
+        });
+    }
+
     // Clear the slot
     state.character.cybernetics[slot] = null;
 
@@ -148,6 +150,142 @@ export function uninstallImplant(slot) {
     if (updateUI) updateUI();
 
     return { success: true, message: `Removed ${implant ? implant.name : 'implant'} successfully.` };
+}
+
+/**
+ * Install a generic mod chip into a sub-slot
+ */
+export function installModChip(slot, index, chipItemName) {
+    if (!state || !state.character) {
+        return { success: false, message: "No active character profile." };
+    }
+
+    const equippedImplant = state.character.cybernetics?.[slot];
+    if (!equippedImplant) {
+        return { success: false, message: "No implant installed in this slot to modify." };
+    }
+
+    state.character.cyberneticsMods = state.character.cyberneticsMods || {};
+    state.character.cyberneticsMods[slot] = state.character.cyberneticsMods[slot] || [null, null];
+
+    if (state.character.cyberneticsMods[slot][index]) {
+        return { success: false, message: "This mod sub-slot is already occupied." };
+    }
+
+    // Find mod configuration by mapping item name to ID
+    const modConfig = Object.values(MODS).find(m => m.name === chipItemName);
+    if (!modConfig) {
+        return { success: false, message: "Invalid mod chip type." };
+    }
+
+    // Check inventory
+    const chipIdx = state.inventory.indexOf(chipItemName);
+    if (chipIdx === -1) {
+        return { success: false, message: `Missing ${chipItemName} in inventory.` };
+    }
+
+    // Remove from inventory and slot it
+    state.inventory.splice(chipIdx, 1);
+    state.character.cyberneticsMods[slot][index] = modConfig.id;
+
+    // Apply HP/Energy stat boosts immediately
+    if (modConfig.stats) {
+        if (modConfig.stats.maxHp) {
+            state.character.maxHp += modConfig.stats.maxHp;
+            state.character.hp += modConfig.stats.maxHp;
+        }
+        if (modConfig.stats.maxEnergy) {
+            state.character.maxEnergy += modConfig.stats.maxEnergy;
+            state.character.energy += modConfig.stats.maxEnergy;
+        }
+    }
+
+    if (addLog) addLog(`🦾 CYBERNETICS: Slotted ${chipItemName} into ${slot.toUpperCase()} Slot ${index + 1}!`);
+    if (updateUI) updateUI();
+
+    return { success: true, message: `Slotted ${chipItemName} successfully.` };
+}
+
+/**
+ * Extract a mod chip from a sub-slot for a fee, returning it to inventory
+ */
+export function uninstallModChip(slot, index) {
+    if (!state || !state.character || !state.character.cyberneticsMods || !state.character.cyberneticsMods[slot]) {
+        return { success: false, message: "No mods configuration found." };
+    }
+
+    const chipId = state.character.cyberneticsMods[slot][index];
+    if (!chipId) {
+        return { success: false, message: "Sub-slot is already vacant." };
+    }
+
+    const removalFee = 10;
+    if (state.character.credits < removalFee) {
+        return { success: false, message: `Insufficient credits for surgery fee. Need ${removalFee} CR.` };
+    }
+
+    const modConfig = MODS[chipId];
+    if (!modConfig) {
+        return { success: false, message: "Mod configuration not found." };
+    }
+
+    // Charge fee and return chip to inventory
+    state.character.credits -= removalFee;
+    state.inventory.push(modConfig.name);
+    state.character.cyberneticsMods[slot][index] = null;
+
+    // Deduct HP/Energy stat boosts
+    if (modConfig.stats) {
+        if (modConfig.stats.maxHp) {
+            state.character.maxHp -= modConfig.stats.maxHp;
+            state.character.hp = Math.min(state.character.hp, state.character.maxHp);
+        }
+        if (modConfig.stats.maxEnergy) {
+            state.character.maxEnergy -= modConfig.stats.maxEnergy;
+            state.character.energy = Math.min(state.character.energy, state.character.maxEnergy);
+        }
+    }
+
+    if (addLog) addLog(`🦾 CYBERNETICS: Extracted ${modConfig.name} from ${slot.toUpperCase()} Slot ${index + 1}. Charged ${removalFee} CR fee.`);
+    if (updateUI) updateUI();
+
+    return { success: true, message: `Extracted ${modConfig.name} successfully.` };
+}
+
+/**
+ * Get total system instability (sum of equipped chips instability)
+ */
+export function getSystemInstability() {
+    if (!state || !state.character || !state.character.cyberneticsMods) return 0;
+    let totalInstability = 0;
+    Object.values(state.character.cyberneticsMods).forEach(slotsArr => {
+        if (Array.isArray(slotsArr)) {
+            slotsArr.forEach(chipId => {
+                if (chipId && MODS[chipId]) {
+                    totalInstability += MODS[chipId].instability || 0;
+                }
+            });
+        }
+    });
+    return totalInstability;
+}
+
+/**
+ * Get dynamic bonus from mod chips for a given stat name
+ */
+export function getModStatsBonus(statName) {
+    if (!state || !state.character || !state.character.cyberneticsMods) return 0;
+    let totalBonus = 0;
+    Object.values(state.character.cyberneticsMods).forEach(slotsArr => {
+        if (Array.isArray(slotsArr)) {
+            slotsArr.forEach(chipId => {
+                if (chipId && MODS[chipId] && MODS[chipId].stats && MODS[chipId].stats[statName] !== undefined) {
+                    totalBonus += MODS[chipId].stats[statName];
+                }
+            });
+        }
+    });
+    return totalBonus;
 }
 
 /**

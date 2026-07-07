@@ -48,5 +48,12 @@ export const items = {
   "Plasma Targeting HUD Recipe": { type: "material", category: "material", recipeId: "plasma_targeting_hud", description: "Use this blueprint from inventory to discover the Plasma Targeting HUD crafting recipe.", price: 1000, stackable: true },
   "Cybernetic Core": { type: "material", category: "material", description: "A high-fidelity CPU core required for cybernetic diagnostics and retrofits.", price: 0, stackable: true },
   "Encryption Key": { type: "material", category: "material", description: "A cryptographic key used to unlock restricted data sectors in medical androids.", price: 0, stackable: true },
-  "Bounty Hunter Emblem": { type: "material", category: "material", description: "Proof of defeating a Void Corsair Bounty Hunter, needed to clear outstanding debts.", price: 0, stackable: true }
+  "Bounty Hunter Emblem": { type: "material", category: "material", description: "Proof of defeating a Void Corsair Bounty Hunter, needed to clear outstanding debts.", price: 0, stackable: true },
+
+  // Nanite Mod Chips (Skinnable Cybernetic Mod Items)
+  "Crit Mod Chip": { type: "chip", category: "chip", description: "Adds +5% Critical Strike Chance to the installed cybernetic implant.", price: 200, stackable: true },
+  "Shield Mod Chip": { type: "chip", category: "chip", description: "Adds +5 Defense to the installed cybernetic implant.", price: 200, stackable: true },
+  "HP Mod Chip": { type: "chip", category: "chip", description: "Adds +10 Max HP to the installed cybernetic implant.", price: 200, stackable: true },
+  "Energy Mod Chip": { type: "chip", category: "chip", description: "Adds +15 Max Energy to the installed cybernetic implant.", price: 200, stackable: true },
+  "Dodge Mod Chip": { type: "chip", category: "chip", description: "Adds +5% Dodge Chance to the installed cybernetic implant.", price: 200, stackable: true }
 };
