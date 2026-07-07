@@ -90,30 +90,46 @@ export function renderQuestList() {
             const activeQuest = state.character.activeQuests[questId];
             progress = activeQuest.progress;
 
-            // Handle multi-step quests
-            if (quest.steps && quest.steps.length > 0) {
-                const currentStepIndex = activeQuest.currentStep || 0;
-                if (currentStepIndex < quest.steps.length) {
-                    const step = quest.steps[currentStepIndex];
-                    if (step.description) description = step.description; 
+            if (activeQuest.readyToTurnIn) {
+                progressText = `
+                    <div class="mt-2 text-sm text-yellow-400 font-bold font-mono">
+                        ⭐ Objective Complete: Return to the quest-giver NPC.
+                    </div>
+                `;
+            } else {
+                // Handle multi-step quests
+                if (quest.steps && quest.steps.length > 0) {
+                    const currentStepIndex = activeQuest.currentStep || 0;
+                    if (currentStepIndex < quest.steps.length) {
+                        const step = quest.steps[currentStepIndex];
+                        if (step.description) description = step.description; 
 
-                    targetAmount = step.amount;
-                    targetTarget = step.target;
+                        targetAmount = step.amount;
+                        targetTarget = step.target;
+                    }
+                }
+
+                if (targetAmount === undefined || targetTarget === undefined) {
+                    progressText = `
+                        <div class="mt-2 text-sm text-gray-400 italic">
+                            Objective: Proceed with the storyline.
+                        </div>
+                    `;
+                } else {
+                    const percentage = Math.min(100, (progress / targetAmount) * 100);
+                    progressText = `
+                        <div class="mt-2">
+                            <div class="flex justify-between text-sm text-gray-300 mb-1">
+                                <span>Progress: ${progress}/${targetAmount} ${targetTarget}s</span>
+                                <span>${Math.round(percentage)}%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-2">
+                                <div class="bg-yellow-500 h-2 rounded-full" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    `;
                 }
             }
-
-            const percentage = Math.min(100, (progress / targetAmount) * 100);
-            progressText = `
-                <div class="mt-2">
-                    <div class="flex justify-between text-sm text-gray-300 mb-1">
-                        <span>Progress: ${progress}/${targetAmount} ${targetTarget}s</span>
-                        <span>${Math.round(percentage)}%</span>
-                    </div>
-                    <div class="w-full bg-gray-800 rounded-full h-2">
-                        <div class="bg-yellow-500 h-2 rounded-full" style="width: ${percentage}%"></div>
-                    </div>
-                </div>
-            `;
         } else {
             progressText = `<div class="mt-2 text-green-400 text-sm font-bold">✅ Completed</div>`;
         }
