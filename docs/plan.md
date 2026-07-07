@@ -119,12 +119,21 @@
 
 
 
-### Crew Cabin & Companion Social Loop
+### Crew Cabin & Companion Social Loop (Completed)
 **How it works:** Expands the companion system into an interactive Spacecraft Cabin screen where players can engage in dialogue with crew members, resolve disputes, and unlock personal loyalty quests.
 **Mechanics:**
 - **Banter & Disposition Events:** Traveling between planets triggers random inter-crew conversations. Resolving these dialogues increases companion trust and unlocks unique synergy traits.
 - **Loyalty Missions:** Reaching high trust thresholds unlocks companion-specific dungeon crawls or choice-driven side-stories.
 - **Cabin UI:** A dedicated ship interior tab integrated with [companions.js](file:///d:/source/Roogames/Space%20Adventure/systems/companions.js) allows the captain to inspect crew rooms, gift items, and configure passive bonuses.
+
+### Deep Interactive Dialogue Engine & Expanded NPC Questlines (Completed)
+**How it works:** Expands the branching narrative dialogue system to introduce complex multi-tiered conversations with named NPCs, character memories, stateful quest-linking, and consequence-based storyline branches.
+**Mechanics:**
+- **Tiered Choice Branching:** Multi-stage dialogues with nested conditions assessing player stats, reputation standings, previous quest outcomes, and companion trust.
+- **NPC Memory Tracker:** NPCs dynamically remember specific player choices (e.g., choosing to spare or destroy the drone), permanently altering their tone, pricing, and available quests in later acts.
+- **Quest Storyline Splits & Linking:** Narrative choices dynamically branch main questlines, enabling players to align with specific factions or NPCs, culminating in multiple distinct game-ending epilogues.
+- **Dialogue UI Enhancements:** A revamped dialogue card overlay displaying NPC emotions, action rolls, and success percentages based on character specializations.
+- **Integration & Verification:** Integrated into [quests.js](file:///d:/source/Roogames/Space%20Adventure/systems/quests.js) and verified via narrative tests in [branching_quests.test.js](file:///d:/source/Roogames/Space%20Adventure/tests/systems/branching_quests.test.js).
 ---
 
 ## 🔮 Future / Planned Ideas
@@ -142,39 +151,6 @@
 - **Fighter Pilot Recruitment:** Hire pilot crew members with unique fighter commands and loadouts.
 - **Grid-Based Space Combat:** Space battles transition from text options in [ship.js](file:///d:/source/Roogames/Space%20Adventure/systems/ship.js) to a tactical grid where fleet positioning, fire arcs, and shield sectors dictate victory.
 - **Carrier Hangar Bays:** Upgrade ship modules to construct fighter hangars, drone repair bays, and planetary bombardment artillery.
-
-### 4. Deep Interactive Dialogue Engine & Expanded NPC Questlines
-**How it works:** Expands the branching narrative dialogue system to introduce complex multi-tiered conversations with named NPCs, character memories, stateful quest-linking, and consequence-based storyline branches.
-**Mechanics:**
-- **Tiered Choice Branching:** Multi-stage dialogues with nested conditions assessing player stats, reputation standings, previous quest outcomes, and companion trust.
-- **NPC Memory Tracker:** NPCs dynamically remember specific player choices (e.g., choosing to spare or destroy the drone), permanently altering their tone, pricing, and available quests in later acts.
-- **Quest Storyline Splits & Linking:** Narrative choices dynamically branch main questlines, enabling players to align with specific factions or NPCs, culminating in multiple distinct game-ending epilogues.
-- **Dialogue UI Enhancements:** A revamped dialogue card overlay displaying NPC emotions, action rolls, and success percentages based on character specializations.
-- **Integration & Verification:** Integrated into [quests.js](file:///d:/source/Roogames/Space%20Adventure/systems/quests.js) and verified via narrative tests in [branching_quests.test.js](file:///d:/source/Roogames/Space%20Adventure/tests/systems/branching_quests.test.js).
-
-**Implementation Plan:**
-- [ ] **Step 1: Linkable Quest Chains & Storyline State Machine**
-  - Add a successor/trigger mechanism in [quests.js](file:///d:/source/Roogames/Space%20Adventure/data/quests.js) (e.g., `unlocksQuest` field or choice-specific next quests).
-  - Update `completeQuest` in [quests.js](file:///d:/source/Roogames/Space%20Adventure/systems/quests.js) to automatically trigger and accept the next quest in the chain.
-  - Introduce a `state.storyline` object to track the active narrative branch, current Act, and global story milestones.
-- [ ] **Step 2: Enhanced NPC Dialogue Engine & State-Dependent Chats**
-  - Refactor NPC interactions in planetary hubs to use dynamic dialogue trees instead of static texts.
-  - Support conditional dialogue nodes that check active memory flags, character stats, or active inventory items.
-  - Implement a dynamic roll mechanism for skill checks (e.g., rolling a virtual 20-sided die with modifiers based on player stats).
-- [ ] **Step 3: Immersive Dialogue UI Overlay & Animations**
-  - Build a gorgeous, retro-themed dialogue overlay card in a new UI module or in [ui.js](file:///d:/source/Roogames/Space%20Adventure/systems/ui.js).
-  - Render NPC nameplates, faction alignment indicators, and visual mood indicators (e.g., Neutral, Pleased, Hostile).
-  - Add micro-animations for option hover states, dice rolling, and quest acceptance/completion banners.
-- [ ] **Step 4: Branching Main Storyline & Faction Quest Boards**
-  - Add a "Quest Board" interface in planetary hubs, allowing players to accept sidequests and faction contracts.
-  - Design a cohesive 3-Act Main Storyline:
-    - *Act I: The Signal* (investigating ancient tech, choosing which faction to share findings with).
-    - *Act II: The Faction War* (running faction-specific sabotage, diplomacy, or security missions).
-    - *Act III: The Galactic Crucible* (final showdown or alliance summit, triggering one of 3 unique endings based on reputation).
-  - Add character-specific companion quests that unlock once trust thresholds are met.
-- [ ] **Step 5: Testing & Verification Suite**
-  - Expand [branching_quests.test.js](file:///d:/source/Roogames/Space%20Adventure/tests/systems/branching_quests.test.js) to cover multi-quest chaining, choice state persistence, and ending path triggers.
-  - Verify that the save/load system correctly serializes and restores the entire storyline state and NPC memory matrices.
 
 ### 5. Generalize the primary game engine.
 **The Goal:** The goal is to create a generic game engine so that other settings like fantasy, superhero, or steampunk can be used with the primary engine.
