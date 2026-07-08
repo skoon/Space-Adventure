@@ -963,9 +963,13 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  z-index: 80;
   backdrop-filter: blur(12px);
   animation: fadeIn 0.25s ease-out;
+}
+
+#dialogModal {
+  z-index: 90;
 }
 
 .dialogue-container {
