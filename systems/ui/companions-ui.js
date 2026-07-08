@@ -337,9 +337,31 @@ export function renderCompanionsTab() {
             talkBtn.className = 'w-full py-1 px-2 bg-indigo-900/60 hover:bg-indigo-800/80 border border-indigo-700/50 rounded font-bold text-xs text-indigo-200 transition-colors';
             talkBtn.innerHTML = t('💬 Chat');
             talkBtn.onclick = () => {
-                const text = talkToCompanion(id);
-                showDialog(`💬 Crew Comm: ${data.name}`, `"${text}"`, [{ text: "Close", action: () => {} }]);
-                renderCompanionsTab();
+                const loyaltyQuestId = `loyalty_${id}`;
+                if (state.character.activeQuests && state.character.activeQuests[loyaltyQuestId] && state.character.activeQuests[loyaltyQuestId].readyToTurnIn) {
+                    showDialog(
+                        `💬 Crew Comm: ${data.name}`, 
+                        `"Thank you, Captain! We secured the required core data telemetry. My full loyalty is yours."`, 
+                        [
+                            { 
+                                text: "Complete Loyalty Mission", 
+                                action: () => {
+                                    state.character.activeQuests[loyaltyQuestId].turnedInByNpc = true;
+                                    import('../quests.js').then(m => {
+                                        m.completeQuest(loyaltyQuestId);
+                                        renderCompanionsTab();
+                                        if (updateUI) updateUI();
+                                    });
+                                } 
+                            },
+                            { text: "Close", action: () => {} }
+                        ]
+                    );
+                } else {
+                    const text = talkToCompanion(id);
+                    showDialog(`💬 Crew Comm: ${data.name}`, `"${text}"`, [{ text: "Close", action: () => {} }]);
+                    renderCompanionsTab();
+                }
             };
             interactSec.appendChild(talkBtn);
 

@@ -134,9 +134,19 @@ export function renderQuestList() {
             progressText = `<div class="mt-2 text-green-400 text-sm font-bold">✅ Completed</div>`;
         }
 
+        let giverHtml = "";
+        if (quest.giver) {
+            giverHtml = `
+                <div class="mt-1.5 text-[10px] text-cyan-400 font-mono">
+                    📍 Quest Giver: <span class="font-bold text-cyan-300">${quest.giver.name}</span> (${quest.giver.location})
+                </div>
+            `;
+        }
+
         div.innerHTML = `
             <h3 class="text-lg font-bold text-yellow-400">${quest.title}</h3>
             <p class="text-gray-300 text-sm mt-1">${description}</p>
+            ${giverHtml}
             <div class="mt-2 text-xs text-gray-400">
                 Rewards: ${quest.rewards.xp ? `${quest.rewards.xp} XP` : ""} ${quest.rewards.items ? `+ ${quest.rewards.items.join(", ")}` : ""}
             </div>

@@ -4,7 +4,7 @@
  */
 
 import { showDialogue, hideDialogue } from './dialogue-ui.js';
-import { acceptQuest, completeQuest } from '../quests.js';
+import { acceptQuest, completeQuest, getRoleQuestId } from '../quests.js';
 
 let state;
 let deps;
@@ -264,12 +264,50 @@ export function talkToNPC(npcId) {
     const active = state.character.activeQuests;
     const completed = state.character.completedQuests;
 
+    const story01Id = getRoleQuestId("story_01");
+    const questBranch01Id = getRoleQuestId("quest_branch_01");
+    const storyAct2FedId = getRoleQuestId("story_act2_fed");
+    const storyAct2CorId = getRoleQuestId("story_act2_cor");
+    const storyAct2SynId = getRoleQuestId("story_act2_syn");
+    const storyAct3Id = getRoleQuestId("story_act3");
+    const questBranch02Id = getRoleQuestId("quest_branch_02");
+
+    // ============================================
+    // GENERIC TURN-IN INTERCEPTOR
+    // ============================================
+    const questDb = (deps && deps.data && deps.data.quests) || {};
+    const readyQuestId = Object.keys(active).find(qid => {
+        const q = questDb[qid];
+        return q && q.giver && q.giver.id === npcId && active[qid].readyToTurnIn && !q.hasCustomTurnIn;
+    });
+
+    if (readyQuestId) {
+        const quest = questDb[readyQuestId];
+        const npcName = NPC_NAMES[npcId] || npcId;
+        showDialogue(
+            npcName,
+            `Ah, freelancer! You have completed all objectives for '${quest.title}'. Here is your reward, pleasure doing business with you.`,
+            [
+                {
+                    text: "Complete Quest",
+                    action: () => {
+                        active[readyQuestId].turnedInByNpc = true;
+                        completeQuest(readyQuestId);
+                        hideDialogue();
+                        updateUI();
+                    }
+                }
+            ]
+        );
+        return;
+    }
+
     // ============================================
     // CAPTAIN VANCE (FEDERATION)
     // ============================================
     if (npcId === "vance") {
         // State 1: Start Quest 1 (The Awakening)
-        if (!active["story_01"] && !completed.includes("story_01")) {
+        if (!active[story01Id] && !completed.includes(story01Id)) {
             showDialogue(
                 "Captain Vance",
                 "Welcome to Terra Prime, Captain. I am Captain Vance of the Federation garrison. We've detected an anomalous signal radiating from the sector, but local Xenobot activity has jammed our communications. I need a capable freelancer to clear the sector and salvage scrap metal so my engineers can restore the comms array.",
@@ -277,7 +315,7 @@ export function talkToNPC(npcId) {
                     {
                         text: "Accept Mission: The Awakening",
                         action: () => {
-                            acceptQuest("story_01");
+                            acceptQuest(story01Id);
                             hideDialogue();
                         }
                     },
@@ -289,7 +327,7 @@ export function talkToNPC(npcId) {
             );
         }
         // State 2: Quest 1 Active (Not Complete)
-        else if (active["story_01"] && !active["story_01"].readyToTurnIn) {
+        else if (active[story01Id] && !active[story01Id].readyToTurnIn) {
             showDialogue(
                 "Captain Vance",
                 "We need that comms array repaired, Captain. Have you neutralized the Xenobots and retrieved the scrap metal?",
@@ -299,7 +337,7 @@ export function talkToNPC(npcId) {
             );
         }
         // State 3: Quest 1 Ready to Turn In
-        else if (active["story_01"] && active["story_01"].readyToTurnIn) {
+        else if (active[story01Id] && active[story01Id].readyToTurnIn) {
             showDialogue(
                 "Captain Vance",
                 "Excellent work, Captain! The Xenobots have been cleared, and the scrap metal has allowed our engineers to restore the comms array. We've decoded the signal... it's a coordinates telemetry package to an ancient, sector-wide weapons cache left by the Precursors. This changes everything.",
@@ -308,8 +346,8 @@ export function talkToNPC(npcId) {
                         text: "Complete: The Awakening",
                         action: () => {
                             // Turn in quest
-                            active["story_01"].turnedInByNpc = true;
-                            completeQuest("story_01");
+                            active[story01Id].turnedInByNpc = true;
+                            completeQuest(story01Id);
                             
                             // Immediately offer next quest
                             setTimeout(() => {
@@ -321,7 +359,7 @@ export function talkToNPC(npcId) {
             );
         }
         // State 4: Start Quest 2 (The Diplomatic Crisis)
-        else if (completed.includes("story_01") && !active["quest_branch_01"] && !completed.includes("quest_branch_01")) {
+        else if (completed.includes(story01Id) && !active[questBranch01Id] && !completed.includes(questBranch01Id)) {
             showDialogue(
                 "Captain Vance",
                 "This ancient weapons cache could start a sector-wide war if it falls into the wrong hands. The Void Corsairs and the Photon Prime Syndicate are already scanning the sector for it. I need you to secure the encrypted data telemetry from the crashed probe before they do.",
@@ -329,7 +367,7 @@ export function talkToNPC(npcId) {
                     {
                         text: "Accept Mission: The Diplomatic Crisis",
                         action: () => {
-                            acceptQuest("quest_branch_01");
+                            acceptQuest(questBranch01Id);
                             hideDialogue();
                         }
                     },
@@ -338,7 +376,7 @@ export function talkToNPC(npcId) {
             );
         }
         // State 5: Quest 2 Active (Not Completed - Step 0: Killing Xenobots)
-        else if (active["quest_branch_01"] && active["quest_branch_01"].currentStep === 0) {
+        else if (active[questBranch01Id] && active[questBranch01Id].currentStep === 0) {
             showDialogue(
                 "Captain Vance",
                 "Secure the telemetry from the crashed probe, Captain. We cannot let the Corsairs or Syndicate get their hands on it first.",
@@ -348,10 +386,10 @@ export function talkToNPC(npcId) {
             );
         }
         // State 6: Quest 2 Choice Step (Step 1 - Return to Vance to make decision)
-        else if (active["quest_branch_01"] && active["quest_branch_01"].currentStep === 1) {
+        else if (active[questBranch01Id] && active[questBranch01Id].currentStep === 1) {
             // Flag that the player is at the NPC, so choices can be processed
-            active["quest_branch_01"].atNpc = true;
-            active["quest_branch_01"].turnedInByNpc = true;
+            active[questBranch01Id].atNpc = true;
+            active[questBranch01Id].turnedInByNpc = true;
             
             showDialogue(
                 "Captain Vance",
@@ -362,7 +400,7 @@ export function talkToNPC(npcId) {
                         action: () => {
                             // Trigger the choice evaluation in the quest module
                             import('../quests.js').then(m => {
-                                m.evaluateChoice("quest_branch_01", 0);
+                                m.evaluateChoice(questBranch01Id, 0);
                             });
                         }
                     },
@@ -370,7 +408,7 @@ export function talkToNPC(npcId) {
                         text: "[CORSAIRS] Refuse and sell the telemetry to Envoy Nesta.",
                         action: () => {
                             import('../quests.js').then(m => {
-                                m.evaluateChoice("quest_branch_01", 1);
+                                m.evaluateChoice(questBranch01Id, 1);
                             });
                         }
                     },
@@ -379,7 +417,7 @@ export function talkToNPC(npcId) {
                         disabled: state.character.role !== "Scientist",
                         action: () => {
                             import('../quests.js').then(m => {
-                                m.evaluateChoice("quest_branch_01", 2);
+                                m.evaluateChoice(questBranch01Id, 2);
                             });
                         }
                     }
@@ -387,7 +425,7 @@ export function talkToNPC(npcId) {
             );
         }
         // State 7: Act II Federation - Eligible (Chose Fed in Act I)
-        else if (completed.includes("quest_branch_01") && state.character.storyline?.alignment === "federation" && !active["story_act2_fed"] && !completed.includes("story_act2_fed")) {
+        else if (completed.includes(questBranch01Id) && state.character.storyline?.alignment === "federation" && !active[storyAct2FedId] && !completed.includes(storyAct2FedId)) {
             showDialogue(
                 "Captain Vance",
                 "Your loyalty to the Federation is commendable, Captain. The telemetry has allowed us to locate the cache. However, Void Corsair reavers are smuggling blockades and organizing an interception. I need you to patrol the sector, intercept their smuggler fleets, and dismantle their networks.",
@@ -395,7 +433,7 @@ export function talkToNPC(npcId) {
                     {
                         text: "Accept Mission: Act II: Federation Patrol",
                         action: () => {
-                            acceptQuest("story_act2_fed");
+                            acceptQuest(storyAct2FedId);
                             hideDialogue();
                         }
                     },
@@ -404,7 +442,7 @@ export function talkToNPC(npcId) {
             );
         }
         // State 8: Act II Fed Active (Not Complete)
-        else if (active["story_act2_fed"] && active["story_act2_fed"].currentStep < 4) {
+        else if (active[storyAct2FedId] && active[storyAct2FedId].currentStep < 4) {
             showDialogue(
                 "Captain Vance",
                 "Smuggler activity remains high in this sector. Intercept those Corsair reavers, Captain.",
@@ -414,9 +452,9 @@ export function talkToNPC(npcId) {
             );
         }
         // State 9: Act II Fed Ready to Turn In (Patrol done, at step 4)
-        else if (active["story_act2_fed"] && (active["story_act2_fed"].currentStep === 4 || active["story_act2_fed"].readyToTurnIn)) {
-            active["story_act2_fed"].atNpc = true;
-            active["story_act2_fed"].turnedInByNpc = true;
+        else if (active[storyAct2FedId] && (active[storyAct2FedId].currentStep === 4 || active[storyAct2FedId].readyToTurnIn)) {
+            active[storyAct2FedId].atNpc = true;
+            active[storyAct2FedId].turnedInByNpc = true;
 
             showDialogue(
                 "Captain Vance",
@@ -425,7 +463,7 @@ export function talkToNPC(npcId) {
                     {
                         text: "Complete Patrol & Report to Summit",
                         action: () => {
-                            completeQuest("story_act2_fed");
+                            completeQuest(storyAct2FedId);
                             hideDialogue();
                         }
                     }
@@ -433,7 +471,7 @@ export function talkToNPC(npcId) {
             );
         }
         // State 10: Act III Fed Eligible
-        else if (completed.includes("story_act2_fed") && !active["story_act3"] && !completed.includes("story_act3")) {
+        else if (completed.includes(storyAct2FedId) && !active[storyAct3Id] && !completed.includes(storyAct3Id)) {
             showDialogue(
                 "Captain Vance",
                 "Head to the Crucible Summit Hall at Nebula Outpost immediately. The summit delegates are waiting. Ensure that weapons cache is handed over to the Federation so we can establish ironclad order and security in this sector.",
@@ -441,7 +479,7 @@ export function talkToNPC(npcId) {
                     {
                         text: "Accept: Act III: The Galactic Crucible",
                         action: () => {
-                            acceptQuest("story_act3");
+                            acceptQuest(storyAct3Id);
                             hideDialogue();
                         }
                     },
@@ -451,7 +489,7 @@ export function talkToNPC(npcId) {
         }
         // State 11: General / Free Roam
         else {
-            const hasFedEnding = completed.includes("story_act3") && state.character.storyline?.alignment === "federation";
+            const hasFedEnding = completed.includes(storyAct3Id) && state.character.storyline?.alignment === "federation";
             const greeting = hasFedEnding 
                 ? "Ah, hero of the Federation! Order has been established, and security reigns. Thank you for your service, Captain."
                 : "The peace summit is over. Stay safe out there, Captain. Keep our trade routes clear.";
@@ -465,7 +503,7 @@ export function talkToNPC(npcId) {
     // ============================================
     else if (npcId === "nesta") {
         // State 1: Act II Corsair Eligible (Chose Corsair in Act I)
-        if (completed.includes("quest_branch_01") && state.character.storyline?.alignment === "corsairs" && !active["story_act2_cor"] && !completed.includes("story_act2_cor")) {
+        if (completed.includes(questBranch01Id) && state.character.storyline?.alignment === "corsairs" && !active[storyAct2CorId] && !completed.includes(storyAct2CorId)) {
             showDialogue(
                 "Envoy Nesta",
                 "Haha! The freelancer who delivered the goods! Welcome to the Smuggler's Den. The Federation is crying about their lost telemetry and has set up customs blockades all over Xylo Delta. We need to secure cargo containers and breach their customs vault to steal their hyperdrive schematics. Are you in, mate?",
@@ -473,7 +511,7 @@ export function talkToNPC(npcId) {
                     {
                         text: "Accept Mission: Act II: The Smuggler's Run",
                         action: () => {
-                            acceptQuest("story_act2_cor");
+                            acceptQuest(storyAct2CorId);
                             hideDialogue();
                         }
                     },
@@ -482,7 +520,7 @@ export function talkToNPC(npcId) {
             );
         }
         // State 2: Act II Corsair Active (Not Complete)
-        else if (active["story_act2_cor"] && active["story_act2_cor"].currentStep < 4) {
+        else if (active[storyAct2CorId] && active[storyAct2CorId].currentStep < 4) {
             showDialogue(
                 "Envoy Nesta",
                 "We need that cargo secured and the Federation keycards swiped. Don't let their patrol ships scan you, freelancer!",
@@ -492,9 +530,9 @@ export function talkToNPC(npcId) {
             );
         }
         // State 3: Act II Corsair Ready to Turn In (at step 4)
-        else if (active["story_act2_cor"] && (active["story_act2_cor"].currentStep === 4 || active["story_act2_cor"].readyToTurnIn)) {
-            active["story_act2_cor"].atNpc = true;
-            active["story_act2_cor"].turnedInByNpc = true;
+        else if (active[storyAct2CorId] && (active[storyAct2CorId].currentStep === 4 || active[storyAct2CorId].readyToTurnIn)) {
+            active[storyAct2CorId].atNpc = true;
+            active[storyAct2CorId].turnedInByNpc = true;
 
             showDialogue(
                 "Envoy Nesta",
@@ -503,7 +541,7 @@ export function talkToNPC(npcId) {
                     {
                         text: "Complete Smuggler's Run & Report to Summit",
                         action: () => {
-                            completeQuest("story_act2_cor");
+                            completeQuest(storyAct2CorId);
                             hideDialogue();
                         }
                     }
@@ -511,7 +549,7 @@ export function talkToNPC(npcId) {
             );
         }
         // State 4: Act III Corsair Eligible
-        else if (completed.includes("story_act2_cor") && !active["story_act3"] && !completed.includes("story_act3")) {
+        else if (completed.includes(storyAct2CorId) && !active[storyAct3Id] && !completed.includes(storyAct3Id)) {
             showDialogue(
                 "Envoy Nesta",
                 "Get over to the Crucible Summit Hall on Nebula Outpost, Captain. Disrupt their fancy summit, and make sure we keep our freedom from Federation tyrants and corporate suit-wearers!",
@@ -519,7 +557,7 @@ export function talkToNPC(npcId) {
                     {
                         text: "Accept: Act III: The Galactic Crucible",
                         action: () => {
-                            acceptQuest("story_act3");
+                            acceptQuest(storyAct3Id);
                             hideDialogue();
                         }
                     },
@@ -529,7 +567,7 @@ export function talkToNPC(npcId) {
         }
         // State 5: General / Free Roam / Other Alignments
         else {
-            const hasCorsairEnding = completed.includes("story_act3") && state.character.storyline?.alignment === "corsairs";
+            const hasCorsairEnding = completed.includes(storyAct3Id) && state.character.storyline?.alignment === "corsairs";
             const greeting = hasCorsairEnding 
                 ? "The galaxy is free, Captain! No Federation blockades, no corporate rules. Keep flying the skull flag, legend!"
                 : "Welcome to Corsair space. Keep your weapons hot and your scanners sharp, freelancer.";
@@ -543,7 +581,7 @@ export function talkToNPC(npcId) {
     // ============================================
     else if (npcId === "thorne") {
         // State 1: Act II Syndicate Eligible (Chose Syndicate in Act I)
-        if (completed.includes("quest_branch_01") && state.character.storyline?.alignment === "syndicate" && !active["story_act2_syn"] && !completed.includes("story_act2_syn")) {
+        if (completed.includes(questBranch01Id) && state.character.storyline?.alignment === "syndicate" && !active[storyAct2SynId] && !completed.includes(storyAct2SynId)) {
             showDialogue(
                 "Dr. Elyse Thorne",
                 "Ah, our scientific collaborator. Welcome to the Syndicate Singularity Lab. The telemetry data you decrypted has allowed us to finalize designs for our experimental reactor. However, we require quantum chips to stabilize the singularity core. Will you contract with us to retrieve them?",
@@ -551,7 +589,7 @@ export function talkToNPC(npcId) {
                     {
                         text: "Accept Mission: Act II: Syndicate Contract",
                         action: () => {
-                            acceptQuest("story_act2_syn");
+                            acceptQuest(storyAct2SynId);
                             hideDialogue();
                         }
                     },
@@ -560,7 +598,7 @@ export function talkToNPC(npcId) {
             );
         }
         // State 2: Act II Syndicate Active (Not Complete)
-        else if (active["story_act2_syn"] && active["story_act2_syn"].currentStep < 4) {
+        else if (active[storyAct2SynId] && active[storyAct2SynId].currentStep < 4) {
             showDialogue(
                 "Dr. Elyse Thorne",
                 "The singularity experiments are on standby. We require those quantum processors to begin core calibration.",
@@ -570,9 +608,9 @@ export function talkToNPC(npcId) {
             );
         }
         // State 3: Act II Syndicate Ready to Turn In (at step 4)
-        else if (active["story_act2_syn"] && (active["story_act2_syn"].currentStep === 4 || active["story_act2_syn"].readyToTurnIn)) {
-            active["story_act2_syn"].atNpc = true;
-            active["story_act2_syn"].turnedInByNpc = true;
+        else if (active[storyAct2SynId] && (active[storyAct2SynId].currentStep === 4 || active[storyAct2SynId].readyToTurnIn)) {
+            active[storyAct2SynId].atNpc = true;
+            active[storyAct2SynId].turnedInByNpc = true;
 
             showDialogue(
                 "Dr. Elyse Thorne",
@@ -581,7 +619,7 @@ export function talkToNPC(npcId) {
                     {
                         text: "Complete Syndicate Contract & Report to Summit",
                         action: () => {
-                            completeQuest("story_act2_syn");
+                            completeQuest(storyAct2SynId);
                             hideDialogue();
                         }
                     }
@@ -589,7 +627,7 @@ export function talkToNPC(npcId) {
             );
         }
         // State 4: Act III Syndicate Eligible
-        else if (completed.includes("story_act2_syn") && !active["story_act3"] && !completed.includes("story_act3")) {
+        else if (completed.includes(storyAct2SynId) && !active[storyAct3Id] && !completed.includes(storyAct3Id)) {
             showDialogue(
                 "Dr. Elyse Thorne",
                 "Navigate to the Crucible Summit Hall at Nebula Outpost. Present our thermal core calculations and secure the energy cache. It is vital to the next phase of human cybernetic evolution.",
@@ -597,7 +635,7 @@ export function talkToNPC(npcId) {
                     {
                         text: "Accept: Act III: The Galactic Crucible",
                         action: () => {
-                            acceptQuest("story_act3");
+                            acceptQuest(storyAct3Id);
                             hideDialogue();
                         }
                     },
@@ -620,10 +658,10 @@ export function talkToNPC(npcId) {
     // SUMMIT DELEGATES (NEBULA OUTPOST)
     // ============================================
     else if (npcId === "delegates") {
-        const hasFinishedAct2 = completed.includes("story_act2_fed") || completed.includes("story_act2_cor") || completed.includes("story_act2_syn");
+        const hasFinishedAct2 = completed.includes(storyAct2FedId) || completed.includes(storyAct2CorId) || completed.includes(storyAct2SynId);
 
         // State 1: Summit Eligible
-        if (hasFinishedAct2 && !active["story_act3"] && !completed.includes("story_act3")) {
+        if (hasFinishedAct2 && !active[storyAct3Id] && !completed.includes(storyAct3Id)) {
             showDialogue(
                 "Summit Delegates",
                 "The high assembly is in deadlock. The Federation, Corsairs, and Syndicate are on the brink of total war over the Precursor weapons cache. You hold the coordinates, Captain. Your presentation will tip the balance of power. Are you prepared to speak?",
@@ -631,7 +669,7 @@ export function talkToNPC(npcId) {
                     {
                         text: "Enter the Summit (Accept: Act III: The Galactic Crucible)",
                         action: () => {
-                            acceptQuest("story_act3");
+                            acceptQuest(storyAct3Id);
                             hideDialogue();
                         }
                     },
@@ -640,13 +678,13 @@ export function talkToNPC(npcId) {
             );
         }
         // State 2: Summit Active
-        else if (active["story_act3"]) {
+        else if (active[storyAct3Id]) {
             // Force the choice dialogue to show immediately
-            active["story_act3"].atNpc = true;
-            active["story_act3"].turnedInByNpc = true;
+            active[storyAct3Id].atNpc = true;
+            active[storyAct3Id].turnedInByNpc = true;
             
             import('../quests.js').then(m => {
-                m.triggerChoiceStepIfActive("story_act3");
+                m.triggerChoiceStepIfActive(storyAct3Id);
             });
         }
         // State 3: General / Free Roam
@@ -666,8 +704,8 @@ export function talkToNPC(npcId) {
     // ============================================
     else if (npcId === "mercer") {
         // Sparky handles quest_branch_02
-        if (active["quest_branch_02"] && active["quest_branch_02"].readyToTurnIn) {
-            active["quest_branch_02"].turnedInByNpc = true;
+        if (active[questBranch02Id] && active[questBranch02Id].readyToTurnIn) {
+            active[questBranch02Id].turnedInByNpc = true;
             showDialogue(
                 "Jax 'Sparky' Mercer",
                 "Hot diggity! You actually got that Plasma Core! The power grid in my workshop is humming. Here's your credits, spacer. Pleasure doing business!",
@@ -675,13 +713,13 @@ export function talkToNPC(npcId) {
                     {
                         text: "Turn in Plasma Core",
                         action: () => {
-                            completeQuest("quest_branch_02");
+                            completeQuest(questBranch02Id);
                             hideDialogue();
                         }
                     }
                 ]
             );
-        } else if (active["quest_branch_02"]) {
+        } else if (active[questBranch02Id]) {
             showDialogue(
                 "Jax 'Sparky' Mercer",
                 "Any luck snatching that Plasma Core from the Federation depot? My tools are running on fumes here!",
@@ -689,7 +727,7 @@ export function talkToNPC(npcId) {
                     { text: "Still working on it, Sparky.", action: hideDialogue }
                 ]
             );
-        } else if (!active["quest_branch_02"] && !completed.includes("quest_branch_02")) {
+        } else if (!active[questBranch02Id] && !completed.includes(questBranch02Id)) {
             showDialogue(
                 "Jax 'Sparky' Mercer",
                 "Hey there, spacer! Rusted hulls and electrical fires, that's my specialty. Say, you look like you can slip past Federation guards. I need a Plasma Core from their depot to power my heavy salvage laser. Willing to pay top credits. What do you say?",
@@ -697,7 +735,7 @@ export function talkToNPC(npcId) {
                     {
                         text: "Accept: Scavenger's Gamble",
                         action: () => {
-                            acceptQuest("quest_branch_02");
+                            acceptQuest(questBranch02Id);
                             hideDialogue();
                         }
                     },

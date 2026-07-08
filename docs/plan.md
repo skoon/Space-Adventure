@@ -142,6 +142,14 @@
 - **Stability Management:** Slotting too many mods increases "System Instability," leading to occasional status glitches during combat if exceeded.
 - **Specialization Tree:** Adds distinct branching tech trees (Heavy Combat, Nano-Biotech, Cyber-Hacking) using specialization points.
 - **Integration & Verification:** Verified via unit tests in [cybernetics_modding.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/cybernetics_modding.test.js) and [specialization_tree.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/specialization_tree.test.js).
+
+### Quest Giver Turn-In Gating & Class-Specific Story Paths (Completed)
+**How it works:** Extends the questing system to enforce turn-in gating at NPCs and splits main story questlines into class-specific pathways.
+**Mechanics:**
+- **NPC Turn-in Gating:** Quests with defined `giver` metadata do not auto-complete on their last step. Instead, they enter a `readyToTurnIn = true` state, requiring the player to return to the NPC to hand in the quest.
+- **Generic NPC Interceptors:** Created a generic turn-in handler for NPCs and companion crew members, allowing any non-custom quest to be turned in directly via dialogue/crew chat.
+- **Class-Specific Main Story Variants:** Main story quests are duplicated into `_warrior`, `_rogue`, and `_scientist` variants with distinct objective numbers, target enemies, and items tailored to the role.
+- **Integration & Verification:** Mapped automatically in quest systems and verified via tests in [class_quests_turnin.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/class_quests_turnin.test.js).
 ---
 
 ## 🔮 Future / Planned Ideas

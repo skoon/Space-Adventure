@@ -34,20 +34,34 @@ export function initQuests(dependencies) {
 }
 
 /**
+ * Map questId to class specific quest variant if it exists
+ */
+export function getRoleQuestId(questId) {
+    if (!state || !state.character) return questId;
+    const role = (state.character.role || "Warrior").toLowerCase();
+    const roleQuestId = `${questId}_${role}`;
+    if (quests && quests[roleQuestId]) {
+        return roleQuestId;
+    }
+    return questId;
+}
+
+/**
  * Accept a quest
  */
 export function acceptQuest(questId) {
-    if (!state.character || state.character.activeQuests[questId] || state.character.completedQuests.includes(questId)) return;
+    const mappedQuestId = getRoleQuestId(questId);
+    if (!state.character || state.character.activeQuests[mappedQuestId] || state.character.completedQuests.includes(mappedQuestId)) return;
 
-    const quest = quests[questId];
+    const quest = quests[mappedQuestId];
     if (!quest) return;
 
-    state.character.activeQuests[questId] = { progress: 0, currentStep: 0 };
+    state.character.activeQuests[mappedQuestId] = { progress: 0, currentStep: 0 };
     addLog(`[!] Quest Accepted: ${quest.title}`);
     showSaveMessage(`Quest Accepted: ${quest.title}`);
 
     // If the first step is a choice, trigger it immediately
-    triggerChoiceStepIfActive(questId);
+    triggerChoiceStepIfActive(mappedQuestId);
 }
 
 /**
@@ -155,17 +169,21 @@ export function completeStep(questId) {
  * Complete a quest and grant rewards
  */
 export function completeQuest(questId) {
-    if (!state.character || !state.character.activeQuests[questId]) return;
+    const mappedQuestId = getRoleQuestId(questId);
+    if (!state.character || !state.character.activeQuests[mappedQuestId]) return;
 
-    const quest = quests[questId];
-    const activeQuest = state.character.activeQuests[questId];
+    const quest = quests[mappedQuestId];
+    const activeQuest = state.character.activeQuests[mappedQuestId];
 
-    // Prevent main story quests (and scavenger's gamble side quest) from auto-completing in space.
+    // Prevent quests with givers (and main story/scavenger's gamble side quests) from auto-completing in space.
     // They must be turned in explicitly at their respective NPC.
-    const isSpecialTurnInQuest = quest.isMainStory || questId === "quest_branch_02";
-    if (isSpecialTurnInQuest && !activeQuest.turnedInByNpc) {
+    const requiresTurnIn = quest.isMainStory || quest.giver || questId === "quest_branch_02" || mappedQuestId.includes("quest_branch_02");
+    if (requiresTurnIn && !activeQuest.turnedInByNpc) {
         activeQuest.readyToTurnIn = true;
-        addLog(`[!] OBJECTIVES COMPLETE: Return to the quest-giver NPC in their district to hand in '${quest.title}' and claim your rewards.`);
+        const giverInfo = quest.giver 
+            ? `Return to ${quest.giver.name} in ${quest.giver.location}` 
+            : "Return to the quest-giver NPC in their district";
+        addLog(`[!] OBJECTIVES COMPLETE: ${giverInfo} to hand in '${quest.title}' and claim your rewards.`);
         updateUI();
         return;
     }
@@ -655,7 +673,18 @@ export function evaluateChoice(questId, choiceIndex) {
 export function getAvailableQuests() {
     if (!state.character) return [];
 
+    const role = (state.character.role || "Warrior").toLowerCase();
+
     return Object.values(quests).filter(q => {
+        // Filter out base main story quests that have class variants
+        const roleQuestId = `${q.id}_${role}`;
+        if (quests[roleQuestId]) return false;
+
+        // Role gating for role-specific main story variants
+        if (q.id.endsWith("_warrior") && role !== "warrior") return false;
+        if (q.id.endsWith("_rogue") && role !== "rogue") return false;
+        if (q.id.endsWith("_scientist") && role !== "scientist") return false;
+
         // Not active or completed
         if (state.character.activeQuests[q.id] || state.character.completedQuests.includes(q.id)) return false;
 
