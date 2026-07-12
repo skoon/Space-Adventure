@@ -30,7 +30,7 @@ import { initCyberneticsUI } from './ui/cybernetics-ui.js';
 import { getActiveCompanion } from './companions.js';
 import { renderDungeon } from './ui/dungeon-renderer.js';
 import { SKILL_TREES, hasSkill, unlockSkill, SPECIALIZATION_TREES, hasSpecialization, unlockSpecialization } from './skills.js';
-import { applyThemeToDOM } from './theme-engine.js';
+import { applyThemeToDOM, t } from './theme-engine.js';
 
 // Re-export for external use
 export { 
@@ -319,7 +319,7 @@ function updateDerelictUI() {
 function updateLocationDisplay() {
     const display = document.getElementById("currentLocationDisplay");
     if (display && state.currentLocation && deps.data.locations[state.currentLocation]) {
-        display.textContent = deps.data.locations[state.currentLocation].name;
+        display.textContent = t(deps.data.locations[state.currentLocation].name);
     }
 }
 
@@ -344,7 +344,7 @@ function updateCharacterInfo() {
         renderCache.character.avatar = avatar;
     }
     
-    const raceRole = `${char.race} ${char.role}`;
+    const raceRole = `${t(char.race)} ${t(char.role)}`;
     if (renderCache.character.raceRole !== raceRole) {
         if (elements.characterRaceRole) elements.characterRaceRole.textContent = raceRole;
         renderCache.character.raceRole = raceRole;
@@ -770,18 +770,18 @@ export async function renderShipModules() {
         shieldStatusNode.innerHTML = `
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h3 class="font-bold text-cyan-400 text-lg flex items-center gap-2">🛡️ Deflector Shields Capacitor</h3>
-                    <p class="text-xs text-gray-300 mt-1">Shield Integrity: <span class="font-mono text-cyan-400 font-bold">${shields}/${maxShields}</span></p>
+                    <h3 class="font-bold text-cyan-400 text-lg flex items-center gap-2">🛡️ ${t("Deflector Shields")}</h3>
+                    <p class="text-xs text-gray-300 mt-1">${t("Shield Integrity")}: <span class="font-mono text-cyan-400 font-bold">${shields}/${maxShields}</span></p>
                     <div class="w-48 bg-gray-800 rounded-full h-2 mt-2">
                         <div class="bg-cyan-500 h-2 rounded-full transition-all" style="width: ${(shields / maxShields) * 100}%"></div>
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-2">
                     <button id="rechargeScrapBtn" class="px-3 py-1.5 text-xs font-bold rounded ${canAffordScrapRecharge ? 'bg-cyan-600 hover:bg-cyan-500 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}" ${!canAffordScrapRecharge ? 'disabled' : ''}>
-                        🔧 Recharge (-1 Scrap, +25 HP)
+                        🔧 ${t("Recharge (-1 Scrap, +25 HP)")}
                     </button>
                     <button id="rechargeCreditsBtn" class="px-3 py-1.5 text-xs font-bold rounded ${canAffordCreditsRecharge ? 'bg-teal-600 hover:bg-teal-500 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}" ${!canAffordCreditsRecharge ? 'disabled' : ''}>
-                        💳 Repair Hull (-${creditsCost} CR)
+                        💳 ${t("Repair Hull")} (-${creditsCost} ${t("CR")})
                     </button>
                 </div>
             </div>
@@ -821,9 +821,9 @@ export async function renderShipModules() {
         
         let costHtml = '';
         if (!isMaxLevel && cost) {
-            costHtml = `<div class="text-xs mt-2 text-yellow-400">Upgrade Cost: ${cost.credits} Credits`;
+            costHtml = `<div class="text-xs mt-2 text-yellow-400">${t("Upgrade Cost")}: ${cost.credits} ${t("Credits")}`;
             if (Object.keys(cost.materials).length > 0) {
-                costHtml += `, ${Object.entries(cost.materials).map(([k, v]) => `${v}x ${k}`).join(', ')}`;
+                costHtml += `, ${Object.entries(cost.materials).map(([k, v]) => `${v}x ${t(k)}`).join(', ')}`;
             }
             costHtml += `</div>`;
         }
@@ -833,19 +833,19 @@ export async function renderShipModules() {
         
         let buttonHtml = '';
         if (isMaxLevel) {
-            buttonHtml = `<button class="px-4 py-1 bg-gray-600 text-gray-300 rounded cursor-not-allowed text-xs font-bold" disabled>MAX LEVEL</button>`;
+            buttonHtml = `<button class="px-4 py-1 bg-gray-600 text-gray-300 rounded cursor-not-allowed text-xs font-bold" disabled>${t("MAX LEVEL")}</button>`;
         } else {
             const btnClass = canAfford 
                 ? "bg-cyan-600 hover:bg-cyan-500 text-white" 
                 : "bg-gray-600 text-gray-400 cursor-not-allowed";
-            buttonHtml = `<button class="px-4 py-1 rounded text-xs font-bold transition-colors ${btnClass}" ${!canAfford ? 'disabled' : ''}>UPGRADE</button>`;
+            buttonHtml = `<button class="px-4 py-1 rounded text-xs font-bold transition-colors ${btnClass}" ${!canAfford ? 'disabled' : ''}>${t("UPGRADE")}</button>`;
         }
         
         node.innerHTML = `
             <div class="flex justify-between items-start">
                 <div>
-                    <h3 class="font-bold text-cyan-300 text-lg">${mod.name} <span class="text-sm text-cyan-600">LVL ${currentLevel}</span></h3>
-                    <p class="text-gray-400 mt-1">${mod.descriptions[currentLevel] || mod.descriptions[mod.descriptions.length - 1]}</p>
+                    <h3 class="font-bold text-cyan-300 text-lg">${t(mod.name)} <span class="text-sm text-cyan-600">LVL ${currentLevel}</span></h3>
+                    <p class="text-gray-400 mt-1">${t(mod.descriptions[currentLevel] || mod.descriptions[mod.descriptions.length - 1])}</p>
                     ${costHtml}
                 </div>
                 <div>
@@ -1032,14 +1032,14 @@ export function updateQuickCrewPanel() {
     if (avatarEl && nameEl && levelEl && skillEl) {
         if (activeCompanion) {
             avatarEl.textContent = activeCompanion.avatar || "👤";
-            nameEl.textContent = `${activeCompanion.name} - ${activeCompanion.role}`;
-            levelEl.textContent = `LVL ${activeCompanion.level} (${activeCompanion.trust} Trust)`;
-            skillEl.textContent = `Ability: ${activeCompanion.abilityName} - ${activeCompanion.abilityDesc}`;
+            nameEl.textContent = `${t(activeCompanion.name)} - ${t(activeCompanion.role)}`;
+            levelEl.textContent = `${t("LVL")} ${activeCompanion.level} (${activeCompanion.trust} ${t("Trust")})`;
+            skillEl.textContent = `${t("Ability")}: ${t(activeCompanion.abilityName)} - ${t(activeCompanion.abilityDesc)}`;
         } else {
             avatarEl.textContent = "👤";
-            nameEl.textContent = "No active crew deployed";
+            nameEl.textContent = t("No active crew deployed");
             levelEl.textContent = "";
-            skillEl.textContent = "Deploy a companion in the Ship Hub to receive assistance.";
+            skillEl.textContent = t("Deploy a companion in the Ship Hub to receive assistance.");
         }
     }
     

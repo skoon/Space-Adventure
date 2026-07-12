@@ -5,6 +5,7 @@
 
 import { showDialogue, hideDialogue } from './dialogue-ui.js';
 import { acceptQuest, completeQuest, getRoleQuestId } from '../quests.js';
+import { t } from '../theme-engine.js';
 
 let state;
 let deps;
@@ -56,13 +57,13 @@ export function renderDistricts() {
     const location = deps.data.locations[state.currentLocation];
     if (!location) return;
 
-    if (titleEl) titleEl.textContent = `>> ${location.name} Districts <<`;
-    if (subtitleEl) subtitleEl.textContent = `Local sub-locations and installations in this sector.`;
+    if (titleEl) titleEl.textContent = `>> ${t(location.name)} Districts <<`;
+    if (subtitleEl) subtitleEl.textContent = t(`Local sub-locations and installations in this sector.`);
 
     const districts = location.districts || [];
 
     if (districts.length === 0) {
-        container.innerHTML = `<div class="text-gray-500 italic text-center p-6 font-mono text-xs">No local districts mapped for this sector.</div>`;
+        container.innerHTML = `<div class="text-gray-500 italic text-center p-6 font-mono text-xs">${t("No local districts mapped for this sector.")}</div>`;
         return;
     }
 
@@ -216,10 +217,10 @@ export function renderDistricts() {
                 <div class="text-3xl p-2 bg-black/40 rounded border border-gray-850/80 flex-shrink-0 w-12 h-12 flex items-center justify-center">${dist.icon || "🏢"}</div>
                 <div class="min-w-0">
                     <div class="flex items-center gap-2 flex-wrap mb-1">
-                        <h3 class="text-sm font-bold text-white tracking-wide uppercase font-mono truncate">${dist.name}</h3>
+                        <h3 class="text-sm font-bold text-white tracking-wide uppercase font-mono truncate">${t(dist.name)}</h3>
                         ${badgeHtml}
                     </div>
-                    <p class="text-xs text-gray-400 leading-relaxed font-sans">${dist.description}</p>
+                    <p class="text-xs text-gray-400 leading-relaxed font-sans">${t(dist.description)}</p>
                 </div>
             </div>
             ${actionBtnHtml}
@@ -244,7 +245,7 @@ export function exploreDistrict(distId) {
     if (!dist) return;
 
     if (deps.ui && deps.ui.addLog) {
-        deps.ui.addLog(`🔍 You explored the ${dist.name}. It is quiet and secure.`);
+        deps.ui.addLog(t(`🔍 You explored the ${dist.name}. It is quiet and secure.`));
     }
 }
 

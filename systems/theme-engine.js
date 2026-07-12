@@ -28,10 +28,40 @@ export function tToken(token) {
 
 /**
  * Dynamic string translation
- * In the generic engine, this returns the text directly because all text is loaded from theme-configured datasets.
+ * Performs dictionary lookups on theme.vocab with word boundary and case preservation checks.
  */
 export function t(text) {
-    return text;
+    if (typeof text !== 'string' || !text) return text;
+    let translated = text;
+    
+    // Sort vocabulary keys by length descending to prevent partial matching bugs
+    const vocabKeys = Object.keys(theme.vocab || {}).sort((a, b) => b.length - a.length);
+    
+    vocabKeys.forEach(key => {
+        const regex = new RegExp(`\\b${key}\\b`, 'gi');
+        translated = translated.replace(regex, (match) => {
+            const replacement = theme.vocab[key];
+            
+            // 1. Preserve ALL CAPS
+            if (match === match.toUpperCase()) return replacement.toUpperCase();
+            
+            // 2. Preserve Title Case for multi-word strings (e.g. "Deflector Shields")
+            const isTitle = match.split(' ').every(word => !word || word[0] === word[0].toUpperCase());
+            if (isTitle) {
+                return replacement.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            }
+            
+            // 3. Preserve Capitalized (first word capitalized)
+            if (match[0] === match[0].toUpperCase()) {
+                return replacement.charAt(0).toUpperCase() + replacement.slice(1);
+            }
+            
+            // 4. Default to lowercase
+            return replacement.toLowerCase();
+        });
+    });
+    
+    return translated;
 }
 
 /**

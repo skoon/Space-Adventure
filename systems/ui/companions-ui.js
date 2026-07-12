@@ -271,7 +271,7 @@ export function renderCompanionsTab() {
             const roomData = cabinRooms[id] || { title: "Crew Cabin", desc: "A cozy crew cabin." };
             const cabinDescBox = document.createElement('div');
             cabinDescBox.className = 'p-2 rounded bg-black/30 border border-gray-800 text-[11px] text-gray-400 italic mb-2 line-clamp-3 leading-relaxed';
-            cabinDescBox.innerHTML = t(`<strong>${roomData.title}</strong><br>${roomData.desc}`);
+            cabinDescBox.innerHTML = `<strong>${t(roomData.title)}</strong><br>${t(roomData.desc)}`;
             topSec.appendChild(cabinDescBox);
 
             // Trust Progress
@@ -374,9 +374,9 @@ export function renderCompanionsTab() {
                 const giftWrapper = document.createElement('div');
                 giftWrapper.className = 'flex flex-col gap-1';
                 
-                const giftLabel = document.createElement('div');
-                giftLabel.className = 'text-[10px] text-gray-500 font-bold uppercase';
-                giftLabel.textContent = 'Gift Items:';
+                const giftLabel = document.createElement('span');
+                giftLabel.className = 'text-[10px] text-gray-500 font-bold uppercase tracking-wider';
+                giftLabel.textContent = t('Gift Items:');
                 giftWrapper.appendChild(giftLabel);
 
                 // Show up to 3 gift options to prevent overflow

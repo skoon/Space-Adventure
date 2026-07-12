@@ -4,6 +4,7 @@
  */
 
 import { addLog } from './logger.js';
+import { t } from '../theme-engine.js';
 
 let state;
 let renderCache;
@@ -72,7 +73,7 @@ export function updateInventory() {
         if (categorized[cat].length > 0) {
             const header = document.createElement('div');
             header.className = 'text-xs font-bold text-gray-400 mt-2 mb-1 uppercase tracking-wider';
-            header.textContent = cat;
+            header.textContent = t(cat);
             inventoryElement.appendChild(header);
             
             categorized[cat].forEach(({ name, count, item }) => {
@@ -140,7 +141,7 @@ export function createInventoryItemButton(itemName, count, item) {
     // Display name with count
     const nameSpan = document.createElement('span');
     nameSpan.className = `text-sm ${textClass}`;
-    nameSpan.textContent = itemName;
+    nameSpan.textContent = t(itemName);
     button.appendChild(nameSpan);
     
     if (count > 1) {
@@ -166,12 +167,12 @@ export function createInventoryItemButton(itemName, count, item) {
         }
     });
 
-    let tooltipHtml = `<div class="font-bold ${tooltipHeaderColor} text-sm border-b border-gray-700 pb-1 mb-1">${itemName}</div>`;
-    tooltipHtml += `<div class="text-xs text-gray-400 mb-1 italic">${item?.type || 'Item'}</div>`;
-    tooltipHtml += `<div class="text-xs text-gray-300">${item?.description || 'No description'}</div>`;
+    let tooltipHtml = `<div class="font-bold ${tooltipHeaderColor} text-sm border-b border-gray-700 pb-1 mb-1">${t(itemName)}</div>`;
+    tooltipHtml += `<div class="text-xs text-gray-400 mb-1 italic">${t(item?.type || 'Item')}</div>`;
+    tooltipHtml += `<div class="text-xs text-gray-300">${t(item?.description || 'No description')}</div>`;
     
     if (item && ["weapon", "armor", "accessory"].includes(item.type)) {
-        tooltipHtml += '<div class="text-[10px] text-gray-500 font-bold uppercase mt-2 pt-1 border-t border-gray-800 tracking-wider">VS EQUIPPED:</div>';
+        tooltipHtml += `<div class="text-[10px] text-gray-500 font-bold uppercase mt-2 pt-1 border-t border-gray-800 tracking-wider">${t("VS EQUIPPED:")}</div>`;
         
         const slot = item.type;
         const equippedItemName = state.character?.equipment?.[slot];
@@ -190,7 +191,7 @@ export function createInventoryItemButton(itemName, count, item) {
             atkDiffHtml = `<span class="text-gray-500">(+0)</span>`;
         }
         tooltipHtml += `<div class="text-xs text-gray-300 flex justify-between gap-4 mt-0.5">
-            <span>⚔️ ATK: ${baseAtk}</span>
+            <span>⚔️ ${t("ATK")}: ${baseAtk}</span>
             <span>${atkDiffHtml}</span>
         </div>`;
 
@@ -207,22 +208,22 @@ export function createInventoryItemButton(itemName, count, item) {
             defDiffHtml = `<span class="text-gray-500">(+0)</span>`;
         }
         tooltipHtml += `<div class="text-xs text-gray-300 flex justify-between gap-4 mt-0.5">
-            <span>🛡️ DEF: ${baseDef}</span>
+            <span>🛡️ ${t("DEF")}: ${baseDef}</span>
             <span>${defDiffHtml}</span>
         </div>`;
     } else if (item?.stats) {
         tooltipHtml += '<div class="text-xs text-green-400 mt-1 flex flex-col gap-0.5">';
-        if (item.stats.attack) tooltipHtml += `<span>⚔️ ATK +${item.stats.attack}</span>`;
-        if (item.stats.defense) tooltipHtml += `<span>🛡️ DEF +${item.stats.defense}</span>`;
+        if (item.stats.attack) tooltipHtml += `<span>⚔️ ${t("ATK")} +${item.stats.attack}</span>`;
+        if (item.stats.defense) tooltipHtml += `<span>🛡️ ${t("DEF")} +${item.stats.defense}</span>`;
         tooltipHtml += '</div>';
     }
     
     if (item?.effect && item?.value) {
-        tooltipHtml += `<div class="text-xs text-blue-400 mt-1">❤️ Restores ${item.value} HP</div>`;
+        tooltipHtml += `<div class="text-xs text-blue-400 mt-1">❤️ ${t("Restores")} ${item.value} ${t("HP")}</div>`;
     }
     
     if (item?.price) {
-        tooltipHtml += `<div class="text-xs text-yellow-600 mt-2 text-right">Value: ${Math.floor(item.price/2)} cr</div>`;
+        tooltipHtml += `<div class="text-xs text-yellow-600 mt-2 text-right">${t("Value")}: ${Math.floor(item.price/2)} ${t("cr")}</div>`;
     }
     
     tooltip.innerHTML = tooltipHtml;
