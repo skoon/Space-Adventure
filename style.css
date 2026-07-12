@@ -6,6 +6,27 @@
   --background-color: #111827;
   --card-background: #1f2937;
   --text-color: #f3f4f6;
+
+  /* Base Glassmorphic Backgrounds */
+  --glass-bg: rgba(10, 16, 26, 0.85);
+  --glass-blur: blur(10px);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+  /* Functional UI Accent Colors */
+  --color-orange: #ff7a00;   /* Commerce, Syndicate, Shopping */
+  --color-red: #ff2a2a;      /* Combat, Stagger/Break, Criticals, HP Warning */
+  --color-green: #00ff88;    /* Character stats, Spec Trees, Healing */
+  --color-blue: #0088ff;     /* Travel, Stars, Navigation, Engines */
+  --color-cyan: #00ffff;     /* Holograms, Dialogue Engine, Dice Rolls */
+  --color-amber: #ffb800;    /* Derelict Maze, Oxygen, Log files */
+
+  /* Core Glow Borders */
+  --border-orange: 1px solid rgba(255, 122, 0, 0.4);
+  --border-red: 1px solid rgba(255, 42, 42, 0.4);
+  --border-green: 1px solid rgba(0, 255, 136, 0.4);
+  --border-blue: 1px solid rgba(0, 136, 255, 0.4);
+  --border-cyan: 1px solid rgba(0, 255, 255, 0.4);
+  --border-amber: 1px solid rgba(255, 184, 0, 0.4);
 }
 
 * {
@@ -1443,5 +1464,124 @@ button {
 .skip-crawl-btn:active {
   transform: scale(0.98);
 }
+
+/* ==========================================
+   UI OVERHAUL - GLASSMORPHIC HUD SYSTEM
+   ========================================== */
+
+/* Combat Panel (Red/Orange) */
+.combat-glass-container {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  border: var(--border-red) !important;
+  box-shadow: var(--glass-shadow), 0 0 15px rgba(255, 42, 42, 0.1) !important;
+}
+
+/* Photon Prime Online Store (Orange/Amber) */
+.photon-glass-container {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  border: var(--border-orange) !important;
+  box-shadow: var(--glass-shadow), 0 0 15px rgba(255, 122, 0, 0.15) !important;
+}
+
+
+.ap-node {
+  width: 14px;
+  height: 14px;
+  background: var(--color-orange);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--color-orange);
+  display: inline-block;
+  margin-right: 6px;
+  transition: all 0.3s ease;
+}
+
+.ap-node.spent {
+  background: rgba(30, 41, 59, 0.5) !important;
+  border: 1px solid rgba(255, 122, 0, 0.2);
+  box-shadow: none !important;
+}
+
+/* Character & Specialization (Emerald Green) */
+.spec-glass-container {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  border: var(--border-green) !important;
+  box-shadow: var(--glass-shadow), 0 0 15px rgba(0, 255, 136, 0.1) !important;
+}
+
+/* Space Travel Navigation (Deep Blue) */
+.travel-glass-container {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  border: var(--border-blue) !important;
+  box-shadow: var(--glass-shadow), 0 0 15px rgba(0, 136, 255, 0.1) !important;
+}
+
+/* Derelict Survival (Radioactive Amber) */
+.derelict-glass-container {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  border: var(--border-amber) !important;
+  box-shadow: var(--glass-shadow), 0 0 15px rgba(255, 184, 0, 0.1) !important;
+}
+
+.oxygen-bar-fill {
+  background: linear-gradient(90deg, var(--color-amber) 0%, #ff8800 100%) !important;
+  box-shadow: 0 0 10px rgba(255, 184, 0, 0.4);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.oxygen-bar-fill.critical {
+  background: var(--color-red) !important;
+  box-shadow: 0 0 15px var(--color-red) !important;
+  animation: flash-animation 1s infinite alternate;
+}
+
+@keyframes flash-animation {
+  0% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+/* Dialogue Overlay (Holographic Cyan) */
+.dialogue-glass-container {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  border: var(--border-cyan) !important;
+  box-shadow: var(--glass-shadow), 0 0 20px rgba(0, 255, 255, 0.15) !important;
+}
+
+.dialogue-hologram {
+  background: linear-gradient(
+    rgba(10, 16, 26, 0.95) 50%, 
+    rgba(2, 6, 23, 0.95) 50%
+  );
+  background-size: 100% 4px;
+}
+
+.hologram-flicker {
+  animation: text-flicker-once 0.3s ease-out;
+}
+
+@keyframes text-flicker-once {
+  0% { opacity: 0.3; filter: hue-rotate(90deg); }
+  25% { opacity: 0.8; }
+  50% { opacity: 0.4; filter: skewX(2deg); }
+  75% { opacity: 0.9; }
+  100% { opacity: 1; filter: none; }
+}
+
+.dice-container-glow {
+  border: 2px solid var(--color-cyan) !important;
+  background: rgba(0, 26, 26, 0.95) !important;
+  box-shadow: 0 0 15px var(--color-cyan) !important;
+  font-size: 28px !important;
+  font-weight: bold !important;
+  color: var(--color-cyan) !important;
+  text-shadow: 0 0 8px var(--color-cyan);
+}
+
 
 

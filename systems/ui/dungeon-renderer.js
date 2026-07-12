@@ -32,11 +32,11 @@ function render3DViewport() {
     const H = canvas.height;
 
     // 1. Clear background (retro dark space black)
-    ctx.fillStyle = '#050c0a';
+    ctx.fillStyle = '#0a0601';
     ctx.fillRect(0, 0, W, H);
 
     // Draw horizon line
-    ctx.strokeStyle = 'rgba(0, 255, 204, 0.15)';
+    ctx.strokeStyle = 'rgba(255, 184, 0, 0.15)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(0, H / 2);
@@ -157,7 +157,7 @@ function render3DViewport() {
 
         // Setup stroke color based on depth (fog effect)
         const alpha = Math.min(1.0, 3.5 / perpWallDist);
-        const strokeColor = `rgba(0, 255, 204, ${alpha * 0.7})`; // Vector cyan
+        const strokeColor = `rgba(255, 184, 0, ${alpha * 0.7})`; // Radioactive Amber
 
         // 3. Draw horizontal wall wireframe edges (ceiling and floor borders of walls)
         ctx.strokeStyle = strokeColor;
@@ -214,7 +214,7 @@ function render3DViewport() {
     });
 
     // 4. Draw wireframe floor/ceiling grid lines converging to center
-    ctx.strokeStyle = 'rgba(0, 255, 204, 0.05)';
+    ctx.strokeStyle = 'rgba(255, 184, 0, 0.05)';
     ctx.lineWidth = 0.5;
     for (let i = 0; i < W; i += 40) {
         ctx.beginPath();
@@ -485,12 +485,12 @@ function renderMinimap() {
                     const cellVal = grid[y][x];
                     if (cellVal === 1) {
                         // Wall edge revealed on scanner
-                        ctx.strokeStyle = 'rgba(0, 255, 204, 0.1)';
+                        ctx.strokeStyle = 'rgba(255, 184, 0, 0.1)';
                         ctx.lineWidth = 1;
                         ctx.strokeRect(x * cellSize + 1, y * cellSize + 1, cellSize - 2, cellSize - 2);
                     } else {
                         // Empty hallway signature
-                        ctx.fillStyle = 'rgba(0, 255, 204, 0.02)';
+                        ctx.fillStyle = 'rgba(255, 184, 0, 0.02)';
                         ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
                         
                         // Faint warning or loot marker based on scanner
@@ -510,7 +510,7 @@ function renderMinimap() {
             }
 
             // Draw grid outline
-            ctx.strokeStyle = 'rgba(0, 255, 204, 0.04)';
+            ctx.strokeStyle = 'rgba(255, 184, 0, 0.04)';
             ctx.lineWidth = 0.5;
             ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
         }
@@ -522,8 +522,8 @@ function renderMinimap() {
     const arrowSize = cellSize * 0.4;
     
     // Rotate triangle matching direction vector (dirX, dirY)
-    ctx.fillStyle = '#00ffcc';
-    ctx.shadowColor = '#00ffcc';
+    ctx.fillStyle = '#ffb800';
+    ctx.shadowColor = '#ffb800';
     ctx.shadowBlur = 8;
     
     ctx.beginPath();

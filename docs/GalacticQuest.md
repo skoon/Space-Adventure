@@ -542,6 +542,7 @@ npm test
 | [`docs/photon_prime_store_mockup.md`](file:///d:/source/Roogames/Space%20Adventure/docs/photon_prime_store_mockup.md) | **PHOTON PRIME STORE MOCKUP** — visual UI layout mockup and HTML/CSS styles plan for the online ordering interface |
 | [`docs/portraits_gallery.md`](file:///d:/source/Roogames/Space%20Adventure/docs/portraits_gallery.md) | **PORTRAITS GALLERY** — visual reference cards for companions, merchants, and hostile biological/mechanical threats |
 | [`docs/ui_overhaul_plan.md`](file:///d:/source/Roogames/Space%20Adventure/docs/ui_overhaul_plan.md) | **UI OVERHAUL PLAN** — design tokens, CSS variables, and layout specs extending glassmorphic HUD styling across Combat, Character, Travel, Derelict, and Dialogue interfaces |
+| [`docs/walkthrough.md`](file:///d:/source/Roogames/Space%20Adventure/docs/walkthrough.md) | **UI OVERHAUL WALKTHROUGH** — summary of the completed glassmorphic layout updates, color shaders, and testing results |
 | [`docs/quest_modules_design.md`](file:///d:/source/Roogames/Space%20Adventure/docs/quest_modules_design.md) | **IMPORTABLE MODULES DESIGN** — technical schema for packaging, linking, and executing modular quests |
 | [`docs/scifi_vocabulary_report.md`](file:///d:/source/Roogames/Space%20Adventure/docs/scifi_vocabulary_report.md) | Audit of all hardcoded genre strings — required reading before generalization |
 

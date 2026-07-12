@@ -477,6 +477,22 @@ export function updateCombatUI() {
     const apBar = document.getElementById("combatApBar");
     if (apBar) apBar.style.width = `${apPercentage}%`;
 
+    // Render glowing AP capsules
+    const apNodesContainer = document.getElementById("combatApNodes");
+    if (apNodesContainer) {
+        const maxAp = state.character.maxAp || 3;
+        const currentAp = state.character.ap;
+        let html = "";
+        for (let i = 0; i < maxAp; i++) {
+            if (i < currentAp) {
+                html += '<span class="ap-node"></span>';
+            } else {
+                html += '<span class="ap-node spent"></span>';
+            }
+        }
+        apNodesContainer.innerHTML = html;
+    }
+
     const activeStance = state.combatStance || "Neutral";
     const isShadow = activeStance === "Shadow";
     const isHighGravity = activeEnv === "High Gravity";

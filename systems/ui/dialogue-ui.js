@@ -158,6 +158,15 @@ export function showDialogue(title, text, options = []) {
     const overlay = document.getElementById("dialogueOverlay");
     if (!overlay) return;
 
+    // Apply temporary hologram flicker animation on load
+    const dialogueContainer = overlay.querySelector(".dialogue-container");
+    if (dialogueContainer) {
+        dialogueContainer.classList.add("hologram-flicker");
+        setTimeout(() => {
+            dialogueContainer.classList.remove("hologram-flicker");
+        }, 300);
+    }
+
     // Identify speaker and active mood
     const speaker = identifySpeaker(title, text);
     const mood = getMood(speaker.key);
