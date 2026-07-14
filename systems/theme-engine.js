@@ -38,7 +38,13 @@ export function t(text) {
     const vocabKeys = Object.keys(theme.vocab || {}).sort((a, b) => b.length - a.length);
     
     vocabKeys.forEach(key => {
-        const regex = new RegExp(`\\b${key}\\b`, 'gi');
+        // Escapes special regex characters in the vocabulary key
+        const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Apply word boundary checks only if the key starts/ends with a word character
+        const startBound = /^\w/.test(key) ? '\\b' : '';
+        const endBound = /\w$/.test(key) ? '\\b' : '';
+        const regex = new RegExp(`${startBound}${escapedKey}${endBound}`, 'gi');
+        
         translated = translated.replace(regex, (match) => {
             const replacement = theme.vocab[key];
             

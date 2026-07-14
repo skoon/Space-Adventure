@@ -53,6 +53,8 @@ export function createCharacter(event) {
     // Default stats if role not found
     const stats = roleStats[role] || { hp: 100, attack: 10, defense: 10, maxEnergy: 100, strength: 8, agility: 8, intelligence: 8, charisma: 8 };
 
+    state.worldFlags = {};
+
     state.character = {
         name,
         race,

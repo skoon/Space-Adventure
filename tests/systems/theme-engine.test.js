@@ -32,10 +32,15 @@ describe('Theme Engine Translation', () => {
         theme.vocab['Xenobot'] = 'Gargoyle';
         theme.vocab['scrap metal'] = 'ancient bones';
         theme.vocab['comms array'] = 'beacon tower';
+        theme.vocab["Ready to scrap some metal."] = "Ready to harvest some bones.";
+        theme.vocab["Medbay healed you for"] = "Sanctum healed you for";
+        theme.vocab["HP during travel."] = "HP during journey.";
 
         expect(t('A Xenobot approaches.')).toBe('A Gargoyle approaches.');
         expect(t('Gathering scrap metal.')).toBe('Gathering ancient bones.');
         expect(t('Defend the comms array!')).toBe('Defend the beacon tower!');
+        expect(t('Ready to scrap some metal.')).toBe('Ready to harvest some bones.');
+        expect(t('Medbay healed you for 20 HP during travel.')).toBe('Sanctum healed you for 20 HP during journey.');
 
         // Restore original vocab
         theme.vocab = originalVocab;

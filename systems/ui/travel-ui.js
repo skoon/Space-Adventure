@@ -3,6 +3,8 @@
  * Handles map visualization and travel interaction
  */
 
+import { t } from '../theme-engine.js';
+
 let state;
 let getUnlockedLocations;
 let travelTo;
@@ -90,7 +92,7 @@ export function showTravelScreen() {
          // Tooltip / Label
          const label = document.createElement("div");
          label.className = "map-label text-xs";
-         label.innerHTML = `${loc.name}`;
+         label.innerHTML = `${t(loc.name)}`;
          node.appendChild(label);
          
          if (!isCurrent) {
@@ -127,15 +129,15 @@ export function showTravelScreen() {
 
         card.innerHTML = `
             <div>
-                <div class="font-bold ${isCurrent ? 'text-blue-300' : 'text-gray-200'}">${loc.name}</div>
-                <div class="text-xs text-gray-400">${loc.description}</div>
+                <div class="font-bold ${isCurrent ? 'text-blue-300' : 'text-gray-200'}">${t(loc.name)}</div>
+                <div class="text-xs text-gray-400">${t(loc.description)}</div>
             </div>
             <div class="text-right">
                 ${isCurrent ? 
-                    '<span class="text-blue-400 font-bold text-sm">CURRENT</span>' : 
+                    `<span class="text-blue-400 font-bold text-sm">${t("CURRENT")}</span>` : 
                     `<button class="px-3 py-1 rounded text-sm font-bold ${canAfford ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-red-900 text-gray-400 cursor-not-allowed'}" 
                         onclick="window.travelToLocation('${loc.id}')" ${!canAfford ? 'disabled' : ''}>
-                        Travel (${loc.travelCost || 0} cr)
+                        ${t("Travel")} (${loc.travelCost || 0} ${t("cr")})
                     </button>`
                 }
             </div>

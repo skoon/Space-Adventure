@@ -150,6 +150,7 @@ function initializeGame() {
   let enemyStatusEffects = [];
   let log = [];
   let currentLocation = "terra_prime";
+  let worldFlags = {};
 
   // Create state object with getters/setters
   const state = {
@@ -168,7 +169,9 @@ function initializeGame() {
     get log() { return log; },
     set log(val) { log = val; },
     get currentLocation() { return currentLocation; },
-    set currentLocation(val) { currentLocation = val; }
+    set currentLocation(val) { currentLocation = val; },
+    get worldFlags() { return worldFlags; },
+    set worldFlags(val) { worldFlags = val; }
   };
 
   // Initialize all modules

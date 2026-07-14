@@ -40,6 +40,12 @@ export function getPriceMultiplier(factionId) {
  */
 export function getLocalShopFaction() {
     if (!state || !state.currentLocation) return 'federation';
+
+    // If a faction holds sway, they control all local markets
+    if (state.worldFlags && state.worldFlags.factionSway && state.worldFlags.factionSway !== "coalition") {
+        return state.worldFlags.factionSway;
+    }
+
     const loc = locations?.[state.currentLocation];
     if (loc && loc.controllingFaction) {
         return loc.controllingFaction;
@@ -136,7 +142,14 @@ export function getItemPrice(itemName) {
     basePrice = Math.floor(basePrice * regMod);
     
     const faction = getLocalShopFaction();
-    return Math.max(1, Math.floor(basePrice * getPriceMultiplier(faction)));
+    let finalPrice = Math.floor(basePrice * getPriceMultiplier(faction));
+
+    // Coalition treaty discount (15%)
+    if (state.worldFlags && state.worldFlags.factionSway === "coalition") {
+        finalPrice = Math.floor(finalPrice * 0.85);
+    }
+
+    return Math.max(1, finalPrice);
 }
 
 /**
@@ -160,7 +173,14 @@ export function getItemSellPrice(itemName) {
     const baseSellPrice = Math.floor(basePrice / 2);
     const faction = getLocalShopFaction();
     const mult = getPriceMultiplier(faction);
-    return Math.max(1, Math.floor(baseSellPrice * (2.0 - mult))); // Friendly = higher sell price, Hostile = lower sell price
+    let finalSellPrice = Math.floor(baseSellPrice * (2.0 - mult));
+
+    // Coalition treaty sell bonus (15%)
+    if (state.worldFlags && state.worldFlags.factionSway === "coalition") {
+        finalSellPrice = Math.floor(finalSellPrice * 1.15);
+    }
+
+    return Math.max(1, finalSellPrice);
 }
 
 /**

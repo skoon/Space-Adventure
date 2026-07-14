@@ -998,7 +998,7 @@
     <!-- Travel Screen Modal -->
     <div
       id="travelScreen"
-      class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+      class="hidden fixed inset-0 bg-black/45 backdrop-blur-[3px] z-50 flex items-center justify-center p-4"
     >
       <div
         class="travel-glass-container max-w-4xl w-full p-6 relative"
@@ -1042,7 +1042,7 @@
     <!-- Shop Modal -->
     <div
       id="shopScreen"
-      class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+      class="hidden fixed inset-0 bg-black/45 backdrop-blur-[3px] z-50 flex items-center justify-center p-4"
     >
       <div
         class="photon-glass-container max-w-4xl w-full p-6 relative"
@@ -1132,7 +1132,7 @@
             onclick="
               document.getElementById('shopScreen').classList.add('hidden')
             "
-            class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
+            class="px-6 py-2 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 hover:border-orange-500/60 rounded text-yellow-500 font-bold font-mono text-xs uppercase transition-all"
           >
             Close
           </button>
@@ -1143,10 +1143,10 @@
     <!-- Job Board Modal -->
     <div
       id="jobBoardModal"
-      class="hidden fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-4"
+      class="hidden fixed inset-0 bg-black/45 backdrop-blur-[3px] z-50 flex items-center justify-center p-4"
     >
       <div
-        class="cyber-modal-cyan cyber-panel max-w-4xl w-full p-6 relative animate-fade-in"
+        class="travel-glass-container max-w-4xl w-full p-6 relative animate-fade-in"
       >
         <button
           onclick="
@@ -1182,7 +1182,7 @@
               m.classList.add('hidden');
               m.style.display = 'none';
             "
-            class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300 font-mono text-xs uppercase"
+            class="px-6 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 hover:border-cyan-500/60 rounded text-cyan-400 font-bold font-mono text-xs uppercase transition-all"
           >
             Close
           </button>
@@ -1193,10 +1193,10 @@
     <!-- Districts Modal -->
     <div
       id="districtsModal"
-      class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+      class="hidden fixed inset-0 bg-black/45 backdrop-blur-[3px] z-50 flex items-center justify-center p-4"
     >
       <div
-        class="cyber-modal-cyan cyber-panel max-w-2xl w-full p-6 relative animate-fade-in"
+        class="dialogue-glass-container max-w-2xl w-full p-6 relative animate-fade-in"
       >
         <button
           onclick="
@@ -1243,10 +1243,10 @@
     <!-- Skills Modal -->
     <div
       id="skillsModal"
-      class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+      class="hidden fixed inset-0 bg-black/45 backdrop-blur-[3px] z-50 flex items-center justify-center p-4"
     >
       <div
-        class="cyber-modal-cyan cyber-panel max-w-4xl w-full p-6 relative"
+        class="spec-glass-container max-w-4xl w-full p-6 relative"
       >
         <button
           onclick="
@@ -1310,10 +1310,10 @@
     <!-- Attributes Modal -->
     <div
       id="attributesModal"
-      class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+      class="hidden fixed inset-0 bg-black/45 backdrop-blur-[3px] z-50 flex items-center justify-center p-4"
     >
       <div
-        class="cyber-modal-teal cyber-panel-teal max-w-lg w-full p-6 relative"
+        class="spec-glass-container max-w-lg w-full p-6 relative"
       >
         <button
           onclick="import('./systems/ui.js').then((m) => m.closeStatsAllocationUI())"

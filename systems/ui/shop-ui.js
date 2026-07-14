@@ -55,22 +55,22 @@ export function switchShopTab(tab) {
 
     if (buyTab && sellTab && buyContainer && sellContainer) {
         // Reset classes
-        buyTab.className = "px-6 py-2 text-gray-400 font-bold hover:text-white";
-        sellTab.className = "px-6 py-2 text-gray-400 font-bold hover:text-white";
-        if (marketTab) marketTab.className = "px-6 py-2 text-gray-400 font-bold hover:text-white flex items-center gap-1";
+        buyTab.className = "px-6 py-2 text-gray-400 font-bold hover:text-white border-b border-transparent";
+        sellTab.className = "px-6 py-2 text-gray-400 font-bold hover:text-white border-b border-transparent";
+        if (marketTab) marketTab.className = "px-6 py-2 text-gray-400 font-bold hover:text-white flex items-center gap-1 border-b border-transparent";
         
         buyContainer.classList.add("hidden");
         sellContainer.classList.add("hidden");
         if (marketContainer) marketContainer.classList.add("hidden");
 
         if (tab === 'buy') {
-            buyTab.className = "px-6 py-2 text-yellow-500 border-b-2 border-yellow-500 font-bold bg-gray-700 rounded-t";
+            buyTab.className = "px-6 py-2 text-yellow-500 border-b-2 border-yellow-500 font-bold bg-orange-500/10 rounded-t";
             buyContainer.classList.remove("hidden");
         } else if (tab === 'sell') {
-            sellTab.className = "px-6 py-2 text-yellow-500 border-b-2 border-yellow-500 font-bold bg-gray-700 rounded-t";
+            sellTab.className = "px-6 py-2 text-yellow-500 border-b-2 border-yellow-500 font-bold bg-orange-500/10 rounded-t";
             sellContainer.classList.remove("hidden");
         } else if (tab === 'market' && marketTab && marketContainer) {
-            marketTab.className = "px-6 py-2 text-yellow-500 border-b-2 border-yellow-500 font-bold bg-gray-700 rounded-t flex items-center gap-1";
+            marketTab.className = "px-6 py-2 text-yellow-500 border-b-2 border-yellow-500 font-bold bg-orange-500/10 rounded-t flex items-center gap-1";
             marketContainer.classList.remove("hidden");
         }
     }
@@ -108,7 +108,7 @@ export function updateShopUI() {
             const canAfford = state.character.credits >= price;
 
             const card = document.createElement("div");
-            card.className = "bg-gray-700 p-3 rounded flex justify-between items-center";
+            card.className = "bg-orange-500/5 hover:bg-orange-500/10 border border-orange-500/20 p-3 rounded flex justify-between items-center transition-all duration-300";
             card.innerHTML = `
                 <div>
                     <div class="font-bold text-gray-200">${itemName}</div>
@@ -147,7 +147,7 @@ export function updateShopUI() {
                 }
 
                 const card = document.createElement("div");
-                card.className = "bg-gray-700 p-3 rounded flex justify-between items-center";
+                card.className = "bg-orange-500/5 hover:bg-orange-500/10 border border-orange-500/20 p-3 rounded flex justify-between items-center transition-all duration-300";
                 card.innerHTML = `
                     <div>
                         <div class="font-bold ${textClass}">${itemName} x${count}</div>

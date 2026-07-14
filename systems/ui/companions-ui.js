@@ -147,21 +147,6 @@ export function renderCompanionsTab() {
     const grid = document.createElement('div');
     grid.className = 'grid grid-cols-1 md:grid-cols-3 gap-6';
 
-    const cabinRooms = {
-        vance: {
-            title: "Vance's Heavy Scrap Workshop",
-            desc: "The room is littered with copper wiring, half-dismantled weapon chassis, and a heavy scent of hydraulic oil. A makeshift workbench dominates the corner."
-        },
-        lyra: {
-            title: "Dr. Lyra's Clinical Lab",
-            desc: "Sterile and impeccably clean. Fluorescent tubes illuminate shelves of bio-gels, a neat surgical cot, and a terminal displaying DNA sequence graphs."
-        },
-        apex: {
-            title: "Apex's Smuggler Holdout",
-            desc: "Draped in dim amber lights. A Sabacc table sits in the center with holograms of playing cards. Crates of unlabeled contraband are piled against the wall."
-        }
-    };
-
     Object.keys(COMPANIONS).forEach(id => {
         const data = COMPANIONS[id];
         const record = state.companions[id];
@@ -268,7 +253,7 @@ export function renderCompanionsTab() {
             trustSec.className = 'space-y-2 text-xs mt-2';
             
             // Cabin Title & Inspect Text
-            const roomData = cabinRooms[id] || { title: "Crew Cabin", desc: "A cozy crew cabin." };
+            const roomData = data.cabin || { title: "Crew Cabin", desc: "A cozy crew cabin." };
             const cabinDescBox = document.createElement('div');
             cabinDescBox.className = 'p-2 rounded bg-black/30 border border-gray-800 text-[11px] text-gray-400 italic mb-2 line-clamp-3 leading-relaxed';
             cabinDescBox.innerHTML = `<strong>${t(roomData.title)}</strong><br>${t(roomData.desc)}`;

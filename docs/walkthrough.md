@@ -1,4 +1,4 @@
-# Walkthrough — Visual Overhaul & Vocabulary Generalization
+# Walkthrough — Visual Overhaul, Vocabulary Generalization & Dynamic Outcomes
 
 This document summarizes the changes, rendering adjustments, and verification results for the completed development features in *Galactic Odyssey*. 
 
@@ -68,9 +68,52 @@ We externalized sci-fi/space strings and integrated them into the translation en
 
 ---
 
-## 3. Verification & Testing
+## 3. UI Overlay & Glassmorphism Polish
 
-### Automated Test Suite
-*   Created a dedicated unit test suite **[`tests/systems/theme-engine.test.js`](file:///d:/source/Roogames/Space%20Adventure/tests/systems/theme-engine.test.js)** to verify case preservation logic, word boundaries, and dynamic swaps.
+To ensure the glassmorphism visual upgrades are fully visible and shine against the active starfield background rather than being obscured by flat opaque blocks, the following polishing enhancements were implemented:
+
+*   **Semi-Transparent Blurs:** Upgraded the overlay modal backgrounds for `travelScreen`, `shopScreen`, `jobBoardModal`, `skillsModal`, `districtsModal`, and `attributesModal` from opaque black (`bg-black bg-opacity-90`) to a premium semi-transparent layout with active blur: `bg-black/45 backdrop-blur-[3px]`.
+*   **Thematic Container Conversions:** Converted flat modal containers (`cyber-modal-cyan`, etc.) to use corresponding glassmorphic styles (`travel-glass-container` or `spec-glass-container` or `dialogue-glass-container`).
+*   **Opaque Element Cleanups:** Removed flat opaque gray blocks (`bg-gray-700`) from shop tab panels, item listing cards (buy/sell containers), and close buttons. Replaced them with glassmorphic semi-transparent orange outlines (`bg-orange-500/5 hover:bg-orange-500/10 border border-orange-500/20`) and custom active hover states.
+
+---
+
+## 4. Option 3: Dynamic Galactic Outcomes & Endings
+
+We implemented the state flags, branching narrative choice trackers, dynamic pricing changes, and NPC occupation swaps.
+
+### A. State Variable Integration
+*   **`state.worldFlags`:** Introduced a global world tracking container initialized as an empty object `{}` upon character creation inside **[`character.js`](file:///d:/source/Roogames/Space%20Adventure/systems/character.js)**.
+*   **Serialization Support:** Updated **[`saveload.js`](file:///d:/source/Roogames/Space%20Adventure/systems/saveload.js)** to serialize and restore `state.worldFlags` on saving and loading game sessions.
+
+### B. Narrative Quest Hooks (`systems/quests.js`)
+*   **Act II Completion Sway:**
+    *   Completing `story_act2_fed` (or its class variants) sets `state.worldFlags.factionSway = "federation"`.
+    *   Completing `story_act2_cor` sets `state.worldFlags.factionSway = "corsairs"`.
+    *   Completing `story_act2_syn` sets `state.worldFlags.factionSway = "syndicate"`.
+*   **Act III Summit Choices:**
+    *   Choice index 0 sets `state.worldFlags.endingReached = "federation"` and `state.worldFlags.factionSway = "federation"`.
+    *   Choice index 1 sets `state.worldFlags.endingReached = "corsairs"` and `state.worldFlags.factionSway = "corsairs"`.
+    *   Choice index 2 sets `state.worldFlags.endingReached = "syndicate"` and `state.worldFlags.factionSway = "syndicate"`.
+    *   Choice index 3 sets `state.worldFlags.endingReached = "coalition"` and `state.worldFlags.factionSway = "coalition"`.
+*   **Act I Alliance Choice:** Selecting a faction in `quest_branch_01` sets `state.worldFlags.allianceChoice` to that faction.
+
+### C. Dynamic Planet-Wide Consequences
+*   **Commerce & Pricing:** Updated **[`shop.js`](file:///d:/source/Roogames/Space%20Adventure/systems/shop.js)**'s `getLocalShopFaction()` to dynamically return the `factionSway` value (overriding the planet's native owner). Prices globally adapt to the player's reputation with the dominant faction.
+*   **Coalition Open Trade Bonus:** Under `coalition` sway, players get a flat **15% discount** on all item purchases (`getItemPrice`) and a **15% bonus** on item sales (`getItemSellPrice`).
+*   **NPC Occupation Swaps:**
+    *   In **[`districts-ui.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/districts-ui.js)**, the district renderer checks the active `factionSway`. If a faction holds sway, it swaps the local NPCs to the occupying faction (e.g. Vance occupies Xylo Delta, Nesta occupies Terra Prime).
+    *   Interacting with an occupying NPC outside their home planet triggers custom occupation dialogue (e.g., Vance coordinates a military lockdown, Nesta gloops about looting high-tech toys, Thorne mentions repurposing facilities).
+
+---
+
+## 5. Verification & Testing
+
+### Automated Test Suites
+*   Created a dedicated unit test suite **[`tests/systems/dynamic_outcomes.test.js`](file:///d:/source/Roogames/Space%20Adventure/tests/systems/dynamic_outcomes.test.js)** to verify:
+    1.  `worldFlags` are set correctly on quest completions and choice outcomes.
+    2.  Merchant pricing maps to the global sway faction and reputation.
+    3.  Flat 15% Coalition discounts are applied properly.
+    4.  Planetary districts swap NPCs and show occupation dialogues.
 *   **Test Results:** All Jest unit tests passed successfully.
-    *   **Total passed:** 37 test suites / 251 test cases.
+    *   **Total passed:** 38 test suites / 256 test cases.

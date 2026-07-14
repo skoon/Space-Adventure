@@ -75,7 +75,17 @@ export function renderDistricts() {
         let badgeHtml = "";
 
         if (dist.npc) {
-            const npcId = dist.npc;
+            let npcId = dist.npc;
+            if (state.worldFlags && state.worldFlags.factionSway) {
+                const sway = state.worldFlags.factionSway;
+                if (sway === "federation") {
+                    if (npcId === "nesta" || npcId === "thorne") npcId = "vance";
+                } else if (sway === "corsairs") {
+                    if (npcId === "vance" || npcId === "thorne") npcId = "nesta";
+                } else if (sway === "syndicate") {
+                    if (npcId === "vance" || npcId === "nesta") npcId = "thorne";
+                }
+            }
             const npcName = NPC_NAMES[npcId] || npcId;
             
             // Determine if NPC has any quest status
@@ -261,6 +271,41 @@ export function talkToNPC(npcId) {
     }
 
     if (!state.character) return;
+
+    // Intercept conversations if NPCs are occupying other planets' districts
+    if (state.worldFlags && state.worldFlags.factionSway) {
+        const locId = state.currentLocation;
+        if (npcId === "vance" && locId !== "terra_prime") {
+            if (locId === "xylo_delta") {
+                showDialogue("Captain Vance", "This sector is under Federation lockdown. Smuggling activities have been terminated.", [{ text: "Understood, Captain. (Close)", action: hideDialogue }]);
+                return;
+            }
+            if (locId === "norkon_outpost") {
+                showDialogue("Captain Vance", "Federation science officers have seized this laboratory to auditing quantum safety protocols.", [{ text: "Understood, Captain. (Close)", action: hideDialogue }]);
+                return;
+            }
+        }
+        if (npcId === "nesta" && locId !== "xylo_delta") {
+            if (locId === "terra_prime") {
+                showDialogue("Envoy Nesta", "Haha! The shiny boots are gone! This headquarters belongs to the free folk now.", [{ text: "Keep flying, Nesta. (Close)", action: hideDialogue }]);
+                return;
+            }
+            if (locId === "norkon_outpost") {
+                showDialogue("Envoy Nesta", "We've raided their high-tech toy drawer! Plenty of good salvage in here.", [{ text: "Awesome. (Close)", action: hideDialogue }]);
+                return;
+            }
+        }
+        if (npcId === "thorne" && locId !== "norkon_outpost") {
+            if (locId === "terra_prime") {
+                showDialogue("Dr. Elyse Thorne", "Federation military protocols were highly inefficient. This facility has been repurposed for quantum network research.", [{ text: "Fascinating. (Close)", action: hideDialogue }]);
+                return;
+            }
+            if (locId === "xylo_delta") {
+                showDialogue("Dr. Elyse Thorne", "Organic contraband is irrelevant. We have converted these caves into processing nodes for the Singularity.", [{ text: "Efficiency is key. (Close)", action: hideDialogue }]);
+                return;
+            }
+        }
+    }
 
     const active = state.character.activeQuests;
     const completed = state.character.completedQuests;

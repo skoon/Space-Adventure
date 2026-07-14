@@ -60,7 +60,8 @@ function getGameState() {
         activeCompanion: state.activeCompanion || null,
         companionCooldown: state.companionCooldown || 0,
         currentLocation: state.currentLocation || "terra_prime", // Fix missing location bug
-        activeCrewDirective: state.activeCrewDirective || null
+        activeCrewDirective: state.activeCrewDirective || null,
+        worldFlags: state.worldFlags || {}
     };
 }
 
@@ -147,6 +148,9 @@ export function loadGame(slot) {
         
         // Restore currentLocation
         state.currentLocation = saveData.currentLocation || "terra_prime";
+
+        // Restore worldFlags
+        state.worldFlags = saveData.worldFlags || {};
 
         // Restore dynamic rarity items in catalog
         restoreSavedRarityItems(state.inventory, state.character?.equipment);

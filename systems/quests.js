@@ -219,6 +219,19 @@ export function completeQuest(questId) {
         addLog(`📈 Reputation: Completed work for the ${factionId.toUpperCase()}! (+15 Reputation, Standing: ${state.character.factions[factionId]})`);
     }
 
+    // Update world flags on quest completion
+    if (state.worldFlags) {
+        if (questId.startsWith("story_act2_fed")) {
+            state.worldFlags.factionSway = "federation";
+        } else if (questId.startsWith("story_act2_cor")) {
+            state.worldFlags.factionSway = "corsairs";
+        } else if (questId.startsWith("story_act2_syn")) {
+            state.worldFlags.factionSway = "syndicate";
+        } else if (questId.startsWith("story_act3")) {
+            state.worldFlags.gameCompleted = true;
+        }
+    }
+
     // Move to completed
     delete state.character.activeQuests[questId];
     state.character.completedQuests.push(questId);
@@ -465,6 +478,23 @@ export function evaluateChoice(questId, choiceIndex) {
 
     // Helper to apply all choice consequences
     const applyChoiceConsequences = (nextStepVal) => {
+        // Track world flags for Act III endings
+        if (questId === "story_act3" && currentStepIndex === 0 && state.worldFlags) {
+            if (nextStepVal === 1) {
+                state.worldFlags.endingReached = "federation";
+                state.worldFlags.factionSway = "federation";
+            } else if (nextStepVal === 2) {
+                state.worldFlags.endingReached = "corsairs";
+                state.worldFlags.factionSway = "corsairs";
+            } else if (nextStepVal === 3) {
+                state.worldFlags.endingReached = "syndicate";
+                state.worldFlags.factionSway = "syndicate";
+            } else if (nextStepVal === 4) {
+                state.worldFlags.endingReached = "coalition";
+                state.worldFlags.factionSway = "coalition";
+            }
+        }
+
         // Intercept Act III ending sequence to trigger the theatrical epilogue crawl
         if (questId === "story_act3" && nextStepVal === 5 && state.character.storyline && !state.character.storyline.crawled) {
             let endingType = "coalition";
@@ -562,6 +592,9 @@ export function evaluateChoice(questId, choiceIndex) {
                 const highestRepFaction = Object.entries(choice.reputation).reduce((a, b) => b[1] > a[1] ? b : a, ["neutral", 0])[0];
                 if (highestRepFaction !== "neutral") {
                     state.character.storyline.alignment = highestRepFaction;
+                    if (state.worldFlags) {
+                        state.worldFlags.allianceChoice = highestRepFaction;
+                    }
                 }
             }
         }
