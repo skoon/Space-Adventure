@@ -1,4 +1,4 @@
-# Walkthrough — Visual Overhaul, Vocabulary Generalization & Dynamic Outcomes
+# Walkthrough — Visual Overhaul, Vocabulary Generalization, Dynamic Outcomes & Balance Modifiers
 
 This document summarizes the changes, rendering adjustments, and verification results for the completed development features in *Galactic Odyssey*. 
 
@@ -37,7 +37,7 @@ The entire visual system was refactored to use a premium, modern glassmorphic lo
 *   **Wireframes:** Re-shaded wall outlines (`rgba(255, 184, 0, ...)`) and ceiling/floor perspective lines to follow the amber theme.
 *   **Minimap Scanner:** Set scan lines and empty hallway indicators to amber glow, and updated the player arrow pointer on radar to `#ffb800`.
 
-### D. Animations & Logic Hooks
+### E. Animations & Logic Hooks
 *   **[`dialogue-ui.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/dialogue-ui.js):** Implemented a transient entrance trigger: on `showDialogue()`, the element gains `.hologram-flicker` for 300ms, then settles.
 *   **[`combat.js`](file:///d:/source/Roogames/Space%20Adventure/systems/combat.js):** Updated `updateCombatUI()` to map the player's active and spent AP to the `#combatApNodes` container as inline capsule elements.
 
@@ -107,13 +107,36 @@ We implemented the state flags, branching narrative choice trackers, dynamic pri
 
 ---
 
-## 5. Verification & Testing
+## 5. Quest Sequence Gating & Combat Scaling Adjustments
+
+Based on gameplay reviews, we resolved story gating conflicts and rebalanced standard enemy scaling to ensure standard combat is meaningfully challenging relative to character growth.
+
+### A. Quest Sequence Safeguards (`systems/quests.js`)
+*   **Sequential Prerequisite Validations (`acceptQuest`):**
+    *   Accepting `quest_branch_01` now checks that `story_01` is in `completedQuests`.
+    *   Accepting Act II quests (`story_act2_fed`, `story_act2_cor`, `story_act2_syn`) checks that `quest_branch_01` is completed.
+    *   Accepting Act III quest (`story_act3`) checks that one of the Act II quests is completed.
+    *   If validation checks fail, the acceptance is cancelled and a warning log is recorded, preventing players from entering stuck/decision-locked states.
+*   **Job Board / Scanning Filters (`getJobBoardQuests`):**
+    *   Excludes all main storyline quests (`isMainStory: true`) from job listings and distress scans *unless* the quest ID is the first Act I tutorial quest (`story_01` / role variants).
+
+### B. Combat Difficulty Upgrades (`systems/combat.js`)
+*   **Level and Hazard Scaling Enhancements (`encounterEnemy`):**
+    *   Replaced the old static player level scaling modifier with an enhanced **`0.28` coefficient** per level above 1.
+    *   Introduced location-based environmental multiplier: **`1 + (loc.hazardLevel - 1) * 0.18`**.
+    *   Applied combined scaling multipliers to enemy **HP, attack power, and defense rating** (regular enemies now have scaled armor shields).
+    *   Integrated fallback guards to prevent `NaN` exceptions on custom or unconfigured test locations (defaulting missing hazard ratings to level 1).
+*   **Quest Choice Combat Synchronization:**
+    *   Synchronized the same enhanced level-and-hazard scaling multipliers inside the inline choice combat trigger within the quest dialogue parser (`evaluateChoice` in `quests.js`).
+
+---
+
+## 6. Verification & Testing
 
 ### Automated Test Suites
-*   Created a dedicated unit test suite **[`tests/systems/dynamic_outcomes.test.js`](file:///d:/source/Roogames/Space%20Adventure/tests/systems/dynamic_outcomes.test.js)** to verify:
-    1.  `worldFlags` are set correctly on quest completions and choice outcomes.
-    2.  Merchant pricing maps to the global sway faction and reputation.
-    3.  Flat 15% Coalition discounts are applied properly.
-    4.  Planetary districts swap NPCs and show occupation dialogues.
+*   Created a dedicated unit test suite **[`tests/systems/combat_scaling.test.js`](file:///d:/source/Roogames/Space%20Adventure/tests/systems/combat_scaling.test.js)** to verify:
+    1.  Main story quest prerequisites correctly block out-of-order acceptance in `acceptQuest()`.
+    2.  `getJobBoardQuests()` properly filters out chained/successor main story quests.
+    3.  Regular enemies scale HP, attack, and defense correctly depending on player level and location hazard multipliers.
 *   **Test Results:** All Jest unit tests passed successfully.
-    *   **Total passed:** 38 test suites / 256 test cases.
+    *   **Total passed:** 39 test suites / 259 test cases.

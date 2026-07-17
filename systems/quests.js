@@ -56,6 +56,33 @@ export function acceptQuest(questId) {
     const quest = quests[mappedQuestId];
     if (!quest) return;
 
+    // Prerequisite checks for main story quests to prevent sequence breaking
+    if (quest.isMainStory) {
+        const baseId = mappedQuestId.replace(/_(warrior|rogue|scientist)$/, "");
+        
+        if (baseId === "quest_branch_01") {
+            const hasStory01 = state.character.completedQuests.some(q => q.startsWith("story_01"));
+            if (!hasStory01) {
+                addLog(`[!] Cannot accept ${quest.title} yet: Must complete preceding main story quest.`);
+                return;
+            }
+        } else if (baseId === "story_act2_fed" || baseId === "story_act2_cor" || baseId === "story_act2_syn") {
+            const hasBranch01 = state.character.completedQuests.some(q => q.startsWith("quest_branch_01"));
+            if (!hasBranch01) {
+                addLog(`[!] Cannot accept ${quest.title} yet: Must complete preceding main story quest.`);
+                return;
+            }
+        } else if (baseId === "story_act3") {
+            const hasAct2 = state.character.completedQuests.some(q => 
+                q.startsWith("story_act2_fed") || q.startsWith("story_act2_cor") || q.startsWith("story_act2_syn")
+            );
+            if (!hasAct2) {
+                addLog(`[!] Cannot accept ${quest.title} yet: Must complete preceding main story quest.`);
+                return;
+            }
+        }
+    }
+
     state.character.activeQuests[mappedQuestId] = { progress: 0, currentStep: 0 };
     addLog(`[!] Quest Accepted: ${quest.title}`);
     showSaveMessage(`Quest Accepted: ${quest.title}`);
@@ -631,13 +658,21 @@ export function evaluateChoice(questId, choiceIndex) {
                     
                     if (enemyTemplate) {
                         const difficulty = deps.settings?.getDifficulty() || { enemyHpModifier: 1.0, enemyDmgModifier: 1.0 };
-                        const levelScale = 1 + ((state.character.level - 1) * 0.15);
+                        const levelScale = 1 + ((state.character.level - 1) * 0.28);
+                        const loc = state.currentLocation && deps.data.locations ? deps.data.locations[state.currentLocation] : null;
+                        const hazardLevel = loc && loc.hazardLevel !== undefined ? loc.hazardLevel : 1;
+                        const hazardScale = loc ? 1 + (hazardLevel - 1) * 0.18 : 1.0;
+                        const finalScale = levelScale * hazardScale;
+
                         const enemy = { 
                             ...enemyTemplate,
-                            hp: Math.floor(enemyTemplate.hp * difficulty.enemyHpModifier * levelScale),
-                            attack: Math.floor(enemyTemplate.attack * difficulty.enemyDmgModifier * levelScale),
-                            maxHp: Math.floor(enemyTemplate.hp * difficulty.enemyHpModifier * levelScale)
+                            hp: Math.floor(enemyTemplate.hp * difficulty.enemyHpModifier * finalScale),
+                            attack: Math.floor(enemyTemplate.attack * difficulty.enemyDmgModifier * finalScale),
+                            maxHp: Math.floor(enemyTemplate.hp * difficulty.enemyHpModifier * finalScale),
+                            defense: Math.floor((enemyTemplate.defense || 0) * finalScale),
+                            breakMax: Math.floor(enemyTemplate.hp * difficulty.enemyHpModifier * finalScale * 0.5)
                         };
+                        enemy.breakCurrent = enemy.breakMax;
                         if (triggerCombatData.boss) {
                             enemy.isBoss = true;
                         }
@@ -878,6 +913,12 @@ export function getJobBoardQuests() {
         if (q.requiredPlanet && q.requiredPlanet !== currentLocation) return false;
         if (q.derelictOnly) return false;
         
+        // Only allow the first main story quest (story_01) on the Job Board or scans
+        if (q.isMainStory) {
+            const isFirstQuest = q.id === "story_01" || q.id.startsWith("story_01_");
+            if (!isFirstQuest) return false;
+        }
+
         // Faction Standing Gating
         if (q.requiredFaction && state.character.factions) {
             const { faction, min } = q.requiredFaction;

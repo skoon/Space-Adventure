@@ -141,11 +141,17 @@ export function encounterEnemy() {
     const randomEnemy = { ...availableEnemies[Math.floor(Math.random() * availableEnemies.length)] };
     
     // Apply level scaling and difficulty modifiers
-    const levelScale = 1 + ((state.character.level - 1) * 0.15);
+    const levelScale = 1 + ((state.character.level - 1) * 0.28);
+    const loc = state.currentLocation && locations ? locations[state.currentLocation] : null;
+    const hazardLevel = loc && loc.hazardLevel !== undefined ? loc.hazardLevel : 1;
+    const hazardScale = loc ? 1 + (hazardLevel - 1) * 0.18 : 1.0;
+    const finalScale = levelScale * hazardScale;
+
     const hpRandomness = 0.8 + Math.random() * 0.4; // Variance
-    randomEnemy.hp = Math.floor(randomEnemy.hp * hpRandomness * difficulty.enemyHpModifier * levelScale);
+    randomEnemy.hp = Math.floor(randomEnemy.hp * hpRandomness * difficulty.enemyHpModifier * finalScale);
     randomEnemy.maxHp = randomEnemy.hp;
-    randomEnemy.attack = Math.floor(randomEnemy.attack * difficulty.enemyDmgModifier * levelScale);
+    randomEnemy.attack = Math.floor(randomEnemy.attack * difficulty.enemyDmgModifier * finalScale);
+    randomEnemy.defense = Math.floor((randomEnemy.defense || 0) * finalScale);
 
     randomEnemy.breakMax = Math.floor(randomEnemy.hp * 0.5);
     randomEnemy.breakCurrent = randomEnemy.breakMax;
