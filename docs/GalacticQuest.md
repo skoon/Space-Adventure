@@ -1,6 +1,6 @@
 # GalacticQuest — Living Project Reference
 
-> **Last Updated:** 2026-07-10  
+> **Last Updated:** 2026-07-20  
 > **Project Name:** Galactic Odyssey (codebase root: `Space Adventure`)  
 > **Tech Stack:** Vanilla JavaScript (ES6+ Modules), HTML5, CSS3  
 > **Entry Point:** [`index.html`](file:///d:/source/Roogames/Space%20Adventure/index.html)  
@@ -205,6 +205,21 @@ state.character = {
 
 ---
 
+### ✅ Dynamic Galactic Outcomes & Branching Endings
+
+| Feature | Details | Key Files |
+|---|---|---|
+| **`state.worldFlags` Global State** | Persistent world flags (`factionSway`, `endingReached`, `allianceChoice`, `gameCompleted`) initialized, saved/loaded, and DI-exposed | [`character.js`](file:///d:/source/Roogames/Space%20Adventure/systems/character.js), [`game.js`](file:///d:/source/Roogames/Space%20Adventure/game.js), [`saveload.js`](file:///d:/source/Roogames/Space%20Adventure/systems/saveload.js) |
+| **World-State Hub Reshaping** | `factionSway` swaps NPCs across planetary districts and intercepts cross-planet dialogue with faction-specific greetings | [`districts-ui.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/districts-ui.js) |
+| **Dynamic Faction-Sway Pricing** | Global sway overrides local shop faction (discounts/markups); Coalition sway grants a flat 15% discount | [`shop.js`](file:///d:/source/Roogames/Space%20Adventure/systems/shop.js) |
+| **Theatrical Epilogue Text-Crawl** | `showEpilogueCrawl()`: 45s Star-Wars-style crawl (skippable) triggered at Act III conclusion | [`dialogue-ui.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/dialogue-ui.js), [`quests.js`](file:///d:/source/Roogames/Space%20Adventure/systems/quests.js) |
+| **4 Distinct Endings** | Iron Order (Federation), Lawless Edge (Corsairs), Techno-Singularity (Syndicate), Unified Coalition — evaluated from Act III choice/world flags | [`quests.js`](file:///d:/source/Roogames/Space%20Adventure/systems/quests.js), [`dialogue-ui.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/dialogue-ui.js) |
+| **Free-Roam Mode (Post-Epilogue)** | Dedicated post-summit "Free Roam" district states let the player continue interacting after the story concludes | [`districts-ui.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/districts-ui.js) |
+
+> Covered by [`dynamic_outcomes.test.js`](file:///d:/source/Roogames/Space%20Adventure/tests/systems/dynamic_outcomes.test.js) (faction sway, Act III ending flags, dynamic pricing, NPC swapping).
+
+---
+
 ### ✅ Factions & Economy
 
 | Feature | Details | Key Files |
@@ -277,18 +292,8 @@ state.character = {
 
 These items are **designed but not yet implemented** or have partial implementation.
 
-### 🔶 Dynamic Galactic Outcomes (High Priority)
-
-Global world-state flags that permanently reshape hubs and unlock distinct endings.
-
-- [ ] Define `state.worldFlags` (e.g., `isBioDomeDestroyed`, `isPirateControlled`)
-- [ ] World-state triggers altering planetary hub views (NPC lists, shop inventories, tax rates, hub descriptions)
-- [ ] End-game narrative text-crawl epilogue evaluating world flags → 3 distinct endings (Federation Peace, Corsair Anarchy, Syndicate Singularity)
-- [ ] Free-Roam Mode post-epilogue
-
-**Reference files:** [`systems/quests.js`](file:///d:/source/Roogames/Space%20Adventure/systems/quests.js), [`districts-ui.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/districts-ui.js)
-
----
+> [!NOTE]
+> **Dynamic Galactic Outcomes** shipped on 2026-07-20 — see [Section 3 → Dynamic Galactic Outcomes & Branching Endings](#-dynamic-galactic-outcomes--branching-endings). All four planned items (`state.worldFlags`, world-state hub reshaping, epilogue crawl, Free-Roam mode) are implemented, and the feature delivered a 4th "Unified Coalition" ending beyond the originally planned three.
 
 ### 🔶 Combat Stance Badge Graphics (Low Priority)
 
