@@ -224,6 +224,7 @@ describe('checkChoiceRequirements — flags', () => {
 
 describe('resolveVariantText', () => {
     beforeEach(() => {
+        initQuests(deps);
         mockState.character.storyline = { act: 1, alignment: 'neutral', variables: {} };
         mockState.character.npcs = {};
     });
