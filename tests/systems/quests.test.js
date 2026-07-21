@@ -1,4 +1,4 @@
-import { initQuests, acceptQuest, checkQuestProgress, completeStep, completeQuest, getQuest, getAvailableQuests, applyQuestItem } from '../../systems/quests.js';
+import { initQuests, acceptQuest, checkQuestProgress, completeStep, completeQuest, getQuest, getAvailableQuests, applyQuestItem, checkChoiceRequirements } from '../../systems/quests.js';
 
 // Mock dependencies
 const mockState = {
@@ -174,5 +174,50 @@ describe('Quest System', () => {
         expect(usedWrong).toBe(false);
         expect(mockState.character.activeQuests['quest_single'].progress).toBe(1);
         expect(mockState.inventory).toContain('Data Chip'); // Not consumed
+    });
+});
+
+describe('checkChoiceRequirements — flags', () => {
+    beforeEach(() => {
+        initQuests(deps);
+        mockState.character.storyline = { act: 1, alignment: 'neutral', variables: {} };
+        mockState.character.npcs = {};
+    });
+
+    test('truthy shorthand: flag string', () => {
+        expect(checkChoiceRequirements({ flag: 'spared_queen' })).toBe(false);
+        mockState.character.storyline.variables.spared_queen = true;
+        expect(checkChoiceRequirements({ flag: 'spared_queen' })).toBe(true);
+    });
+
+    test('equality when value present, op omitted', () => {
+        mockState.character.storyline.variables.alliance = 'fed';
+        expect(checkChoiceRequirements({ flag: { name: 'alliance', value: 'fed' } })).toBe(true);
+        expect(checkChoiceRequirements({ flag: { name: 'alliance', value: 'cor' } })).toBe(false);
+    });
+
+    test('numeric operators', () => {
+        mockState.character.storyline.variables.civ = 3;
+        expect(checkChoiceRequirements({ flag: { name: 'civ', op: '>=', value: 3 } })).toBe(true);
+        expect(checkChoiceRequirements({ flag: { name: 'civ', op: '>', value: 3 } })).toBe(false);
+        expect(checkChoiceRequirements({ flag: { name: 'civ', op: '<=', value: 3 } })).toBe(true);
+        expect(checkChoiceRequirements({ flag: { name: 'civ', op: '!=', value: 4 } })).toBe(true);
+    });
+
+    test('missing flag never throws, reads falsy', () => {
+        expect(checkChoiceRequirements({ flag: { name: 'nope', op: '>=', value: 1 } })).toBe(false);
+    });
+
+    test('unknown op fails closed and warns', () => {
+        mockState.character.storyline.variables.civ = 3;
+        mockUi.addLog.mockClear();
+        expect(checkChoiceRequirements({ flag: { name: 'civ', op: '<>', value: 3 } })).toBe(false);
+        expect(mockUi.addLog).toHaveBeenCalled();
+    });
+
+    test('memoryFlag reads any NPC memoryFlags', () => {
+        expect(checkChoiceRequirements({ memoryFlag: 'vance_betrayed' })).toBe(false);
+        mockState.character.npcs.vance = { disposition: 0, memoryFlags: ['vance_betrayed'] };
+        expect(checkChoiceRequirements({ memoryFlag: 'vance_betrayed' })).toBe(true);
     });
 });

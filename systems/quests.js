@@ -340,6 +340,30 @@ export function getEffectiveAttribute(attributeName) {
 }
 
 /**
+ * Read a story flag from storyline.variables (undefined if unset).
+ */
+export function getFlag(name) {
+    return state?.character?.storyline?.variables?.[name];
+}
+
+/**
+ * Compare two values with a named operator. Returns false + logs on unknown op.
+ */
+function compareOp(a, op, b) {
+    switch (op) {
+        case '>=': return a >= b;
+        case '>': return a > b;
+        case '<=': return a <= b;
+        case '<': return a < b;
+        case '==': return a === b;
+        case '!=': return a !== b;
+        default:
+            if (addLog) addLog(`[!] Story flag warning: unknown operator '${op}'`);
+            return false;
+    }
+}
+
+/**
  * Check if the player character meets choice requirements
  */
 export function checkChoiceRequirements(requires) {
@@ -408,6 +432,30 @@ export function checkChoiceRequirements(requires) {
         const { id, value } = requires.npc;
         const currentDisp = state.character.npcs[id]?.disposition || 0;
         if (currentDisp < value) return false;
+    }
+
+    if (requires.flag !== undefined) {
+        if (typeof requires.flag === 'string') {
+            if (!getFlag(requires.flag)) return false;
+        } else {
+            const { name, op, value } = requires.flag;
+            const current = getFlag(name);
+            if (op !== undefined) {
+                if (!compareOp(current, op, value)) return false;
+            } else if (value !== undefined) {
+                if (current !== value) return false;
+            } else if (!current) {
+                return false;
+            }
+        }
+    }
+
+    if (requires.memoryFlag !== undefined) {
+        const npcs = state.character.npcs || {};
+        const found = Object.values(npcs).some(
+            npc => Array.isArray(npc.memoryFlags) && npc.memoryFlags.includes(requires.memoryFlag)
+        );
+        if (!found) return false;
     }
 
     return true;
