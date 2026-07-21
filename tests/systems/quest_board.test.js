@@ -66,6 +66,46 @@ describe('Quest Board & Signal Scanning System', () => {
         initEvents(deps);
     });
 
+    test('job board hides class-specific quests that do not match the player role', () => {
+        // Reproduces the reported bug: a Warrior seeing the rogue/scientist main-story variants.
+        const mkStory = (id) => ({
+            id, title: id, description: '', type: 'kill', target: 'X', amount: 1,
+            isMainStory: true, requiredPlanet: 'terra_prime'
+        });
+        mockQuestsData.story_01 = mkStory('story_01');
+        mockQuestsData.story_01_warrior = mkStory('story_01_warrior');
+        mockQuestsData.story_01_rogue = mkStory('story_01_rogue');
+        mockQuestsData.story_01_scientist = mkStory('story_01_scientist');
+
+        mockState.character.role = 'Warrior';
+        const ids = getJobBoardQuests().map(q => q.id);
+
+        expect(ids).toContain('story_01_warrior');
+        expect(ids).not.toContain('story_01');            // base hidden when a matching variant exists
+        expect(ids).not.toContain('story_01_rogue');
+        expect(ids).not.toContain('story_01_scientist');
+    });
+
+    test('job board shows the base quest when no variant matches the role', () => {
+        // A Scientist should see the scientist variant, not the base or other classes.
+        const mkStory = (id) => ({
+            id, title: id, description: '', type: 'kill', target: 'X', amount: 1,
+            isMainStory: true, requiredPlanet: 'terra_prime'
+        });
+        mockQuestsData.story_01 = mkStory('story_01');
+        mockQuestsData.story_01_warrior = mkStory('story_01_warrior');
+        mockQuestsData.story_01_rogue = mkStory('story_01_rogue');
+        mockQuestsData.story_01_scientist = mkStory('story_01_scientist');
+
+        mockState.character.role = 'Scientist';
+        const ids = getJobBoardQuests().map(q => q.id);
+
+        expect(ids).toContain('story_01_scientist');
+        expect(ids).not.toContain('story_01');
+        expect(ids).not.toContain('story_01_warrior');
+        expect(ids).not.toContain('story_01_rogue');
+    });
+
     test('generateDynamicQuest generates a valid formatted quest', () => {
         const quest = generateDynamicQuest('terra_prime');
         expect(quest).toBeDefined();

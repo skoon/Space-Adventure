@@ -878,6 +878,24 @@ export function evaluateChoice(questId, choiceIndex) {
 }
 
 /**
+ * Class/role gating shared by getAvailableQuests and getJobBoardQuests.
+ * Returns false for quests that should be hidden from the given role:
+ *  - a generic base quest when a class-specific variant exists for this role
+ *  - a class-specific variant whose class does not match this role
+ */
+export function passesRoleGating(q, role) {
+    // Filter out base quests that have a class variant for this role
+    if (quests[`${q.id}_${role}`]) return false;
+
+    // Role gating for class-specific variants
+    if (q.id.endsWith("_warrior") && role !== "warrior") return false;
+    if (q.id.endsWith("_rogue") && role !== "rogue") return false;
+    if (q.id.endsWith("_scientist") && role !== "scientist") return false;
+
+    return true;
+}
+
+/**
  * Get all available quests (filtered by planet/derelict/faction)
  */
 export function getAvailableQuests() {
@@ -886,14 +904,7 @@ export function getAvailableQuests() {
     const role = (state.character.role || "Warrior").toLowerCase();
 
     return Object.values(quests).filter(q => {
-        // Filter out base main story quests that have class variants
-        const roleQuestId = `${q.id}_${role}`;
-        if (quests[roleQuestId]) return false;
-
-        // Role gating for role-specific main story variants
-        if (q.id.endsWith("_warrior") && role !== "warrior") return false;
-        if (q.id.endsWith("_rogue") && role !== "rogue") return false;
-        if (q.id.endsWith("_scientist") && role !== "scientist") return false;
+        if (!passesRoleGating(q, role)) return false;
 
         // Not active or completed
         if (state.character.activeQuests[q.id] || state.character.completedQuests.includes(q.id)) return false;
@@ -1051,9 +1062,11 @@ export function getJobBoardQuests() {
     if (!state.character) return [];
     
     const currentLocation = state.currentLocation;
-    
+    const role = (state.character.role || "Warrior").toLowerCase();
+
     // Find all non-active, non-completed quests for current planet
     let available = Object.values(quests).filter(q => {
+        if (!passesRoleGating(q, role)) return false;
         if (state.character.activeQuests[q.id] || state.character.completedQuests.includes(q.id)) return false;
         if (q.requiredPlanet && q.requiredPlanet !== currentLocation) return false;
         if (q.derelictOnly) return false;
