@@ -89,6 +89,11 @@ export function acceptQuest(questId) {
 
     advanceToVisibleStep(mappedQuestId);
 
+    if (quest.steps && quest.steps.length > 0 && state.character.activeQuests[mappedQuestId].currentStep >= quest.steps.length) {
+        completeQuest(mappedQuestId);
+        return;
+    }
+
     // If the first step is a choice, trigger it immediately
     triggerChoiceStepIfActive(mappedQuestId);
 }

@@ -312,4 +312,16 @@ describe('advanceToVisibleStep', () => {
         advanceToVisibleStep('quest_showif');
         expect(mockState.character.activeQuests.quest_showif.currentStep).toBe(1);
     });
+
+    test('acceptQuest auto-completes a quest whose steps are all hidden at acceptance', () => {
+        mockQuestsData.quest_allhidden = {
+            id: 'quest_allhidden', title: 'AllHidden', description: '', type: 'kill', target: 'X', amount: 1,
+            steps: [
+                { type: 'kill', target: 'X', amount: 1, showIf: { flag: 'never_true' } }
+            ]
+        };
+        acceptQuest('quest_allhidden');
+        expect(mockState.character.activeQuests.quest_allhidden).toBeUndefined();
+        expect(mockState.character.completedQuests).toContain('quest_allhidden');
+    });
 });
