@@ -769,6 +769,10 @@ export function evaluateChoice(questId, choiceIndex) {
 
         applyQuestFlagWrites(choice);
 
+        if (deps.companions && deps.companions.companionInterject) {
+            deps.companions.companionInterject(choice);
+        }
+
         // Advance step
         activeQuest.progress = 0;
         activeQuest.currentStep = nextStepVal;

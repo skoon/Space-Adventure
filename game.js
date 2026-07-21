@@ -23,7 +23,7 @@ import { initDerelict, startDerelictRun, exploreRoom, escapeShip, failRun, turnL
 import { initSkills } from './systems/skills.js';
 import { initUpgrades } from './systems/upgrades.js';
 import { initAchievements } from './systems/achievements.js';
-import { initCompanions } from './systems/companions.js';
+import { initCompanions, companionInterject } from './systems/companions.js';
 import { initCybernetics } from './systems/cybernetics.js';
 import { handleInstallImplant, handleUninstallImplant, handleInstallModChip, handleUninstallModChip, handleBuySpecializationPoint } from './systems/ui/cybernetics-ui.js';
 
@@ -207,7 +207,8 @@ function initializeGame() {
   // Initialize Quests
   initQuests({
     ...deps,
-    ui: { addLog, updateUI, showVictoryMessage, showSaveMessage, showDialog, showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl }
+    ui: { addLog, updateUI, showVictoryMessage, showSaveMessage, showDialog, showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl },
+    companions: { companionInterject }
   });
 
   // Initialize Combat

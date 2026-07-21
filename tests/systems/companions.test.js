@@ -9,6 +9,7 @@ import {
     giftCreditsToCompanion,
     resetCompanionTalkFlags,
     getCompanionAbilityValue,
+    companionInterject,
     COMPANIONS
 } from '../../systems/companions.js';
 
@@ -16,6 +17,8 @@ import {
     initCombat,
     triggerCompanionAbility
 } from '../../systems/combat.js';
+
+import { initQuests } from '../../systems/quests.js';
 
 // Mock dependencies
 const mockLog = jest.fn();
@@ -230,5 +233,52 @@ describe('Companions System Core & UI Actions', () => {
         expect(mockState.companionCooldown).toBe(3);
         expect(mockState.enemy.hp).toBe(80); // 100 - 20
         expect(mockLog).toHaveBeenCalledWith(expect.stringContaining("Apex fires a Precision Shot"));
+    });
+});
+
+describe('companionInterject', () => {
+    beforeEach(() => {
+        // Suite already initializes companions with a mock state + mockLog; reuse them.
+        mockState.activeCompanion = 'lyra';
+        mockState.companions = mockState.companions || {};
+        mockState.companions.lyra = { unlocked: true, trust: 0, level: 1 };
+        mockState.character = mockState.character || {};
+        mockState.character.storyline = { act: 1, alignment: 'neutral', variables: {} };
+        mockLog.mockClear();
+        initCompanions(mockDeps);
+        initQuests({
+            state: mockState,
+            data: { quests: {} },
+            ui: {
+                addLog: mockLog,
+                updateUI: jest.fn(),
+                showVictoryMessage: jest.fn(),
+                showSaveMessage: jest.fn(),
+                showDialog: jest.fn()
+            }
+        });
+    });
+
+    test('companionBark fires for the active companion', () => {
+        companionInterject({ companionBark: { lyra: 'You trust these Corsairs?' } });
+        expect(mockLog).toHaveBeenCalledWith('💬 Dr. Lyra: "You trust these Corsairs?"');
+    });
+
+    test('companionBark ignored for inactive companion', () => {
+        companionInterject({ companionBark: { apex: 'Blow it up!' } });
+        expect(mockLog).not.toHaveBeenCalled();
+    });
+
+    test('falls back to data-driven interjections', () => {
+        mockState.character.storyline.variables.killed_queen = true;
+        companionInterject({});
+        expect(mockLog).toHaveBeenCalledWith(
+            '💬 Dr. Lyra: "That life was a data point we can never recover."');
+    });
+
+    test('no companion active → no-op', () => {
+        mockState.activeCompanion = null;
+        companionInterject({ companionBark: { lyra: 'hi' } });
+        expect(mockLog).not.toHaveBeenCalled();
     });
 });

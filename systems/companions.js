@@ -7,6 +7,7 @@ let state;
 let addLog, updateUI, showDialog;
 
 import { COMPANIONS } from '../data/companions.js';
+import { resolveVariantText } from './quests.js';
 export { COMPANIONS };
 
 /**
@@ -337,6 +338,25 @@ export function setActiveCrewDirective(directiveId) {
     if (addLog) addLog(`Crew Directive activated: ${CREW_PASSIVES[directiveId].name}`);
     if (updateUI) updateUI();
     return true;
+}
+
+/**
+ * The active companion may react to a quest choice. Inline choice.companionBark
+ * wins; otherwise data-driven COMPANIONS[id].interjections. No-op if none.
+ */
+export function companionInterject(choice) {
+    const id = state?.activeCompanion;
+    if (!id || !COMPANIONS[id]) return;
+
+    let line = null;
+    if (choice && choice.companionBark && choice.companionBark[id]) {
+        line = choice.companionBark[id];
+    } else {
+        line = resolveVariantText(COMPANIONS[id].interjections, null);
+    }
+    if (line && addLog) {
+        addLog(`💬 ${COMPANIONS[id].name}: "${line}"`);
+    }
 }
 
 export function triggerCrewBanter() {
