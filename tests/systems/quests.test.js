@@ -1,4 +1,4 @@
-import { initQuests, acceptQuest, checkQuestProgress, completeStep, completeQuest, getQuest, getAvailableQuests, applyQuestItem, checkChoiceRequirements } from '../../systems/quests.js';
+import { initQuests, acceptQuest, checkQuestProgress, completeStep, completeQuest, getQuest, getAvailableQuests, applyQuestItem, checkChoiceRequirements, resolveVariantText, resolveDialogText } from '../../systems/quests.js';
 
 // Mock dependencies
 const mockState = {
@@ -219,5 +219,38 @@ describe('checkChoiceRequirements — flags', () => {
         expect(checkChoiceRequirements({ memoryFlag: 'vance_betrayed' })).toBe(false);
         mockState.character.npcs.vance = { disposition: 0, memoryFlags: ['vance_betrayed'] };
         expect(checkChoiceRequirements({ memoryFlag: 'vance_betrayed' })).toBe(true);
+    });
+});
+
+describe('resolveVariantText', () => {
+    beforeEach(() => {
+        mockState.character.storyline = { act: 1, alignment: 'neutral', variables: {} };
+        mockState.character.npcs = {};
+    });
+
+    test('first matching variant wins', () => {
+        mockState.character.storyline.variables.killed_queen = true;
+        const variants = [
+            { showIf: { flag: 'spared_queen' }, text: 'bows' },
+            { showIf: { flag: 'killed_queen' }, text: 'seethes' }
+        ];
+        expect(resolveVariantText(variants, 'silent')).toBe('seethes');
+    });
+
+    test('falls back when none match', () => {
+        const variants = [{ showIf: { flag: 'spared_queen' }, text: 'bows' }];
+        expect(resolveVariantText(variants, 'silent')).toBe('silent');
+    });
+
+    test('undefined / empty variants return fallback', () => {
+        expect(resolveVariantText(undefined, 'silent')).toBe('silent');
+        expect(resolveVariantText([], 'silent')).toBe('silent');
+    });
+
+    test('resolveDialogText wraps variants + text', () => {
+        mockState.character.storyline.variables.spared_queen = true;
+        const dialog = { variants: [{ showIf: { flag: 'spared_queen' }, text: 'bows' }], text: 'silent' };
+        expect(resolveDialogText(dialog)).toBe('bows');
+        expect(resolveDialogText({ text: 'plain' })).toBe('plain');
     });
 });

@@ -462,6 +462,28 @@ export function checkChoiceRequirements(requires) {
 }
 
 /**
+ * Return the first variant's text whose showIf passes, else fallback.
+ * @param {Array<{showIf?: object, text: string}>} variants
+ * @param {string|null} fallback
+ */
+export function resolveVariantText(variants, fallback) {
+    if (Array.isArray(variants)) {
+        for (const v of variants) {
+            if (checkChoiceRequirements(v.showIf)) return v.text;
+        }
+    }
+    return fallback;
+}
+
+/**
+ * Resolve a step dialog's text, honoring optional variants.
+ */
+export function resolveDialogText(dialog) {
+    if (!dialog) return '';
+    return resolveVariantText(dialog.variants, dialog.text);
+}
+
+/**
  * Display branching choices dialog
  */
 function showBranchingChoiceDialog(questId, step) {
