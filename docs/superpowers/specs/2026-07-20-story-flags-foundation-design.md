@@ -2,7 +2,8 @@
 
 **Date:** 2026-07-20
 **Status:** Approved for planning
-**Scope:** `systems/quests.js`, `tests/systems/quests.test.js`
+**Scope:** `systems/quests.js`, `systems/ui/districts-ui.js`, `systems/companions.js`,
+`data/companions.js`, `data/npc_reactions.js` (new), and the matching tests
 
 ## Goal
 
@@ -12,11 +13,17 @@ made in Act 1 cannot visibly matter in Act 3: `storyline.variables` is declared 
 never used, and `memoryFlags` are written but never read. This feature turns those
 into a real flag system so choices leave durable, readable consequences.
 
-Two consumer capabilities matter equally:
+Three consumer capabilities matter equally:
 
 1. **Quest-availability gating by flags** — a choice made earlier unlocks (or hides) a
    quest later. This is what stitches separate arcs into one long story.
 2. **Reactive within-quest text** — dialog changes based on what the player did before.
+3. **Reactive NPCs and companions** (Idea C) — NPCs greet the player differently and
+   the active companion interjects, based on flags / `memoryFlags` / disposition /
+   trust. This is what makes the flag system *feel* alive outside the quest log.
+
+All three reuse a single condition checker and a single variant-text resolver, so the
+marginal cost of Idea C is small.
 
 ## Non-Goals (deliberately out of scope)
 
@@ -24,7 +31,6 @@ These become easy once flags exist, but each is its own future change:
 
 - Codex / story journal UI.
 - Deferred consequences (events scheduled N jumps later).
-- NPC reactive greetings / companion interjections outside quest steps.
 - Changes to successor-quest selection (existing alignment/default logic stays).
 
 No new dependencies, no framework, no build changes. Vanilla ES6 modules only.
@@ -135,7 +141,12 @@ always visible (backward compatible).
 
 ### 3. Reactive dialog (`variants`)
 
-A new helper `resolveDialogText(dialog)` returns the text to display:
+A general helper `resolveVariantText(variants, fallback)` returns the first
+`variants[]` entry whose `showIf` passes (via the shared checker), else `fallback`.
+This single resolver is also the engine for Idea C below, so it is exported.
+
+`resolveDialogText(dialog)` is a thin wrapper: `resolveVariantText(dialog.variants,
+dialog.text)`.
 
 ```js
 dialog: {
@@ -147,8 +158,8 @@ dialog: {
 }
 ```
 
-- First `variants[]` entry whose `showIf` passes wins.
-- If none pass (or no `variants`), fall back to `dialog.text`.
+- First matching variant wins; if none pass (or no `variants`), fall back to
+  `dialog.text`.
 - Used wherever a step dialog renders: `completeStep`'s `showDialog` call and
   `showBranchingChoiceDialog`'s `dialogText`. A `dialog` (or step) that provides only
   `text` behaves exactly as today.
@@ -161,6 +172,63 @@ quest when it fails — sitting alongside the existing `requiredPlanet`,
 `derelictOnly`, and `requiredFaction` filters. A quest without these keys is
 unaffected. This is the mechanism by which an earlier choice unlocks a later quest.
 
+### 5. Reactive NPC greetings (Idea C)
+
+Today `talkToNPC` in `systems/ui/districts-ui.js` renders hardcoded greeting strings.
+This adds an optional, data-driven reactive layer **in front of** that existing logic —
+the hardcoded greetings remain the fallback, so no current behavior is lost.
+
+A new data file `data/npc_reactions.js` maps an NPC id to a variant list in the same
+shape the resolver already understands:
+
+```js
+export const npcReactions = {
+  vance: [
+    { showIf: { memoryFlag: "vance_betrayed" },
+      text: "You've got some nerve showing your face here." },
+    { showIf: { flag: "saved_terra_prime" },
+      text: "The hero of Terra Prime. Drinks are on me, Captain." }
+  ]
+};
+```
+
+In `talkToNPC`, before falling through to the hardcoded greeting for that NPC, call
+`resolveVariantText(npcReactions[npcId], null)`. If it returns non-null, show that
+line via the existing `showDialogue(name, text, [closeOption])` path and return; else
+proceed to today's behavior unchanged. The condition uses the shared checker, so
+greetings can react to `flag`, `memoryFlag`, `faction`, `npc` disposition, etc. The
+existing `factionSway` interception block runs first and is untouched.
+
+### 6. Companion interjections (Idea C)
+
+When a choice resolves in `evaluateChoice`, the **active** companion may interject.
+Two authoring paths, both optional:
+
+- **Inline, per-choice:** `choice.companionBark: { lyra: "You trust these Corsairs?" }`
+  — fires only if that companion is active. Best for one-off, choice-specific lines.
+- **Data-driven, reusable:** an optional `interjections` variant list on each companion
+  in `data/companions.js`, resolved by `resolveVariantText`:
+
+  ```js
+  lyra: {
+    ...,
+    dialogues: { ... },
+    interjections: [
+      { showIf: { flag: "killed_queen" },
+        text: "That life was a data point we can never recover." }
+    ]
+  }
+  ```
+
+Resolution order when a choice resolves: if `choice.companionBark[activeId]` exists use
+it; else resolve `COMPANIONS[activeId].interjections` against current state. Whichever
+line is chosen is shown through the existing companion-line channel —
+`addLog('💬 ${name}: "${line}"')` — reusing the pattern in `systems/companions.js`. A
+new small exported helper `companionInterject(choice)` in `systems/companions.js` holds
+this logic; `evaluateChoice` calls it after applying consequences (so trust changes
+from the same choice are already in effect). No interjection fires when no companion is
+active or nothing matches.
+
 ## Data flow
 
 ```
@@ -169,11 +237,12 @@ choice/step resolves
        |
        v
 later: checkChoiceRequirements(condition)  <- single source of truth
-       ^         ^              ^                 ^
-       |         |              |                 |
-  choice gating  showIf     dialog variants   quest availability
-                 (step skip) (resolveDialogText) (getAvailableQuests /
-                                                   getJobBoardQuests)
+       ^      ^         ^            ^            ^              ^
+       |      |         |            |            |              |
+  choice   showIf   dialog       quest        NPC greetings  companion
+  gating  (step    variants    availability  (npcReactions) interjections
+          skip)  (resolveVariantText) ......  ....... (resolveVariantText) .....
+                        \___________ shared resolveVariantText ___________/
 ```
 
 ## Error handling
@@ -188,8 +257,10 @@ later: checkChoiceRequirements(condition)  <- single source of truth
 ## Backward compatibility
 
 Every new key (`flag`, `memoryFlag`, `setFlags`, `incFlags`, `showIf`, `variants`,
-`requiredFlags`) is **optional**. All existing quests in `data/quests.js` keep working
-untouched. No data migration required.
+`requiredFlags`, `companionBark`, and the NPC `reactions` / companion `interjections`
+data tables) is **optional**. All existing quests in `data/quests.js`, all NPC
+greetings in `talkToNPC`, and all companion lines keep working untouched. No data
+migration required.
 
 ## Testing (`tests/systems/quests.test.js`)
 
@@ -206,5 +277,17 @@ untouched. No data migration required.
 - **Availability gating:** a quest with `requiredFlags` is excluded until the flag is
   set, then included, in both `getAvailableQuests` and `getJobBoardQuests`.
 - **Unknown `op`:** condition fails and a warning is logged.
+- **`resolveVariantText`:** first matching variant wins; falls back on no match / empty
+  / undefined list.
+
+Idea C tests (extend `tests/systems/districts.test.js` and
+`tests/systems/companions.test.js`, creating them if absent):
+
+- **NPC reactive greeting:** with a matching `npcReactions` variant, `talkToNPC` shows
+  the reactive line; with none matching, it falls through to the existing hardcoded
+  greeting; the `factionSway` interception still takes precedence.
+- **Companion interjection:** `choice.companionBark` fires for the active companion and
+  not for an inactive one; falls back to data-driven `interjections`; nothing fires
+  when no companion is active or nothing matches.
 
 Run `npm test` before completion (project rule).
