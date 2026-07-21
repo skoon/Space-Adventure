@@ -308,14 +308,6 @@ export function talkToNPC(npcId) {
         }
     }
 
-    // Reactive greeting layer (optional; falls through to scripted greetings)
-    const reactive = resolveVariantText(npcReactions[npcId], null);
-    if (reactive) {
-        const name = NPC_NAMES[npcId] || npcId;
-        showDialogue(name, reactive, [{ text: "(Close)", action: hideDialogue }]);
-        return;
-    }
-
     const active = state.character.activeQuests;
     const completed = state.character.completedQuests;
 
@@ -354,6 +346,21 @@ export function talkToNPC(npcId) {
                 }
             ]
         );
+        return;
+    }
+
+    // Reactive greeting layer (optional; falls through to scripted greetings).
+    // ponytail: sits after the turn-in interceptor so a ready quest turn-in
+    // always wins, but the per-NPC blocks below never fall through to a
+    // shared "default greeting" point (each has its own inline free-roam
+    // else), so this can still shadow quest-accept dialogue for an NPC once
+    // a matching reactive flag is set. No content sets one today (dormant);
+    // if that changes, move the check into each per-NPC free-roam `else`
+    // block instead of here.
+    const reactive = resolveVariantText(npcReactions[npcId], null);
+    if (reactive) {
+        const name = NPC_NAMES[npcId] || npcId;
+        showDialogue(name, reactive, [{ text: "(Close)", action: hideDialogue }]);
         return;
     }
 
