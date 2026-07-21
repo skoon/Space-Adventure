@@ -4,8 +4,9 @@
  */
 
 import { showDialogue, hideDialogue } from './dialogue-ui.js';
-import { acceptQuest, completeQuest, getRoleQuestId } from '../quests.js';
+import { acceptQuest, completeQuest, getRoleQuestId, resolveVariantText } from '../quests.js';
 import { t } from '../theme-engine.js';
+import { npcReactions } from '../../data/npc_reactions.js';
 
 let state;
 let deps;
@@ -305,6 +306,14 @@ export function talkToNPC(npcId) {
                 return;
             }
         }
+    }
+
+    // Reactive greeting layer (optional; falls through to scripted greetings)
+    const reactive = resolveVariantText(npcReactions[npcId], null);
+    if (reactive) {
+        const name = NPC_NAMES[npcId] || npcId;
+        showDialogue(name, reactive, [{ text: "(Close)", action: hideDialogue }]);
+        return;
     }
 
     const active = state.character.activeQuests;
