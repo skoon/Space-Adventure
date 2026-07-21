@@ -325,3 +325,30 @@ describe('advanceToVisibleStep', () => {
         expect(mockState.character.completedQuests).toContain('quest_allhidden');
     });
 });
+
+describe('reactive dialog wiring', () => {
+    beforeEach(() => {
+        initQuests(deps);
+        mockState.character.storyline = { act: 1, alignment: 'neutral', variables: {} };
+        mockState.character.activeQuests = {};
+        mockUi.showDialog.mockClear();
+    });
+
+    test('completeStep shows the matching variant text', () => {
+        mockState.character.storyline.variables.spared_queen = true;
+        mockQuestsData.quest_variant = {
+            id: 'quest_variant', title: 'V', description: '', type: 'kill', target: 'X', amount: 1,
+            steps: [
+                { type: 'kill', target: 'X', amount: 1, dialog: {
+                    title: 'Aftermath',
+                    variants: [{ showIf: { flag: 'spared_queen' }, text: 'bows' }],
+                    text: 'silent'
+                } },
+                { type: 'kill', target: 'Y', amount: 1 }
+            ]
+        };
+        mockState.character.activeQuests.quest_variant = { progress: 1, currentStep: 0 };
+        completeStep('quest_variant');
+        expect(mockUi.showDialog).toHaveBeenCalledWith('Aftermath', 'bows');
+    });
+});

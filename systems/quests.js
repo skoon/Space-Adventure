@@ -180,7 +180,7 @@ export function completeStep(questId) {
 
     // Show Dialog (only if not a choice step, choice steps handle dialog rendering themselves)
     if (step.dialog && showDialog && step.type !== 'choice') {
-        showDialog(step.dialog.title, step.dialog.text);
+        showDialog(step.dialog.title, resolveDialogText(step.dialog));
     }
 
     applyQuestFlagWrites(step);
@@ -563,6 +563,15 @@ function showBranchingChoiceDialog(questId, step) {
                 const { id, value } = choice.requires.npc;
                 reqTexts.push(`${id.toUpperCase()} DISP >= ${value}`);
             }
+            if (choice.requires.flag) {
+                const f = choice.requires.flag;
+                reqTexts.push(typeof f === 'string'
+                    ? `FLAG: ${f}`
+                    : `FLAG: ${f.name} ${f.op || '='} ${f.value ?? 'set'}`);
+            }
+            if (choice.requires.memoryFlag) {
+                reqTexts.push(`MEM: ${choice.requires.memoryFlag}`);
+            }
             text = `[${reqTexts.join(', ')}] ${text}`;
         }
 
@@ -575,7 +584,8 @@ function showBranchingChoiceDialog(questId, step) {
         };
     });
 
-    showDialog(step.dialogTitle || "Choice Required", step.dialogText || "Choose your path:", dialogOptions);
+    const resolvedPrompt = resolveVariantText(step.dialogTextVariants, step.dialogText) || "Choose your path:";
+    showDialog(step.dialogTitle || "Choice Required", resolvedPrompt, dialogOptions);
 }
 
 /**
