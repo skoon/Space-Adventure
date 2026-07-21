@@ -176,6 +176,8 @@ export function completeStep(questId) {
         showDialog(step.dialog.title, step.dialog.text);
     }
 
+    applyQuestFlagWrites(step);
+
     // Advance Step
     activeQuest.progress = 0;
     activeQuest.currentStep = currentStepIndex + 1;
@@ -484,6 +486,34 @@ export function resolveDialogText(dialog) {
 }
 
 /**
+ * Apply setFlags (literal) and incFlags (numeric add) from a choice or step.
+ */
+export function applyQuestFlagWrites(source) {
+    if (!source || !state?.character?.storyline?.variables) return;
+    const vars = state.character.storyline.variables;
+
+    if (source.setFlags) {
+        for (const [key, value] of Object.entries(source.setFlags)) {
+            vars[key] = value;
+            if (addLog) addLog(`📝 Story flag set: ${key} = ${value}`);
+        }
+    }
+    if (source.incFlags) {
+        for (const [key, delta] of Object.entries(source.incFlags)) {
+            let current = vars[key];
+            if (typeof current !== 'number') {
+                if (current !== undefined && addLog) {
+                    addLog(`[!] Story flag warning: incFlags on non-numeric '${key}', resetting to 0`);
+                }
+                current = 0;
+            }
+            vars[key] = current + delta;
+            if (addLog) addLog(`📝 Story flag: ${key} = ${vars[key]}`);
+        }
+    }
+}
+
+/**
  * Display branching choices dialog
  */
 function showBranchingChoiceDialog(questId, step) {
@@ -701,6 +731,8 @@ export function evaluateChoice(questId, choiceIndex) {
         }
 
         const triggerCombatData = choice.triggerCombat;
+
+        applyQuestFlagWrites(choice);
 
         // Advance step
         activeQuest.progress = 0;

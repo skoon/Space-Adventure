@@ -1,4 +1,4 @@
-import { initQuests, acceptQuest, checkQuestProgress, completeStep, completeQuest, getQuest, getAvailableQuests, applyQuestItem, checkChoiceRequirements, resolveVariantText, resolveDialogText } from '../../systems/quests.js';
+import { initQuests, acceptQuest, checkQuestProgress, completeStep, completeQuest, getQuest, getAvailableQuests, applyQuestItem, checkChoiceRequirements, resolveVariantText, resolveDialogText, applyQuestFlagWrites } from '../../systems/quests.js';
 
 // Mock dependencies
 const mockState = {
@@ -253,5 +253,34 @@ describe('resolveVariantText', () => {
         const dialog = { variants: [{ showIf: { flag: 'spared_queen' }, text: 'bows' }], text: 'silent' };
         expect(resolveDialogText(dialog)).toBe('bows');
         expect(resolveDialogText({ text: 'plain' })).toBe('plain');
+    });
+});
+
+describe('flag writes', () => {
+    beforeEach(() => {
+        initQuests(deps);
+        mockState.character.storyline = { act: 1, alignment: 'neutral', variables: {} };
+        mockState.character.npcs = {};
+    });
+
+    test('setFlags assigns literals', () => {
+        applyQuestFlagWrites({ setFlags: { spared_queen: true, alliance: 'fed' } });
+        expect(mockState.character.storyline.variables.spared_queen).toBe(true);
+        expect(mockState.character.storyline.variables.alliance).toBe('fed');
+    });
+
+    test('incFlags adds, initializing unset to 0', () => {
+        applyQuestFlagWrites({ incFlags: { civ: 1 } });
+        expect(mockState.character.storyline.variables.civ).toBe(1);
+        applyQuestFlagWrites({ incFlags: { civ: 2 } });
+        expect(mockState.character.storyline.variables.civ).toBe(3);
+    });
+
+    test('incFlags on non-numeric resets to 0 and warns', () => {
+        mockState.character.storyline.variables.civ = 'oops';
+        mockUi.addLog.mockClear();
+        applyQuestFlagWrites({ incFlags: { civ: 1 } });
+        expect(mockState.character.storyline.variables.civ).toBe(1);
+        expect(mockUi.addLog).toHaveBeenCalled();
     });
 });
