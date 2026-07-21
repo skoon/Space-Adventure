@@ -1,4 +1,4 @@
-import { initQuests, acceptQuest, checkQuestProgress, completeStep, completeQuest, getQuest, getAvailableQuests, applyQuestItem, checkChoiceRequirements, resolveVariantText, resolveDialogText, applyQuestFlagWrites } from '../../systems/quests.js';
+import { initQuests, acceptQuest, checkQuestProgress, completeStep, completeQuest, getQuest, getAvailableQuests, applyQuestItem, checkChoiceRequirements, resolveVariantText, resolveDialogText, applyQuestFlagWrites, advanceToVisibleStep } from '../../systems/quests.js';
 
 // Mock dependencies
 const mockState = {
@@ -282,5 +282,34 @@ describe('flag writes', () => {
         applyQuestFlagWrites({ incFlags: { civ: 1 } });
         expect(mockState.character.storyline.variables.civ).toBe(1);
         expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('non-numeric'));
+    });
+});
+
+describe('advanceToVisibleStep', () => {
+    beforeEach(() => {
+        initQuests(deps);
+        mockState.character.storyline = { act: 1, alignment: 'neutral', variables: {} };
+        mockState.character.activeQuests = {};
+    });
+
+    test('skips a hidden step and lands on the next visible one', () => {
+        mockQuestsData.quest_showif = {
+            id: 'quest_showif', title: 'ShowIf', description: '', type: 'kill', target: 'X', amount: 1,
+            steps: [
+                { type: 'kill', target: 'X', amount: 1 },
+                { type: 'kill', target: 'Y', amount: 1, showIf: { flag: 'do_bonus' } },
+                { type: 'kill', target: 'Z', amount: 1 }
+            ]
+        };
+        mockState.character.activeQuests.quest_showif = { progress: 0, currentStep: 1 };
+        advanceToVisibleStep('quest_showif');
+        expect(mockState.character.activeQuests.quest_showif.currentStep).toBe(2);
+    });
+
+    test('does not skip a visible step', () => {
+        mockState.character.storyline.variables.do_bonus = true;
+        mockState.character.activeQuests.quest_showif = { progress: 0, currentStep: 1 };
+        advanceToVisibleStep('quest_showif');
+        expect(mockState.character.activeQuests.quest_showif.currentStep).toBe(1);
     });
 });

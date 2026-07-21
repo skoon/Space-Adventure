@@ -87,6 +87,8 @@ export function acceptQuest(questId) {
     addLog(`[!] Quest Accepted: ${quest.title}`);
     showSaveMessage(`Quest Accepted: ${quest.title}`);
 
+    advanceToVisibleStep(mappedQuestId);
+
     // If the first step is a choice, trigger it immediately
     triggerChoiceStepIfActive(mappedQuestId);
 }
@@ -181,6 +183,7 @@ export function completeStep(questId) {
     // Advance Step
     activeQuest.progress = 0;
     activeQuest.currentStep = currentStepIndex + 1;
+    advanceToVisibleStep(questId);
 
     addLog(`✅ Quest Step Completed!`);
 
@@ -464,6 +467,23 @@ export function checkChoiceRequirements(requires) {
 }
 
 /**
+ * Skip currentStep forward past any step whose showIf fails.
+ */
+export function advanceToVisibleStep(questId) {
+    const quest = quests[questId];
+    const activeQuest = state.character?.activeQuests?.[questId];
+    if (!quest || !quest.steps || !activeQuest) return;
+    while (activeQuest.currentStep < quest.steps.length) {
+        const step = quest.steps[activeQuest.currentStep];
+        if (step.showIf && !checkChoiceRequirements(step.showIf)) {
+            activeQuest.currentStep++;
+        } else {
+            break;
+        }
+    }
+}
+
+/**
  * Return the first variant's text whose showIf passes, else fallback.
  * @param {Array<{showIf?: object, text: string}>} variants
  * @param {string|null} fallback
@@ -737,6 +757,7 @@ export function evaluateChoice(questId, choiceIndex) {
         // Advance step
         activeQuest.progress = 0;
         activeQuest.currentStep = nextStepVal;
+        advanceToVisibleStep(questId);
 
         addLog(`✅ Quest Choice Processed!`);
 
