@@ -281,6 +281,6 @@ describe('flag writes', () => {
         mockUi.addLog.mockClear();
         applyQuestFlagWrites({ incFlags: { civ: 1 } });
         expect(mockState.character.storyline.variables.civ).toBe(1);
-        expect(mockUi.addLog).toHaveBeenCalled();
+        expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('non-numeric'));
     });
 });
