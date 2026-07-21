@@ -1,4 +1,4 @@
-import { initQuests, acceptQuest, checkQuestProgress, completeStep, completeQuest, getQuest, getAvailableQuests, applyQuestItem, checkChoiceRequirements, resolveVariantText, resolveDialogText, applyQuestFlagWrites, advanceToVisibleStep } from '../../systems/quests.js';
+import { initQuests, acceptQuest, checkQuestProgress, completeStep, completeQuest, getQuest, getAvailableQuests, getJobBoardQuests, applyQuestItem, checkChoiceRequirements, resolveVariantText, resolveDialogText, applyQuestFlagWrites, advanceToVisibleStep } from '../../systems/quests.js';
 
 // Mock dependencies
 const mockState = {
@@ -350,5 +350,35 @@ describe('reactive dialog wiring', () => {
         mockState.character.activeQuests.quest_variant = { progress: 1, currentStep: 0 };
         completeStep('quest_variant');
         expect(mockUi.showDialog).toHaveBeenCalledWith('Aftermath', 'bows');
+    });
+});
+
+describe('quest availability gating', () => {
+    beforeEach(() => {
+        initQuests(deps);
+        mockState.character.storyline = { act: 1, alignment: 'neutral', variables: {} };
+        mockState.character.activeQuests = {};
+        mockState.character.completedQuests = [];
+        mockState.currentLocation = 'terra_prime';
+    });
+
+    test('requiredFlags hides a quest until the flag is set (getAvailableQuests)', () => {
+        mockQuestsData.quest_gated = {
+            id: 'quest_gated', title: 'Gated', description: '', type: 'kill', target: 'X', amount: 1,
+            requiredFlags: { flag: 'unlocked_it' }
+        };
+        expect(getAvailableQuests().some(q => q.id === 'quest_gated')).toBe(false);
+        mockState.character.storyline.variables.unlocked_it = true;
+        expect(getAvailableQuests().some(q => q.id === 'quest_gated')).toBe(true);
+    });
+
+    test('requiredFlags hides a quest until the flag is set (getJobBoardQuests)', () => {
+        mockQuestsData.quest_gated_board = {
+            id: 'quest_gated_board', title: 'Gated Board', description: '', type: 'kill', target: 'X', amount: 1,
+            requiredFlags: { flag: 'unlocked_board' }
+        };
+        expect(getJobBoardQuests().some(q => q.id === 'quest_gated_board')).toBe(false);
+        mockState.character.storyline.variables.unlocked_board = true;
+        expect(getJobBoardQuests().some(q => q.id === 'quest_gated_board')).toBe(true);
     });
 });

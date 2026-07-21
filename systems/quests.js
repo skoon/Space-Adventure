@@ -909,6 +909,9 @@ export function getAvailableQuests() {
             if ((state.character.factions[faction] || 0) < min) return false;
         }
 
+        if (q.requiredFlags && !checkChoiceRequirements(q.requiredFlags)) return false;
+        if (q.showIf && !checkChoiceRequirements(q.showIf)) return false;
+
         return true;
     });
 }
@@ -1062,10 +1065,13 @@ export function getJobBoardQuests() {
             const { faction, min } = q.requiredFaction;
             if ((state.character.factions[faction] || 0) < min) return false;
         }
-        
+
+        if (q.requiredFlags && !checkChoiceRequirements(q.requiredFlags)) return false;
+        if (q.showIf && !checkChoiceRequirements(q.showIf)) return false;
+
         return true;
     });
-    
+
     // If fewer than 3 available, generate dynamic quests to fill the board to 3
     while (available.length < 3) {
         const dynQuest = generateDynamicQuest(currentLocation);
