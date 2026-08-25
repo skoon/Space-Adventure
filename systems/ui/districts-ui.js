@@ -255,6 +255,10 @@ export function exploreDistrict(distId) {
     const dist = loc?.districts?.find(d => d.id === distId);
     if (!dist) return;
 
+    if (deps.ui && deps.ui.setScene) {
+        deps.ui.setScene({ kind: 'district', id: dist.id, label: dist.name, emoji: dist.icon || '🏢' });
+    }
+
     if (deps.ui && deps.ui.addLog) {
         deps.ui.addLog(t(`🔍 You explored the ${dist.name}. It is quiet and secure.`));
     }

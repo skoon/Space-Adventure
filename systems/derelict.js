@@ -150,6 +150,10 @@ export function startDerelictRun(destination) {
     addLog(`You docked with a derelict vessel. Life support is offline. You have ${maxOxygen} units of oxygen.`);
     
     // Switch to derelict UI
+    if (deps.ui.setScene) {
+        deps.ui.setScene({ kind: 'event', id: 'derelict_boarding', label: 'DERELICT VESSEL', sub: `OXYGEN ${maxOxygen}`, emoji: '🛸' });
+    }
+
     if (deps.ui.showDerelictScreen) {
         deps.ui.showDerelictScreen();
     }
@@ -406,6 +410,8 @@ export function failRun() {
 
 function finishRun() {
     const destination = state.derelict.destination;
+
+    if (deps.ui.clearScene) deps.ui.clearScene('event');
     
     state.derelict.active = false;
     state.derelict.currentLoot = [];

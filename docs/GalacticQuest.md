@@ -59,7 +59,7 @@ game.js (coordinator / wiring)
 │   ├── shop.js             ← Buy/sell, Photon Prime online ordering, drop boxes
 │   ├── market.js           ← Dynamic commodity market, news event price tickers
 │   ├── crafting.js         ← Recipe-based crafting, recipe discovery
-│   ├── settings.js         ← Difficulty levels
+│   ├── settings.js         ← Difficulty levels, viewscreen imagery toggle
 │   ├── ship.js             ← Ship module upgrades (engine, medbay, cargo, shields, weapons)
 │   ├── derelict.js         ← Procedural maze generation, raycasting exploration
 │   ├── skills.js           ← Skill tree / unlockable abilities
@@ -86,7 +86,8 @@ game.js (coordinator / wiring)
 │   ├── saveload-ui.js
 │   ├── settings-ui.js
 │   ├── shop-ui.js
-│   └── travel-ui.js
+│   ├── travel-ui.js
+│   └── viewscreen.js       ← Persistent image panel; priority scene stack, emoji fallback
 │
 └── data/                   ← Pure data (no logic)
     ├── quests.js           ← Full quest library (branching, multi-act)
@@ -96,8 +97,24 @@ game.js (coordinator / wiring)
     ├── recipes.js          ← Crafting recipes
     ├── cybernetics.js      ← Implant definitions & nanite mod chips
     ├── theme.js            ← Active theme vocabulary tokens ← KEY FOR GENERALIZATION
+    ├── imagery.js          ← Image registry: game ID → art record (missing keys = emoji)
     └── version.js
 ```
+
+### Imagery Pipeline
+
+```
+assets/portraits/*.jpg          ← 1 MB masters, never shipped to the browser
+        │  npm run optimize-images  (tools/optimize-images.js, sharp devDependency)
+        ▼
+assets/images/{npcs,enemies,locations,events}/
+        ├── <name>.webp         512²  <60 KB   viewscreen <source>
+        ├── <name>.jpg          512²  <60 KB   <picture> fallback
+        └── <name>-thumb.webp   128²  <12 KB   dialogue avatar, crew cards
+```
+
+The optimizer is an offline script. Nothing at page load depends on `sharp`, and
+`index.html` still opens straight from disk.
 
 ### State Object Shape (character)
 
@@ -285,6 +302,8 @@ state.character = {
 | **Map Visualization** | Visual travel map with location highlighting | [`travel-ui.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/travel-ui.js) |
 | **Notifications** | Level-up overlays, victory banners, save confirmation toasts | [`notifications.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/notifications.js) |
 | **Theme Engine (DOM)** | `data-term` attributes on HTML elements auto-translate via `tToken()` | [`theme-engine.js`](file:///d:/source/Roogames/Space%20Adventure/systems/theme-engine.js), [`data/theme.js`](file:///d:/source/Roogames/Space%20Adventure/data/theme.js) |
+| **Viewscreen** | Persistent image panel beside the Operations Log. Scenes are pushed onto a priority stack (`event 40 > boss 35 > enemy 30 > npc 20 > district 15 > location 10`) so popping a combat scene reveals the ambient planet underneath. 200 ms crossfade, accent-driven frame glow, hologram scanline, emoji whenever art is missing | [`viewscreen.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/viewscreen.js), [`data/imagery.js`](file:///d:/source/Roogames/Space%20Adventure/data/imagery.js) |
+| **NPC Portraits** | Dialogue avatar and companion crew cards render the registered `-thumb.webp`, reverting to the emoji they have always shown | [`dialogue-ui.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/dialogue-ui.js), [`companions-ui.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/companions-ui.js) |
 
 ---
 
@@ -543,6 +562,10 @@ npm test
 | [`systems/ui/dungeon-renderer.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/dungeon-renderer.js) | Raycasting pseudo-3D renderer |
 | [`systems/companions.js`](file:///d:/source/Roogames/Space%20Adventure/systems/companions.js) | Crew system, trust, banter |
 | [`systems/theme-engine.js`](file:///d:/source/Roogames/Space%20Adventure/systems/theme-engine.js) | DOM vocabulary translation engine |
+| [`systems/ui/viewscreen.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/viewscreen.js) | Viewscreen panel: priority scene stack, crossfade, emoji fallback |
+| [`data/imagery.js`](file:///d:/source/Roogames/Space%20Adventure/data/imagery.js) | **IMAGE REGISTRY** — game ID → art record; a missing key is a supported state |
+| [`tools/optimize-images.js`](file:///d:/source/Roogames/Space%20Adventure/tools/optimize-images.js) | Offline image optimizer (`npm run optimize-images`) |
+| [`docs/imagery_manifest.md`](file:///d:/source/Roogames/Space%20Adventure/docs/imagery_manifest.md) | **ART SHOPPING LIST** — every requestable ID, whether art exists, emoji stand-in |
 | [`docs/lore.md`](file:///d:/source/Roogames/Space%20Adventure/docs/lore.md) | **UNIVERSE LORE GUIDE** — core factions, planetary ecologies, characters, and expansion hooks |
 | [`docs/photon_prime_store_mockup.md`](file:///d:/source/Roogames/Space%20Adventure/docs/photon_prime_store_mockup.md) | **PHOTON PRIME STORE MOCKUP** — visual UI layout mockup and HTML/CSS styles plan for the online ordering interface |
 | [`docs/portraits_gallery.md`](file:///d:/source/Roogames/Space%20Adventure/docs/portraits_gallery.md) | **PORTRAITS GALLERY** — visual reference cards for companions, merchants, and hostile biological/mechanical threats |

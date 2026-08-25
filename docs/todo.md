@@ -232,6 +232,11 @@
 - [x] **Retro Sci-Fi Theme** - Flash Gordon/Buck Rogers styling for stats
 - [x] **CRT Effects** - Amber monitors for Quest Log and terminals
 - [x] **Map Visualization** - Visual travel map with location highlighting
+- [x] **Viewscreen** - Persistent image panel on the exploration screen showing one static image for the current action (planet, district, NPC, enemy, boss, event). Glassmorphism frame with the holographic-CRT scanline, accent glow driven by the image record, 200 ms crossfade between scenes
+- [x] **Image Registry** - `data/imagery.js` maps game IDs to art; missing keys fall back to emoji by design. See `docs/imagery_manifest.md`
+- [x] **Image Optimization Pipeline** - `npm run optimize-images` re-encodes the 1 MB portrait masters to 512² WebP/JPEG (<60 KB) plus 128² thumbs (<12 KB)
+- [x] **NPC Portraits** - Dialogue overlay and companion crew cards show the registered portrait thumbnail, emoji when there is none
+- [ ] **Location & Event Art** - Seven planets, twelve districts and both event scenes still render emoji; see `docs/imagery_manifest.md` for the ranked gap list
 
 ### Animations & Effects
 
@@ -249,6 +254,7 @@
 
 ### Settings Menu
 
+- [x] **Viewscreen Imagery Toggle** - Turns the image layer off for slow connections or emoji-only play; persists in `galactic_odyssey_settings`
 - [ ] **Graphics Options** - Quality settings
 - [ ] **Audio Controls** - Volume sliders and mute options
 - [ ] **Keybind Customization** - Remap controls

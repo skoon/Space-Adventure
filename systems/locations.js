@@ -10,8 +10,8 @@ import { rollMarketEvent } from './market.js';
 let state;
 
 // Dependencies
-let addLog, updateUI, playTravelAnimation;
-let locations;
+let addLog, updateUI, playTravelAnimation, setScene, preloadScenes;
+let locations, enemies;
 import { getMedbayHealAmount, getScannerBonus, triggerSpaceCombatEvent } from './ship.js';
 
 /**
@@ -24,6 +24,9 @@ export function initLocations(deps) {
     addLog = deps.ui.addLog;
     updateUI = deps.ui.updateUI;
     playTravelAnimation = deps.ui.playTravelAnimation;
+    setScene = deps.ui.setScene;
+    preloadScenes = deps.ui.preloadScenes;
+    enemies = deps.data.enemies;
 }
 
 /**
@@ -255,8 +258,30 @@ function triggerTravelAmbush(factionId, location) {
     });
 }
 
+/**
+ * Ambient viewscreen scene for the planet the player just docked at, plus a
+ * cache warm-up for the art they are most likely to need here next.
+ */
+function showArrivalScene(location) {
+    if (!setScene) return;
+    setScene({
+        kind: 'location',
+        id: location.id,
+        label: location.name,
+        sub: `HAZARD LVL ${location.hazardLevel || 1}`,
+        emoji: '🪐'
+    });
+    if (!preloadScenes) return;
+    const districts = (location.districts || []).map(d => ({ kind: 'district', id: d.id }));
+    const locals = (enemies || [])
+        .filter(e => !e.locations || e.locations.includes(location.id))
+        .map(e => ({ kind: 'enemy', id: e.name }));
+    preloadScenes(districts.concat(locals));
+}
+
 function completeTravel(location) {
     state.currentLocation = location.id;
+    showArrivalScene(location);
     addLog(`🚀 Traveling to ${location.name}...`);
     addLog(`ARRIVAL: ${location.description}`);
     

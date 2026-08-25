@@ -22,6 +22,7 @@ import { showSaveLoadUI } from './ui/saveload-ui.js';
 
 import { initAttributesUI, showStatsAllocationUI, closeStatsAllocationUI, allocateStat, updateAttributesBtnGlow } from './ui/attributes-ui.js';
 import { initDialogueUI, showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl } from './ui/dialogue-ui.js';
+import { initViewscreen, setScene, clearScene, resetViewscreen, repaintViewscreen, preloadScenes, getThumbPath, paintThumb } from './ui/viewscreen.js';
 import { initUpgrades } from './upgrades.js';
 import { checkAchievement } from './achievements.js';
 import { initAchievementsUI, showAchievementsUI, closeAchievementsUI } from './ui/achievements-ui.js';
@@ -90,7 +91,7 @@ const renderCache = {
 export function initUI(dependencies) {
     // Store state object reference
     deps = dependencies;
-    deps.ui = { showDialog, addLog, updateUI };
+    deps.ui = { showDialog, addLog, updateUI, setScene, clearScene, resetViewscreen, repaintViewscreen, preloadScenes, getThumbPath, paintThumb };
     console.log("initUI called", deps);
     state = deps.state;
 
@@ -115,6 +116,7 @@ export function initUI(dependencies) {
     initCyberneticsUI(deps);
     initDialogueUI(deps);
     initDistrictsUI(deps);
+    initViewscreen(deps);
 
     // Initialize Difficulty Selector (Start Screen)
     const difficultySelect = document.getElementById("difficultySelect");
@@ -164,6 +166,11 @@ export function showScreen(screenName) {
     }
     if (screenName === 'exploring') {
         switchOperationsTab('cargo');
+        syncAmbientScene();
+    }
+    if (screenName !== 'combat') {
+        clearScene('enemy');
+        clearScene('boss');
     }
 
     const exitBtn = document.getElementById("exitHeaderBtn");
@@ -174,6 +181,23 @@ export function showScreen(screenName) {
             exitBtn.style.display = "none";
         }
     }
+}
+
+/**
+ * Keep the viewscreen's ambient (lowest priority) scene pointed at the planet
+ * the player is standing on. Idempotent — re-setting the same scene repaints
+ * nothing.
+ */
+function syncAmbientScene() {
+    const location = state && state.currentLocation && deps.data.locations[state.currentLocation];
+    if (!location) return;
+    setScene({
+        kind: 'location',
+        id: location.id,
+        label: location.name,
+        sub: `HAZARD LVL ${location.hazardLevel || 1}`,
+        emoji: '🪐'
+    });
 }
 
 /**
@@ -906,11 +930,13 @@ export function playTravelAnimation(callback) {
     
     overlay.classList.remove('hidden');
     overlay.style.display = 'flex';
+    setScene({ kind: 'event', id: 'hyperspace', label: 'HYPERSPACE TRANSIT', emoji: '✨' });
     
     // Play for 2 seconds
     setTimeout(() => {
         overlay.classList.add('hidden');
         overlay.style.display = 'none';
+        clearScene('event');
         if (callback) callback();
     }, 2000);
 }
