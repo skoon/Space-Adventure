@@ -32,7 +32,10 @@ const SUBJECTS = {
   corsair_raider: 'enemies',
   plasmavore: 'enemies',
   sand_worm: 'enemies',
-  void_sentinel: 'enemies'
+  void_sentinel: 'enemies',
+  terra_prime: 'locations',
+  galactic_nexus: 'locations',
+  norkon_outpost: 'locations' 
 };
 
 const FULL_SIZE = 512;

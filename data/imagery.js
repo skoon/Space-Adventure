@@ -55,6 +55,9 @@ export const bossImages = {
 
 /** @type {Record<string, ImageRecord>} */
 export const locationImages = {
+    'terra_prime': { path: 'locations/terra_prime', alt: 'Terra Prime, a bustling spaceport city', accent: 'orange' },
+    'galactic_nexus': { path: 'locations/galactic_nexus', alt: 'Galactic Nexus, a hub of interstellar trade', accent: 'purple' },
+    'norkon_outpost': { path: 'locations/norkon_outpost', alt: 'Norkon Outpost, a remote research station', accent: 'green' }
     // no art yet: terra_prime, xylo_delta, nebula_outpost, norkon_outpost,
     //             inferno_ix, crio_prime, galactic_nexus
 };
