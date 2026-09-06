@@ -14,16 +14,17 @@ import { initSaveLoad, saveGame, loadGame, exportGame, importGame, autoSave, ini
 import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog, showTravelScreen, showSettingsModal, showStatsAllocationUI, closeStatsAllocationUI, allocateStat, showAchievementsUI, closeAchievementsUI, switchShipTab, switchOperationsTab, updateQuickCrewPanel, showDerelictScreen, showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl } from './systems/ui.js';
 import { initInventory, openCombatItemMenu, closeCombatItemMenu, useCombatItem } from './systems/inventory.js';
 import { initLocations, travelTo, getLocationDetails, getUnlockedLocations } from './systems/locations.js';
+import { setScene, clearScene, preloadScenes } from './systems/ui/viewscreen.js';
 import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem, claimAllOrders } from './systems/shop.js';
 import { initMarket } from './systems/market.js';
 import { initCrafting, craftItem, discoverRecipe, getKnownRecipes, canCraft } from './systems/crafting.js';
-import { initSettings, getDifficulty, setDifficulty } from './systems/settings.js';
+import { initSettings, getDifficulty, setDifficulty, getShowImages, setShowImages } from './systems/settings.js';
 import { initShip, upgradeModule } from './systems/ship.js';
 import { initDerelict, startDerelictRun, exploreRoom, escapeShip, failRun, turnLeft, turnRight, uTurn } from './systems/derelict.js';
 import { initSkills } from './systems/skills.js';
 import { initUpgrades } from './systems/upgrades.js';
 import { initAchievements } from './systems/achievements.js';
-import { initCompanions } from './systems/companions.js';
+import { initCompanions, companionInterject } from './systems/companions.js';
 import { initCybernetics } from './systems/cybernetics.js';
 import { handleInstallImplant, handleUninstallImplant, handleInstallModChip, handleUninstallModChip, handleBuySpecializationPoint } from './systems/ui/cybernetics-ui.js';
 
@@ -180,7 +181,7 @@ function initializeGame() {
     data: { enemies, bosses, quests, items, locations, recipes },
     dom: { screens, elements, inventoryElement, missionLogElement, combatElements },
     locations: { getUnlockedLocations, travelTo },
-    settings: { getDifficulty, setDifficulty }
+    settings: { getDifficulty, setDifficulty, getShowImages, setShowImages }
   };
 
   // Initialize UI first (needed by other modules)
@@ -207,13 +208,14 @@ function initializeGame() {
   // Initialize Quests
   initQuests({
     ...deps,
-    ui: { addLog, updateUI, showVictoryMessage, showSaveMessage, showDialog, showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl }
+    ui: { addLog, updateUI, showVictoryMessage, showSaveMessage, showDialog, showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl },
+    companions: { companionInterject }
   });
 
   // Initialize Combat
   initCombat({
     ...deps,
-    ui: { addLog, updateCombatLog, showScreen, updateUI, getStatusEffectIcon, showVictoryMessage },
+    ui: { addLog, updateCombatLog, showScreen, updateUI, getStatusEffectIcon, showVictoryMessage, setScene },
     equipment: { getEffectiveStats },
     character: { getCharacterAvatar, gainXp },
     quests: { checkQuestProgress },
@@ -232,7 +234,7 @@ function initializeGame() {
   // Initialize Locations
   initLocations({
     ...deps,
-    ui: { addLog, updateUI }
+    ui: { addLog, updateUI, setScene, preloadScenes }
   });
 
   // Initialize Shop
@@ -264,7 +266,7 @@ function initializeGame() {
   // Re-initialize Combat with real simulateExploration
   initCombat({
     ...deps,
-    ui: { addLog, updateCombatLog, showScreen, updateUI, getStatusEffectIcon, showVictoryMessage },
+    ui: { addLog, updateCombatLog, showScreen, updateUI, getStatusEffectIcon, showVictoryMessage, setScene },
     equipment: { getEffectiveStats },
     character: { getCharacterAvatar, gainXp },
     quests: { checkQuestProgress },
@@ -310,7 +312,7 @@ function initializeGame() {
   // Initialize Derelict
   initDerelict({
     ...deps,
-    ui: { addLog, updateUI, showScreen, showDerelictScreen },
+    ui: { addLog, updateUI, showScreen, showDerelictScreen, setScene, clearScene },
     character: { gainXp },
     quests: { checkQuestProgress },
     combat: { encounterEnemy }

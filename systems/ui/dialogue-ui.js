@@ -177,7 +177,16 @@ export function showDialogue(title, text, options = []) {
     const npcFaction = document.getElementById("dialogueNpcFaction");
     const npcMood = document.getElementById("dialogueNpcMood");
     
-    if (npcAvatar) npcAvatar.textContent = speaker.avatar;
+    if (npcAvatar) {
+        if (deps && deps.ui && deps.ui.paintThumb) {
+            deps.ui.paintThumb(npcAvatar, 'npc', speaker.key, speaker.avatar, speaker.name);
+        } else {
+            npcAvatar.textContent = speaker.avatar;
+        }
+    }
+    if (deps && deps.ui && deps.ui.setScene) {
+        deps.ui.setScene({ kind: 'npc', id: speaker.key, label: speaker.name, sub: speaker.faction, emoji: speaker.avatar });
+    }
     if (npcName) npcName.textContent = t(speaker.name);
     
     if (npcFaction) {
@@ -269,6 +278,7 @@ export function hideDialogue() {
     if (overlay) {
         overlay.style.display = "none";
     }
+    if (deps && deps.ui && deps.ui.clearScene) deps.ui.clearScene('npc');
 }
 
 /**

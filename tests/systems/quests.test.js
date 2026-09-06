@@ -1,4 +1,4 @@
-import { initQuests, acceptQuest, checkQuestProgress, completeStep, completeQuest, getQuest, getAvailableQuests, applyQuestItem } from '../../systems/quests.js';
+import { initQuests, acceptQuest, checkQuestProgress, completeStep, completeQuest, getQuest, getAvailableQuests, getJobBoardQuests, applyQuestItem, checkChoiceRequirements, resolveVariantText, resolveDialogText, applyQuestFlagWrites, advanceToVisibleStep } from '../../systems/quests.js';
 
 // Mock dependencies
 const mockState = {
@@ -174,5 +174,211 @@ describe('Quest System', () => {
         expect(usedWrong).toBe(false);
         expect(mockState.character.activeQuests['quest_single'].progress).toBe(1);
         expect(mockState.inventory).toContain('Data Chip'); // Not consumed
+    });
+});
+
+describe('checkChoiceRequirements — flags', () => {
+    beforeEach(() => {
+        initQuests(deps);
+        mockState.character.storyline = { act: 1, alignment: 'neutral', variables: {} };
+        mockState.character.npcs = {};
+    });
+
+    test('truthy shorthand: flag string', () => {
+        expect(checkChoiceRequirements({ flag: 'spared_queen' })).toBe(false);
+        mockState.character.storyline.variables.spared_queen = true;
+        expect(checkChoiceRequirements({ flag: 'spared_queen' })).toBe(true);
+    });
+
+    test('equality when value present, op omitted', () => {
+        mockState.character.storyline.variables.alliance = 'fed';
+        expect(checkChoiceRequirements({ flag: { name: 'alliance', value: 'fed' } })).toBe(true);
+        expect(checkChoiceRequirements({ flag: { name: 'alliance', value: 'cor' } })).toBe(false);
+    });
+
+    test('numeric operators', () => {
+        mockState.character.storyline.variables.civ = 3;
+        expect(checkChoiceRequirements({ flag: { name: 'civ', op: '>=', value: 3 } })).toBe(true);
+        expect(checkChoiceRequirements({ flag: { name: 'civ', op: '>', value: 3 } })).toBe(false);
+        expect(checkChoiceRequirements({ flag: { name: 'civ', op: '<=', value: 3 } })).toBe(true);
+        expect(checkChoiceRequirements({ flag: { name: 'civ', op: '!=', value: 4 } })).toBe(true);
+    });
+
+    test('missing flag never throws, reads falsy', () => {
+        expect(checkChoiceRequirements({ flag: { name: 'nope', op: '>=', value: 1 } })).toBe(false);
+    });
+
+    test('unknown op fails closed and warns', () => {
+        mockState.character.storyline.variables.civ = 3;
+        mockUi.addLog.mockClear();
+        expect(checkChoiceRequirements({ flag: { name: 'civ', op: '<>', value: 3 } })).toBe(false);
+        expect(mockUi.addLog).toHaveBeenCalled();
+    });
+
+    test('memoryFlag reads any NPC memoryFlags', () => {
+        expect(checkChoiceRequirements({ memoryFlag: 'vance_betrayed' })).toBe(false);
+        mockState.character.npcs.vance = { disposition: 0, memoryFlags: ['vance_betrayed'] };
+        expect(checkChoiceRequirements({ memoryFlag: 'vance_betrayed' })).toBe(true);
+    });
+});
+
+describe('resolveVariantText', () => {
+    beforeEach(() => {
+        initQuests(deps);
+        mockState.character.storyline = { act: 1, alignment: 'neutral', variables: {} };
+        mockState.character.npcs = {};
+    });
+
+    test('first matching variant wins', () => {
+        mockState.character.storyline.variables.killed_queen = true;
+        const variants = [
+            { showIf: { flag: 'spared_queen' }, text: 'bows' },
+            { showIf: { flag: 'killed_queen' }, text: 'seethes' }
+        ];
+        expect(resolveVariantText(variants, 'silent')).toBe('seethes');
+    });
+
+    test('falls back when none match', () => {
+        const variants = [{ showIf: { flag: 'spared_queen' }, text: 'bows' }];
+        expect(resolveVariantText(variants, 'silent')).toBe('silent');
+    });
+
+    test('undefined / empty variants return fallback', () => {
+        expect(resolveVariantText(undefined, 'silent')).toBe('silent');
+        expect(resolveVariantText([], 'silent')).toBe('silent');
+    });
+
+    test('resolveDialogText wraps variants + text', () => {
+        mockState.character.storyline.variables.spared_queen = true;
+        const dialog = { variants: [{ showIf: { flag: 'spared_queen' }, text: 'bows' }], text: 'silent' };
+        expect(resolveDialogText(dialog)).toBe('bows');
+        expect(resolveDialogText({ text: 'plain' })).toBe('plain');
+    });
+});
+
+describe('flag writes', () => {
+    beforeEach(() => {
+        initQuests(deps);
+        mockState.character.storyline = { act: 1, alignment: 'neutral', variables: {} };
+        mockState.character.npcs = {};
+    });
+
+    test('setFlags assigns literals', () => {
+        applyQuestFlagWrites({ setFlags: { spared_queen: true, alliance: 'fed' } });
+        expect(mockState.character.storyline.variables.spared_queen).toBe(true);
+        expect(mockState.character.storyline.variables.alliance).toBe('fed');
+    });
+
+    test('incFlags adds, initializing unset to 0', () => {
+        applyQuestFlagWrites({ incFlags: { civ: 1 } });
+        expect(mockState.character.storyline.variables.civ).toBe(1);
+        applyQuestFlagWrites({ incFlags: { civ: 2 } });
+        expect(mockState.character.storyline.variables.civ).toBe(3);
+    });
+
+    test('incFlags on non-numeric resets to 0 and warns', () => {
+        mockState.character.storyline.variables.civ = 'oops';
+        mockUi.addLog.mockClear();
+        applyQuestFlagWrites({ incFlags: { civ: 1 } });
+        expect(mockState.character.storyline.variables.civ).toBe(1);
+        expect(mockUi.addLog).toHaveBeenCalledWith(expect.stringContaining('non-numeric'));
+    });
+});
+
+describe('advanceToVisibleStep', () => {
+    beforeEach(() => {
+        initQuests(deps);
+        mockState.character.storyline = { act: 1, alignment: 'neutral', variables: {} };
+        mockState.character.activeQuests = {};
+    });
+
+    test('skips a hidden step and lands on the next visible one', () => {
+        mockQuestsData.quest_showif = {
+            id: 'quest_showif', title: 'ShowIf', description: '', type: 'kill', target: 'X', amount: 1,
+            steps: [
+                { type: 'kill', target: 'X', amount: 1 },
+                { type: 'kill', target: 'Y', amount: 1, showIf: { flag: 'do_bonus' } },
+                { type: 'kill', target: 'Z', amount: 1 }
+            ]
+        };
+        mockState.character.activeQuests.quest_showif = { progress: 0, currentStep: 1 };
+        advanceToVisibleStep('quest_showif');
+        expect(mockState.character.activeQuests.quest_showif.currentStep).toBe(2);
+    });
+
+    test('does not skip a visible step', () => {
+        mockState.character.storyline.variables.do_bonus = true;
+        mockState.character.activeQuests.quest_showif = { progress: 0, currentStep: 1 };
+        advanceToVisibleStep('quest_showif');
+        expect(mockState.character.activeQuests.quest_showif.currentStep).toBe(1);
+    });
+
+    test('acceptQuest auto-completes a quest whose steps are all hidden at acceptance', () => {
+        mockQuestsData.quest_allhidden = {
+            id: 'quest_allhidden', title: 'AllHidden', description: '', type: 'kill', target: 'X', amount: 1,
+            steps: [
+                { type: 'kill', target: 'X', amount: 1, showIf: { flag: 'never_true' } }
+            ]
+        };
+        acceptQuest('quest_allhidden');
+        expect(mockState.character.activeQuests.quest_allhidden).toBeUndefined();
+        expect(mockState.character.completedQuests).toContain('quest_allhidden');
+    });
+});
+
+describe('reactive dialog wiring', () => {
+    beforeEach(() => {
+        initQuests(deps);
+        mockState.character.storyline = { act: 1, alignment: 'neutral', variables: {} };
+        mockState.character.activeQuests = {};
+        mockUi.showDialog.mockClear();
+    });
+
+    test('completeStep shows the matching variant text', () => {
+        mockState.character.storyline.variables.spared_queen = true;
+        mockQuestsData.quest_variant = {
+            id: 'quest_variant', title: 'V', description: '', type: 'kill', target: 'X', amount: 1,
+            steps: [
+                { type: 'kill', target: 'X', amount: 1, dialog: {
+                    title: 'Aftermath',
+                    variants: [{ showIf: { flag: 'spared_queen' }, text: 'bows' }],
+                    text: 'silent'
+                } },
+                { type: 'kill', target: 'Y', amount: 1 }
+            ]
+        };
+        mockState.character.activeQuests.quest_variant = { progress: 1, currentStep: 0 };
+        completeStep('quest_variant');
+        expect(mockUi.showDialog).toHaveBeenCalledWith('Aftermath', 'bows');
+    });
+});
+
+describe('quest availability gating', () => {
+    beforeEach(() => {
+        initQuests(deps);
+        mockState.character.storyline = { act: 1, alignment: 'neutral', variables: {} };
+        mockState.character.activeQuests = {};
+        mockState.character.completedQuests = [];
+        mockState.currentLocation = 'terra_prime';
+    });
+
+    test('requiredFlags hides a quest until the flag is set (getAvailableQuests)', () => {
+        mockQuestsData.quest_gated = {
+            id: 'quest_gated', title: 'Gated', description: '', type: 'kill', target: 'X', amount: 1,
+            requiredFlags: { flag: 'unlocked_it' }
+        };
+        expect(getAvailableQuests().some(q => q.id === 'quest_gated')).toBe(false);
+        mockState.character.storyline.variables.unlocked_it = true;
+        expect(getAvailableQuests().some(q => q.id === 'quest_gated')).toBe(true);
+    });
+
+    test('requiredFlags hides a quest until the flag is set (getJobBoardQuests)', () => {
+        mockQuestsData.quest_gated_board = {
+            id: 'quest_gated_board', title: 'Gated Board', description: '', type: 'kill', target: 'X', amount: 1,
+            requiredFlags: { flag: 'unlocked_board' }
+        };
+        expect(getJobBoardQuests().some(q => q.id === 'quest_gated_board')).toBe(false);
+        mockState.character.storyline.variables.unlocked_board = true;
+        expect(getJobBoardQuests().some(q => q.id === 'quest_gated_board')).toBe(true);
     });
 });

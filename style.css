@@ -1585,3 +1585,182 @@ button {
 
 
 
+
+/* === Viewscreen === */
+/* Persistent image panel. Adopts the glassmorphism tokens and the holographic
+   CRT treatment already used by the dialogue overlay. Emoji is the guaranteed
+   baseline: .viewscreen-fallback shows whenever no art is registered, imagery
+   is switched off, or a file fails to load. */
+
+.viewscreen-glass-container {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--border-cyan);
+  border-radius: 0.5rem;
+  box-shadow: var(--glass-shadow);
+  padding: 0.75rem;
+  overflow: hidden;
+}
+
+.viewscreen-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(6, 182, 212, 0.12) 0%, rgba(2, 6, 23, 0.9) 75%);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 200ms ease-in-out;
+}
+
+/* Crossfade: the outgoing image fades out, the incoming one fades back in
+   once the swap has painted. */
+.viewscreen-frame.viewscreen-swapping {
+  opacity: 0;
+}
+
+.viewscreen-frame picture,
+.viewscreen-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.viewscreen-frame img {
+  object-fit: cover;
+  filter: saturate(1.05) contrast(1.05);
+}
+
+.viewscreen-fallback {
+  font-size: 4rem;
+  line-height: 1;
+  user-select: none;
+  filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.45));
+  z-index: 2;
+}
+
+.viewscreen-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(6, 182, 212, 0.2);
+  min-height: 2.4rem;
+}
+
+.viewscreen-label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-cyan);
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.45);
+}
+
+.viewscreen-sublabel {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+/* Accent variants — data-accent comes from the ImageRecord in data/imagery.js */
+.viewscreen-panel[data-accent="orange"] { border: var(--border-orange); }
+.viewscreen-panel[data-accent="red"]    { border: var(--border-red); }
+.viewscreen-panel[data-accent="green"]  { border: var(--border-green); }
+.viewscreen-panel[data-accent="blue"]   { border: var(--border-blue); }
+.viewscreen-panel[data-accent="cyan"]   { border: var(--border-cyan); }
+.viewscreen-panel[data-accent="amber"]  { border: var(--border-amber); }
+
+.viewscreen-panel[data-accent="orange"] .viewscreen-frame {
+  border-color: rgba(255, 122, 0, 0.45);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.7), 0 0 14px rgba(255, 122, 0, 0.25);
+}
+.viewscreen-panel[data-accent="red"] .viewscreen-frame {
+  border-color: rgba(255, 42, 42, 0.45);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.7), 0 0 14px rgba(255, 42, 42, 0.25);
+}
+.viewscreen-panel[data-accent="green"] .viewscreen-frame {
+  border-color: rgba(0, 255, 136, 0.45);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.7), 0 0 14px rgba(0, 255, 136, 0.25);
+}
+.viewscreen-panel[data-accent="blue"] .viewscreen-frame {
+  border-color: rgba(0, 136, 255, 0.45);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.7), 0 0 14px rgba(0, 136, 255, 0.25);
+}
+.viewscreen-panel[data-accent="cyan"] .viewscreen-frame {
+  border-color: rgba(0, 255, 255, 0.45);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.7), 0 0 14px rgba(0, 255, 255, 0.25);
+}
+.viewscreen-panel[data-accent="amber"] .viewscreen-frame {
+  border-color: rgba(255, 184, 0, 0.45);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.7), 0 0 14px rgba(255, 184, 0, 0.25);
+}
+
+.viewscreen-panel[data-accent="orange"] .viewscreen-label { color: var(--color-orange); text-shadow: 0 0 8px rgba(255, 122, 0, 0.45); }
+.viewscreen-panel[data-accent="red"] .viewscreen-label    { color: var(--color-red);    text-shadow: 0 0 8px rgba(255, 42, 42, 0.45); }
+.viewscreen-panel[data-accent="green"] .viewscreen-label  { color: var(--color-green);  text-shadow: 0 0 8px rgba(0, 255, 136, 0.45); }
+.viewscreen-panel[data-accent="blue"] .viewscreen-label   { color: var(--color-blue);   text-shadow: 0 0 8px rgba(0, 136, 255, 0.45); }
+.viewscreen-panel[data-accent="amber"] .viewscreen-label  { color: var(--color-amber);  text-shadow: 0 0 8px rgba(255, 184, 0, 0.45); }
+
+/* Portrait thumbnails in the dialogue overlay and companion crew cards */
+.viewscreen-thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.25rem;
+}
+
+.dialogue-avatar .viewscreen-thumb {
+  border-radius: 50%;
+}
+
+.companion-avatar {
+  width: 3.5rem;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* On narrow screens the panel becomes a short banner rather than disappearing —
+   the image still tracks the action, it just costs less vertical space. */
+@media (max-width: 768px) {
+  .viewscreen-panel {
+    min-height: 0;
+  }
+
+  .viewscreen-frame {
+    aspect-ratio: 16 / 6;
+    max-height: 8rem;
+  }
+
+  .viewscreen-fallback {
+    font-size: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewscreen-frame {
+    transition: none;
+  }
+
+  .viewscreen-frame .hologram-scanline {
+    animation: none;
+    opacity: 0.25;
+    top: 50%;
+  }
+}

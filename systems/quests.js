@@ -87,6 +87,13 @@ export function acceptQuest(questId) {
     addLog(`[!] Quest Accepted: ${quest.title}`);
     showSaveMessage(`Quest Accepted: ${quest.title}`);
 
+    advanceToVisibleStep(mappedQuestId);
+
+    if (quest.steps && quest.steps.length > 0 && state.character.activeQuests[mappedQuestId].currentStep >= quest.steps.length) {
+        completeQuest(mappedQuestId);
+        return;
+    }
+
     // If the first step is a choice, trigger it immediately
     triggerChoiceStepIfActive(mappedQuestId);
 }
@@ -173,12 +180,15 @@ export function completeStep(questId) {
 
     // Show Dialog (only if not a choice step, choice steps handle dialog rendering themselves)
     if (step.dialog && showDialog && step.type !== 'choice') {
-        showDialog(step.dialog.title, step.dialog.text);
+        showDialog(step.dialog.title, resolveDialogText(step.dialog));
     }
+
+    applyQuestFlagWrites(step);
 
     // Advance Step
     activeQuest.progress = 0;
     activeQuest.currentStep = currentStepIndex + 1;
+    advanceToVisibleStep(questId);
 
     addLog(`✅ Quest Step Completed!`);
 
@@ -340,6 +350,30 @@ export function getEffectiveAttribute(attributeName) {
 }
 
 /**
+ * Read a story flag from storyline.variables (undefined if unset).
+ */
+export function getFlag(name) {
+    return state?.character?.storyline?.variables?.[name];
+}
+
+/**
+ * Compare two values with a named operator. Returns false + logs on unknown op.
+ */
+function compareOp(a, op, b) {
+    switch (op) {
+        case '>=': return a >= b;
+        case '>': return a > b;
+        case '<=': return a <= b;
+        case '<': return a < b;
+        case '==': return a === b;
+        case '!=': return a !== b;
+        default:
+            if (addLog) addLog(`[!] Story flag warning: unknown operator '${op}'`);
+            return false;
+    }
+}
+
+/**
  * Check if the player character meets choice requirements
  */
 export function checkChoiceRequirements(requires) {
@@ -410,7 +444,98 @@ export function checkChoiceRequirements(requires) {
         if (currentDisp < value) return false;
     }
 
+    if (requires.flag !== undefined) {
+        if (typeof requires.flag === 'string') {
+            if (!getFlag(requires.flag)) return false;
+        } else {
+            const { name, op, value } = requires.flag;
+            const current = getFlag(name);
+            if (op !== undefined) {
+                if (!compareOp(current, op, value)) return false;
+            } else if (value !== undefined) {
+                if (current !== value) return false;
+            } else if (!current) {
+                return false;
+            }
+        }
+    }
+
+    if (requires.memoryFlag !== undefined) {
+        const npcs = state.character.npcs || {};
+        const found = Object.values(npcs).some(
+            npc => Array.isArray(npc.memoryFlags) && npc.memoryFlags.includes(requires.memoryFlag)
+        );
+        if (!found) return false;
+    }
+
     return true;
+}
+
+/**
+ * Skip currentStep forward past any step whose showIf fails.
+ */
+export function advanceToVisibleStep(questId) {
+    const quest = quests[questId];
+    const activeQuest = state.character?.activeQuests?.[questId];
+    if (!quest || !quest.steps || !activeQuest) return;
+    while (activeQuest.currentStep < quest.steps.length) {
+        const step = quest.steps[activeQuest.currentStep];
+        if (step.showIf && !checkChoiceRequirements(step.showIf)) {
+            activeQuest.currentStep++;
+        } else {
+            break;
+        }
+    }
+}
+
+/**
+ * Return the first variant's text whose showIf passes, else fallback.
+ * @param {Array<{showIf?: object, text: string}>} variants
+ * @param {string|null} fallback
+ */
+export function resolveVariantText(variants, fallback) {
+    if (Array.isArray(variants)) {
+        for (const v of variants) {
+            if (checkChoiceRequirements(v.showIf)) return v.text;
+        }
+    }
+    return fallback;
+}
+
+/**
+ * Resolve a step dialog's text, honoring optional variants.
+ */
+export function resolveDialogText(dialog) {
+    if (!dialog) return '';
+    return resolveVariantText(dialog.variants, dialog.text);
+}
+
+/**
+ * Apply setFlags (literal) and incFlags (numeric add) from a choice or step.
+ */
+export function applyQuestFlagWrites(source) {
+    if (!source || !state?.character?.storyline?.variables) return;
+    const vars = state.character.storyline.variables;
+
+    if (source.setFlags) {
+        for (const [key, value] of Object.entries(source.setFlags)) {
+            vars[key] = value;
+            if (addLog) addLog(`📝 Story flag set: ${key} = ${value}`);
+        }
+    }
+    if (source.incFlags) {
+        for (const [key, delta] of Object.entries(source.incFlags)) {
+            let current = vars[key];
+            if (typeof current !== 'number') {
+                if (current !== undefined && addLog) {
+                    addLog(`[!] Story flag warning: incFlags on non-numeric '${key}', resetting to 0`);
+                }
+                current = 0;
+            }
+            vars[key] = current + delta;
+            if (addLog) addLog(`📝 Story flag: ${key} = ${vars[key]}`);
+        }
+    }
 }
 
 /**
@@ -438,6 +563,15 @@ function showBranchingChoiceDialog(questId, step) {
                 const { id, value } = choice.requires.npc;
                 reqTexts.push(`${id.toUpperCase()} DISP >= ${value}`);
             }
+            if (choice.requires.flag) {
+                const f = choice.requires.flag;
+                reqTexts.push(typeof f === 'string'
+                    ? `FLAG: ${f}`
+                    : `FLAG: ${f.name} ${f.op || '='} ${f.value ?? 'set'}`);
+            }
+            if (choice.requires.memoryFlag) {
+                reqTexts.push(`MEM: ${choice.requires.memoryFlag}`);
+            }
             text = `[${reqTexts.join(', ')}] ${text}`;
         }
 
@@ -450,7 +584,8 @@ function showBranchingChoiceDialog(questId, step) {
         };
     });
 
-    showDialog(step.dialogTitle || "Choice Required", step.dialogText || "Choose your path:", dialogOptions);
+    const resolvedPrompt = resolveVariantText(step.dialogTextVariants, step.dialogText) || "Choose your path:";
+    showDialog(step.dialogTitle || "Choice Required", resolvedPrompt, dialogOptions);
 }
 
 /**
@@ -632,9 +767,16 @@ export function evaluateChoice(questId, choiceIndex) {
 
         const triggerCombatData = choice.triggerCombat;
 
+        applyQuestFlagWrites(choice);
+
+        if (deps.companions && deps.companions.companionInterject) {
+            deps.companions.companionInterject(choice);
+        }
+
         // Advance step
         activeQuest.progress = 0;
         activeQuest.currentStep = nextStepVal;
+        advanceToVisibleStep(questId);
 
         addLog(`✅ Quest Choice Processed!`);
 
@@ -736,6 +878,24 @@ export function evaluateChoice(questId, choiceIndex) {
 }
 
 /**
+ * Class/role gating shared by getAvailableQuests and getJobBoardQuests.
+ * Returns false for quests that should be hidden from the given role:
+ *  - a generic base quest when a class-specific variant exists for this role
+ *  - a class-specific variant whose class does not match this role
+ */
+export function passesRoleGating(q, role) {
+    // Filter out base quests that have a class variant for this role
+    if (quests[`${q.id}_${role}`]) return false;
+
+    // Role gating for class-specific variants
+    if (q.id.endsWith("_warrior") && role !== "warrior") return false;
+    if (q.id.endsWith("_rogue") && role !== "rogue") return false;
+    if (q.id.endsWith("_scientist") && role !== "scientist") return false;
+
+    return true;
+}
+
+/**
  * Get all available quests (filtered by planet/derelict/faction)
  */
 export function getAvailableQuests() {
@@ -744,14 +904,7 @@ export function getAvailableQuests() {
     const role = (state.character.role || "Warrior").toLowerCase();
 
     return Object.values(quests).filter(q => {
-        // Filter out base main story quests that have class variants
-        const roleQuestId = `${q.id}_${role}`;
-        if (quests[roleQuestId]) return false;
-
-        // Role gating for role-specific main story variants
-        if (q.id.endsWith("_warrior") && role !== "warrior") return false;
-        if (q.id.endsWith("_rogue") && role !== "rogue") return false;
-        if (q.id.endsWith("_scientist") && role !== "scientist") return false;
+        if (!passesRoleGating(q, role)) return false;
 
         // Not active or completed
         if (state.character.activeQuests[q.id] || state.character.completedQuests.includes(q.id)) return false;
@@ -770,6 +923,9 @@ export function getAvailableQuests() {
             const { faction, min } = q.requiredFaction;
             if ((state.character.factions[faction] || 0) < min) return false;
         }
+
+        if (q.requiredFlags && !checkChoiceRequirements(q.requiredFlags)) return false;
+        if (q.showIf && !checkChoiceRequirements(q.showIf)) return false;
 
         return true;
     });
@@ -906,9 +1062,11 @@ export function getJobBoardQuests() {
     if (!state.character) return [];
     
     const currentLocation = state.currentLocation;
-    
+    const role = (state.character.role || "Warrior").toLowerCase();
+
     // Find all non-active, non-completed quests for current planet
     let available = Object.values(quests).filter(q => {
+        if (!passesRoleGating(q, role)) return false;
         if (state.character.activeQuests[q.id] || state.character.completedQuests.includes(q.id)) return false;
         if (q.requiredPlanet && q.requiredPlanet !== currentLocation) return false;
         if (q.derelictOnly) return false;
@@ -924,10 +1082,13 @@ export function getJobBoardQuests() {
             const { faction, min } = q.requiredFaction;
             if ((state.character.factions[faction] || 0) < min) return false;
         }
-        
+
+        if (q.requiredFlags && !checkChoiceRequirements(q.requiredFlags)) return false;
+        if (q.showIf && !checkChoiceRequirements(q.showIf)) return false;
+
         return true;
     });
-    
+
     // If fewer than 3 available, generate dynamic quests to fill the board to 3
     while (available.length < 3) {
         const dynQuest = generateDynamicQuest(currentLocation);

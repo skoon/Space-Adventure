@@ -12,12 +12,13 @@ import { acceptQuest } from '../quests.js';
 import { t } from '../theme-engine.js';
 
 let state;
-let updateUI, showDialog;
+let updateUI, showDialog, paintThumb;
 
 export function initCompanionsUI(deps, callbacks = {}) {
     state = deps.state;
     updateUI = callbacks.updateUI || (deps.ui && deps.ui.updateUI) || window.updateUI;
     showDialog = callbacks.showDialog || (deps.ui && deps.ui.showDialog) || window.showDialog;
+    paintThumb = deps.ui && deps.ui.paintThumb;
 }
 
 /**
@@ -167,8 +168,12 @@ export function renderCompanionsTab() {
         header.className = 'flex items-center gap-3 mb-2';
 
         const avatar = document.createElement('div');
-        avatar.className = 'text-3xl p-2 bg-gray-800 rounded border border-gray-700';
-        avatar.textContent = data.avatar;
+        avatar.className = 'text-3xl p-2 bg-gray-800 rounded border border-gray-700 companion-avatar';
+        if (paintThumb) {
+            paintThumb(avatar, 'npc', id, data.avatar, data.name);
+        } else {
+            avatar.textContent = data.avatar;
+        }
 
         const nameRole = document.createElement('div');
         nameRole.className = 'flex-grow';

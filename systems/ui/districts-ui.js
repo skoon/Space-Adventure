@@ -4,8 +4,9 @@
  */
 
 import { showDialogue, hideDialogue } from './dialogue-ui.js';
-import { acceptQuest, completeQuest, getRoleQuestId } from '../quests.js';
+import { acceptQuest, completeQuest, getRoleQuestId, resolveVariantText } from '../quests.js';
 import { t } from '../theme-engine.js';
+import { npcReactions } from '../../data/npc_reactions.js';
 
 let state;
 let deps;
@@ -254,6 +255,10 @@ export function exploreDistrict(distId) {
     const dist = loc?.districts?.find(d => d.id === distId);
     if (!dist) return;
 
+    if (deps.ui && deps.ui.setScene) {
+        deps.ui.setScene({ kind: 'district', id: dist.id, label: dist.name, emoji: dist.icon || '🏢' });
+    }
+
     if (deps.ui && deps.ui.addLog) {
         deps.ui.addLog(t(`🔍 You explored the ${dist.name}. It is quiet and secure.`));
     }
@@ -345,6 +350,21 @@ export function talkToNPC(npcId) {
                 }
             ]
         );
+        return;
+    }
+
+    // Reactive greeting layer (optional; falls through to scripted greetings).
+    // ponytail: sits after the turn-in interceptor so a ready quest turn-in
+    // always wins, but the per-NPC blocks below never fall through to a
+    // shared "default greeting" point (each has its own inline free-roam
+    // else), so this can still shadow quest-accept dialogue for an NPC once
+    // a matching reactive flag is set. No content sets one today (dormant);
+    // if that changes, move the check into each per-NPC free-roam `else`
+    // block instead of here.
+    const reactive = resolveVariantText(npcReactions[npcId], null);
+    if (reactive) {
+        const name = NPC_NAMES[npcId] || npcId;
+        showDialogue(name, reactive, [{ text: "(Close)", action: hideDialogue }]);
         return;
     }
 

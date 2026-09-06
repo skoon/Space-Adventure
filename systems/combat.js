@@ -11,7 +11,7 @@ let state;
 let enemies, bosses, locations, combatElements;
 
 // Import functions from other modules
-let addLog, updateCombatLog, showScreen, updateUI;
+let addLog, updateCombatLog, showScreen, updateUI, setScene;
 let getEffectiveStats, getCharacterAvatar, getStatusEffectIcon;
 import { hasSkill, getPassiveBonus, hasSpecialization } from './skills.js';
 
@@ -42,6 +42,7 @@ export function initCombat(deps) {
     gainXp = deps.character.gainXp;
     checkQuestProgress = deps.quests.checkQuestProgress;
     showVictoryMessage = deps.ui.showVictoryMessage;
+    setScene = deps.ui.setScene;
     simulateExploration = deps.exploration.simulateExploration;
     getDifficulty = deps.settings ? deps.settings.getDifficulty : null;
 }
@@ -172,6 +173,7 @@ export function encounterEnemy() {
     state.emergencyNanitesTriggered = false;
     state.gameState = "combat";
     showScreen("combat");
+    if (setScene) setScene({ kind: 'enemy', id: state.enemy.name, label: state.enemy.name, sub: `HP ${state.enemy.hp}/${state.enemy.maxHp}` });
     updateCombatUI();
     addLog(`You encountered a ${state.enemy.name}!`);
 }
@@ -220,6 +222,7 @@ export function encounterBoss() {
     state.emergencyNanitesTriggered = false;
     state.gameState = "combat";
     showScreen("combat");
+    if (setScene) setScene({ kind: 'boss', id: state.enemy.id, label: state.enemy.name, sub: `HP ${state.enemy.hp}/${state.enemy.maxHp}`, emoji: '💀' });
     updateCombatUI();
     addLog(`⚠️ WARNING: YOU HAVE ENCOUNTERED THE AREA BOSS, ${state.enemy.name.toUpperCase()}!`);
 }

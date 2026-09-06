@@ -49,7 +49,11 @@ export const COMPANIONS = {
             ],
             trustUp: "My trust subroutines have increased in value. Thank you.",
             maxTrust: "You have shown exceptional leadership. My loyalty is mathematically absolute."
-        }
+        },
+        interjections: [
+            { showIf: { flag: 'killed_queen' },
+              text: "That life was a data point we can never recover." }
+        ]
     },
     apex: {
         id: "apex",

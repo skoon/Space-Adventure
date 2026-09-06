@@ -32,7 +32,8 @@ export const DIFFICULTIES = {
 };
 
 let currentSettings = {
-    difficulty: 'normal'
+    difficulty: 'normal',
+    showImages: true
 };
 
 /**
@@ -69,6 +70,24 @@ export function setDifficulty(level) {
         return true;
     }
     return false;
+}
+
+/**
+ * Whether the viewscreen renders imagery. When false the panel and the portrait
+ * chips fall back to emoji — the pre-image experience, intact.
+ */
+export function getShowImages() {
+    return currentSettings.showImages !== false;
+}
+
+/**
+ * Toggle viewscreen imagery
+ * @param {boolean} enabled
+ */
+export function setShowImages(enabled) {
+    currentSettings.showImages = !!enabled;
+    saveSettings();
+    return currentSettings.showImages;
 }
 
 /**
