@@ -3,6 +3,7 @@ import { items } from '../data/items.js';
 import { checkAchievement } from './achievements.js';
 import { COMPANIONS, getCompanionAbilityValue, resetCompanionTalkFlags } from './companions.js';
 import { getSystemInstability } from './cybernetics.js';
+import { eventEmitter } from "./eventEmitter.js";
 
 // State object that holds getters/setters
 let state;
@@ -171,7 +172,9 @@ export function encounterEnemy() {
     state.playerStatusEffects = [];
     state.enemyStatusEffects = [];
     state.emergencyNanitesTriggered = false;
+    state.combatIntenseTriggered = false;
     state.gameState = "combat";
+    eventEmitter.emit("combatStart");
     showScreen("combat");
     if (setScene) setScene({ kind: 'enemy', id: state.enemy.name, label: state.enemy.name, sub: `HP ${state.enemy.hp}/${state.enemy.maxHp}` });
     updateCombatUI();
@@ -220,7 +223,9 @@ export function encounterBoss() {
     state.playerStatusEffects = [];
     state.enemyStatusEffects = [];
     state.emergencyNanitesTriggered = false;
+    state.combatIntenseTriggered = false;
     state.gameState = "combat";
+    eventEmitter.emit("bossPhase");
     showScreen("combat");
     if (setScene) setScene({ kind: 'boss', id: state.enemy.id, label: state.enemy.name, sub: `HP ${state.enemy.hp}/${state.enemy.maxHp}`, emoji: '💀' });
     updateCombatUI();
@@ -808,11 +813,13 @@ export function playerAttack() {
         }
         return;
     }
+    eventEmitter.emit("playerAttack");    
     state.character.ap -= attackApCost;
 
     if (state.character.hp <= 0) {
         addLog("You succumbed to your injuries...");
         state.gameState = "defeat";
+        eventEmitter.emit("combatEnd");
         showScreen("defeat");
         updateCombatUI();
         updateUI();
@@ -936,6 +943,7 @@ export function playerBlock() {
     if (state.character.hp <= 0) {
         addLog("You succumbed to your injuries...");
         state.gameState = "defeat";
+        eventEmitter.emit("combatEnd");
         showScreen("defeat");
         updateCombatUI();
         updateUI();
@@ -980,6 +988,7 @@ export function playerDodge() {
     if (state.character.hp <= 0) {
         addLog("You succumbed to your injuries...");
         state.gameState = "defeat";
+        eventEmitter.emit("combatEnd");
         showScreen("defeat");
         updateCombatUI();
         updateUI();
@@ -1001,7 +1010,7 @@ export function playerDodge() {
         ...state.playerStatusEffects.filter(e => e.type !== "dodging"),
         { type: "dodging", chance: dodgeChance, duration: 1 }
     ];
-
+    eventEmitter.emit("playerDodge");
     addLog("💨 You prepare to dodge the next attack!");
     updateCombatLog();
     if (state.character.ap <= 0) {
@@ -1043,6 +1052,7 @@ export function useSpecialAbility() {
     if (state.character.hp <= 0) {
         addLog("You succumbed to your injuries...");
         state.gameState = "defeat";
+        eventEmitter.emit("combatEnd");
         showScreen("defeat");
         updateCombatUI();
         updateUI();
@@ -1236,7 +1246,7 @@ export function endPlayerTurn() {
  */
 export function enemyTurn() {
     if (!state.character || !state.enemy) return;
-
+    eventEmitter.emit("enemyAttack"); 
     // Environmental Hazards
     const activeEnv = getActiveEnvironment();
     if (activeEnv === "Solar Radiation") {
@@ -1251,6 +1261,7 @@ export function enemyTurn() {
             addLog(`⚠️ Out of Oxygen! Suffocating for ${oxyDamage} damage (10% max HP)!`);
             if (state.character.hp <= 0) {
                 addLog("You suffocated in the vacuum...");
+                eventEmitter.emit("combatEnd");
                 import('./derelict.js').then(m => m.failRun());
                 return;
             }
@@ -1374,6 +1385,10 @@ export function enemyTurn() {
                 }
                 
                 state.character.hp -= spDamage;
+                if (!state.combatIntenseTriggered && state.character.hp > 0 && state.character.hp < state.character.maxHp * 0.3) {
+                    state.combatIntenseTriggered = true;
+                    eventEmitter.emit("combatIntense");
+                }
                 addLog(`💀 ${sp.msg} It hits you for ${spDamage} damage!`);
                 updateCombatLog();
                 
@@ -1409,6 +1424,7 @@ export function enemyTurn() {
                 checkEmergencyNanites();
                 if (state.character.hp <= 0) {
                     addLog("You have been defeated...");
+                    eventEmitter.emit("combatEnd");
                     if (state.derelict && state.derelict.active) {
                         import('./derelict.js').then(m => m.failRun());
                     } else {
@@ -1453,6 +1469,10 @@ export function enemyTurn() {
     }
 
     state.character.hp -= damage;
+    if (!state.combatIntenseTriggered && state.character.hp > 0 && state.character.hp < state.character.maxHp * 0.3) {
+        state.combatIntenseTriggered = true;
+        eventEmitter.emit("combatIntense");
+    }
 
     if (isEnemyCrit) {
         addLog(`❄️ CRITICAL HIT! The Cryo Drake hits you for ${damage} damage and freezes you!`);
@@ -1522,6 +1542,7 @@ export function enemyTurn() {
     checkEmergencyNanites();
     if (state.character.hp <= 0) {
         addLog("You have been defeated...");
+        eventEmitter.emit("combatEnd");
         if (state.derelict && state.derelict.active) {
             import('./derelict.js').then(m => m.failRun());
         } else {
@@ -1545,9 +1566,10 @@ export function winCombat() {
 
     const enemyName = state.enemy.name;
     const isBoss = state.enemy.isBoss;
-
+    eventEmitter.emit("combatEnd"); 
     // Magma Elemental: Explodes on death
     if (enemyName === "Magma Elemental") {
+        eventEmitter.emit("explosion");
         const isBlocking = state.playerStatusEffects.some(e => e.type === "blocking");
         let explodeDmg = 15;
         if (isBlocking) {

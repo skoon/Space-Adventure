@@ -1,4 +1,5 @@
 import { initCombat, playerAttack, playerBlock, playerDodge, useSpecialAbility, enemyTurn, winCombat, encounterEnemy, encounterBoss, checkPhaseTransition } from '../../systems/combat.js';
+import { eventEmitter } from '../../systems/eventEmitter.js';
 
 // Mock dependencies
 const mockState = {
@@ -102,6 +103,7 @@ describe('Combat System', () => {
         mockState.enemyStatusEffects = [];
         mockState.gameState = 'combat';
         mockState.inventory = [];
+        mockState.derelict = null;
 
         initCombat({
             state: mockState,
@@ -248,5 +250,64 @@ describe('Combat System', () => {
         expect(mockState.derelict.currentLoot.length).toBe(1);
         expect(mockState.derelict.currentLoot[0]).toMatch(/Recipe$/);
         expect(mockState.inventory).not.toContain(mockState.derelict.currentLoot[0]);
+    });
+
+    test('encounterEnemy emits combatStart', () => {
+        const emitSpy = jest.spyOn(eventEmitter, 'emit');
+        encounterEnemy();
+        expect(emitSpy).toHaveBeenCalledWith('combatStart');
+        emitSpy.mockRestore();
+    });
+
+    test('encounterBoss emits bossPhase after boss setup', () => {
+        const emitSpy = jest.spyOn(eventEmitter, 'emit');
+        encounterBoss();
+        expect(mockState.gameState).toBe('combat');
+        expect(mockState.enemy.isBoss).toBe(true);
+        expect(emitSpy).toHaveBeenCalledWith('bossPhase');
+        emitSpy.mockRestore();
+    });
+
+    test('defeat in playerAttack emits combatEnd', () => {
+        const emitSpy = jest.spyOn(eventEmitter, 'emit');
+        mockState.character.hp = 0;
+        playerAttack();
+        expect(mockState.gameState).toBe('defeat');
+        expect(emitSpy).toHaveBeenCalledWith('combatEnd');
+        emitSpy.mockRestore();
+    });
+
+    test('defeat in enemyTurn emits combatEnd', () => {
+        const emitSpy = jest.spyOn(eventEmitter, 'emit');
+        mockState.character.hp = 2;
+        mockState.character.defense = 0;
+        mockState.enemy.attack = 30;
+        enemyTurn();
+        expect(mockState.gameState).toBe('defeat');
+        expect(emitSpy).toHaveBeenCalledWith('combatEnd');
+        emitSpy.mockRestore();
+    });
+
+    test('enemyTurn emits combatIntense when player HP falls below 30%', () => {
+        const emitSpy = jest.spyOn(eventEmitter, 'emit');
+        mockState.character.maxHp = 100;
+        mockState.character.hp = 50;
+        mockState.character.defense = 0;
+        mockState.enemy.attack = 30;
+        enemyTurn();
+        expect(mockState.character.hp).toBeLessThan(30);
+        expect(mockState.character.hp).toBeGreaterThan(0);
+        expect(emitSpy).toHaveBeenCalledWith('combatIntense');
+        expect(mockState.combatIntenseTriggered).toBe(true);
+        emitSpy.mockRestore();
+    });
+
+    test('winCombat emits explosion when defeating Magma Elemental', () => {
+        const emitSpy = jest.spyOn(eventEmitter, 'emit');
+        mockState.enemy = { name: "Magma Elemental", attack: 10, defense: 5 };
+        winCombat();
+        expect(emitSpy).toHaveBeenCalledWith('explosion');
+        expect(emitSpy).toHaveBeenCalledWith('combatEnd');
+        emitSpy.mockRestore();
     });
 });

@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Galactic Odyssey - Sci-Fi Adventure Game</title>
     <link rel="stylesheet" href="style.css" type="text/css" />
+    <link rel="stylesheet" href="assets/css/theme.css" type="text/css" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body>
+  <body class="theme-scifi">
     <header class="bg-gray-800 p-4 border-b border-gray-700">
       <div class="flex items-center justify-between">
         <h1
@@ -199,6 +200,44 @@
         <div id="exploringScreen" class="screen game-ui">
           <div class="flex flex-col h-full bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
             
+            <!-- Cinematic HUD -->
+            <div id="hud-container" class="hud-container">
+              <div class="hud-panel">
+                <div class="hud-bar-wrapper">
+                  <div class="hud-bar-label">
+                    <span data-term="hudHull">Hull</span>
+                    <span id="hud-health-text">0 / 0</span>
+                  </div>
+                  <div class="hud-bar-track">
+                    <div id="hud-health-fill" class="hud-bar-fill health"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="hud-panel">
+                <div class="hud-bar-wrapper">
+                  <div class="hud-bar-label">
+                    <span data-term="hudEnergy">Energy</span>
+                    <span id="hud-energy-text">0 / 0</span>
+                  </div>
+                  <div class="hud-bar-track">
+                    <div id="hud-energy-fill" class="hud-bar-fill energy"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="hud-panel">
+                <div class="hud-bar-wrapper">
+                  <div class="hud-bar-label">
+                    <span data-term="hudXp">XP</span>
+                    <span id="hud-xp-text">0 / 0</span>
+                  </div>
+                  <div class="hud-bar-track">
+                    <div id="hud-xp-fill" class="hud-bar-fill xp"></div>
+                  </div>
+                </div>
+              </div>
+              <div id="hud-alerts" class="hud-alerts"></div>
+            </div>
+
             <!-- Row 1: Command HUD (3 Columns) -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 items-stretch">
               

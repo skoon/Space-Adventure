@@ -4,12 +4,14 @@ export class HUD {
         
         const healthFill = document.getElementById('hud-health-fill');
         const healthText = document.getElementById('hud-health-text');
-        if (healthFill && character.maxHp) {
-            const pct = Math.max(0, Math.min(100, (character.hp / character.maxHp) * 100));
+        const maxHp = character.maxHp || 100;
+        const hp = character.hp !== undefined ? character.hp : 0;
+        if (healthFill) {
+            const pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
             healthFill.style.width = `${pct}%`;
         }
         if (healthText) {
-            healthText.textContent = `${character.hp} / ${character.maxHp}`;
+            healthText.textContent = `${hp} / ${maxHp}`;
         }
 
         const energyFill = document.getElementById('hud-energy-fill');
@@ -26,7 +28,7 @@ export class HUD {
 
         const xpFill = document.getElementById('hud-xp-fill');
         const xpText = document.getElementById('hud-xp-text');
-        const xpToNext = character.xpToNext || 100;
+        const xpToNext = character.xpToNext || (character.level ? character.level * 100 : 100);
         const xp = character.xp || 0;
         if (xpFill) {
             const pct = Math.max(0, Math.min(100, (xp / xpToNext) * 100));
@@ -287,6 +289,9 @@ export function updateUI() {
     updateCharacterInfo();
     updateStats();
     updateBars();
+    if (state && state.character) {
+        HUD.update(state.character);
+    }
     
     // Sub-module updates
     updateInventory();

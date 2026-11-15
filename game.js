@@ -26,6 +26,7 @@ import { initUpgrades } from './systems/upgrades.js';
 import { initAchievements } from './systems/achievements.js';
 import { initCompanions, companionInterject } from './systems/companions.js';
 import { initCybernetics } from './systems/cybernetics.js';
+import { initAudio } from './systems/audio.js';
 import { handleInstallImplant, handleUninstallImplant, handleInstallModChip, handleUninstallModChip, handleBuySpecializationPoint } from './systems/ui/cybernetics-ui.js';
 
 import { locations } from './data/locations.js';
@@ -350,6 +351,9 @@ function initializeGame() {
 
   // Initialize Settings
   initSettings();
+
+  // Initialize Audio
+  initAudio();
 }
 
 // ============================================
