@@ -27,13 +27,13 @@ Keys match the `NPCS` map in `systems/ui/dialogue-ui.js`.
 | `vance` | Vance | ✅ | `npcs/captain_vance` | 🦾 |
 | `lyra` | Dr. Lyra | ✅ | `npcs/dr_lyra` | 🔬 |
 | `apex` | Apex | ✅ | `npcs/apex` | 🔫 |
-| `nesta` | Envoy Nesta | ❌ | — | 🦹 |
-| `thorne` | Dr. Elyse Thorne | ❌ | — | 👩‍🔬 |
-| `mercer` | Jax 'Sparky' Mercer | ❌ | — | 🔧 |
-| `delegates` | Summit Delegates | ❌ | — | 🏛️ |
-| `ai` | Ship AI (S.A.M.) | ❌ | — | 🤖 |
-| `terminal` | Data Mainframe | ❌ | — | 💾 |
-| `generic` | Sector Liaison | ❌ | — | 🧑‍🚀 |
+| `nesta` | Envoy Nesta | ✅ | `npcs/nesta` | 🦹 |
+| `thorne` | Dr. Elyse Thorne | ✅ | `npcs/thorne` | 👩‍🔬 |
+| `mercer` | Jax 'Sparky' Mercer | ✅ | `npcs/mercer` | 🔧 |
+| `delegates` | Summit Delegates | ✅ | `npcs/delegates` | 🏛️ |
+| `ai` | Ship AI (S.A.M.) | ✅ | `npcs/ai` | 🤖 |
+| `terminal` | Data Mainframe | ✅ | `npcs/terminal` | 💾 |
+| `generic` | Sector Liaison | ✅ | `npcs/generic` | 🧑‍🚀 |
 
 ## Enemies
 
@@ -51,12 +51,12 @@ game today, so the viewscreen's per-kind default (👾) stands in.
 | `Magma Elemental` | ✅ | `enemies/magma_elemental` |
 | `Cryo Drake` | ✅ | `enemies/cryo_drake` |
 | `Eldritch Shade` | ✅ | `enemies/eldritch_shade` |
-| `Nano Swarm` | ❌ | — |
-| `Derelict Security Drone` | ❌ | — |
-| `Infestation Swarm` | ❌ | — |
-| `Ashen Hulk` | ❌ | — |
-| `Frost parasite` | ❌ | — |
-| `Security Sentinel` | ❌ | — |
+| `Nano Swarm` | ✅ | `enemies/nano_swarm` |
+| `Derelict Security Drone` | ✅ | `enemies/derelict_security_drone` |
+| `Infestation Swarm` | ✅ | `enemies/infestation_swarm` |
+| `Ashen Hulk` | ✅ | `enemies/ashen_hulk` |
+| `Frost parasite` | ✅ | `enemies/frost_parasite` |
+| `Security Sentinel` | ✅ | `enemies/security_sentinel` |
 
 ## Bosses
 
@@ -68,25 +68,25 @@ enemy art; `boss_terra` has none.
 | `boss_xylo` | The Great Sandworm | ✅ | `enemies/sand_worm` (shared) |
 | `boss_nebula` | Void Stalker Alpha | ✅ | `enemies/void_stalker` (shared) |
 | `boss_derelict` | Void Sentinel Alpha | ✅ | `enemies/void_sentinel` |
-| `boss_terra` | Overlord Xylar | ❌ | — |
+| `boss_terra` | Overlord Xylar | ✅ | `bosses/overlord_xylar` |
 
 `enemies/void_sentinel` is used only by the boss — there is no plain
 "Void Sentinel" enemy in `data/enemies.js`.
 
 ## Locations
 
-Keys match `id` in `data/locations.js`. No location art exists yet; the
-viewscreen's per-kind default (🪐) stands in for all of them.
+Keys match `id` in `data/locations.js`. The viewscreen's per-kind default
+(🪐) stands in for the ones still missing art.
 
-| ID | Name | Hazard | Art |
-|---|---|---|---|
-| `terra_prime` | Terra Prime | 1 | ❌ |
-| `xylo_delta` | Xylo Delta | 2 | ❌ |
-| `nebula_outpost` | Nebula Outpost | 3 | ❌ |
-| `norkon_outpost` | Norkon Outpost | 3 | ❌ |
-| `inferno_ix` | Inferno-IX | 4 | ❌ |
-| `crio_prime` | Crio-Prime | 4 | ❌ |
-| `galactic_nexus` | Galactic Nexus Hub | 1 | ❌ |
+| ID | Name | Hazard | Art | File |
+|---|---|---|---|---|
+| `terra_prime` | Terra Prime | 1 | ✅ | `locations/terra_prime` |
+| `galactic_nexus` | Galactic Nexus Hub | 1 | ✅ | `locations/galactic_nexus` |
+| `norkon_outpost` | Norkon Outpost | 3 | ✅ | `locations/norkon_outpost` |
+| `xylo_delta` | Xylo Delta | 2 | ✅ | `locations/xylo_delta` |
+| `nebula_outpost` | Nebula Outpost | 3 | ✅ | `locations/nebula_outpost` |
+| `inferno_ix` | Inferno-IX | 4 | ✅ | `locations/inferno_ix` |
+| `crio_prime` | Crio-Prime | 4 | ✅ | `locations/crio_prime` |
 
 ## Districts
 
@@ -96,17 +96,17 @@ district's own `icon`.
 | ID | Name | Art | Emoji stand-in |
 |---|---|---|---|
 | `terra_prime_bazaar` | Bazaar District | ✅ `npcs/merchant` | 🛍️ |
-| `terra_prime_fed_hq` | Federation Command HQ | ❌ | 🏢 |
-| `terra_prime_residential` | Residential Sector | ❌ | 🏡 |
-| `xylo_delta_smugglers_den` | Smuggler's Den | ❌ | ☠️ |
-| `xylo_delta_salvage_yard` | Scavenger Salvage Yard | ❌ | 🔧 |
-| `nebula_outpost_summit_hall` | Crucible Summit Hall | ❌ | 🏛️ |
-| `nebula_outpost_hangars` | Docking Hangars | ❌ | 🛸 |
-| `norkon_outpost_lab` | Syndicate Singularity Lab | ❌ | 🧪 |
-| `norkon_outpost_reactor` | Singularity Core Reactor | ❌ | ⚡ |
-| `inferno_ix_refinery` | Magma Extraction Refinery | ❌ | 🏭 |
-| `crio_prime_vault` | Cryo-Genetic Vault | ❌ | ❄️ |
-| `galactic_nexus_plaza` | Nexus Commerce Plaza | ❌ | 🌌 |
+| `terra_prime_fed_hq` | Federation Command HQ | ✅ `districts/terra_prime_fed_hq` | 🏢 |
+| `terra_prime_residential` | Residential Sector | ✅ `districts/terra_prime_residential` | 🏡 |
+| `xylo_delta_smugglers_den` | Smuggler's Den | ✅ `districts/xylo_delta_smugglers_den` | ☠️ |
+| `xylo_delta_salvage_yard` | Scavenger Salvage Yard | ✅ `districts/xylo_delta_salvage_yard` | 🔧 |
+| `nebula_outpost_summit_hall` | Crucible Summit Hall | ✅ `districts/nebula_outpost_summit_hall` | 🏛️ |
+| `nebula_outpost_hangars` | Docking Hangars | ✅ `districts/nebula_outpost_hangars` | 🛸 |
+| `norkon_outpost_lab` | Syndicate Singularity Lab | ✅ `districts/norkon_outpost_lab` | 🧪 |
+| `norkon_outpost_reactor` | Singularity Core Reactor | ✅ `districts/norkon_outpost_reactor` | ⚡ |
+| `inferno_ix_refinery` | Magma Extraction Refinery | ✅ `districts/inferno_ix_refinery` | 🏭 |
+| `crio_prime_vault` | Cryo-Genetic Vault | ✅ `districts/crio_prime_vault` | ❄️ |
+| `galactic_nexus_plaza` | Nexus Commerce Plaza | ✅ `districts/galactic_nexus_plaza` | 🌌 |
 
 `merchant.jpg` is a character portrait with no matching NPC ID — there is no
 merchant in the `NPCS` map. It is registered against the Bazaar District, whose
@@ -119,8 +119,8 @@ Slugs passed by the caller at the hook site.
 
 | Slug | Trigger | Art | Emoji stand-in |
 |---|---|---|---|
-| `derelict_boarding` | `startDerelictRun()` | ❌ | 🛸 |
-| `hyperspace` | `playTravelAnimation()` | ❌ | ✨ |
+| `derelict_boarding` | `startDerelictRun()` | ✅ `events/derelict_boarding` | 🛸 |
+| `hyperspace` | `playTravelAnimation()` | ✅ `events/hyperspace` | ✨ |
 
 ## Turning imagery off
 
@@ -130,11 +130,5 @@ choice persists in the existing `galactic_odyssey_settings` key.
 
 ## Priority art gaps
 
-Ranked by how often the player would see the panel fall back to emoji:
-
-1. **Locations** (7 IDs, zero art) — the ambient scene, on screen more than
-   anything else.
-2. **Events** — `hyperspace` fires on every trip between planets.
-3. **NPCs** `ai` and `terminal` — the ship AI and mainframe speak constantly.
-4. **Districts** — 11 of 12 unillustrated.
-5. **`boss_terra`** — the only boss without a face.
+All currently requested location, district, event, NPC, enemy, and boss IDs
+have registered art. Emoji fallback remains supported for future IDs.

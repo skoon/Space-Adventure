@@ -20,7 +20,8 @@ test('the real index.html markup drives the viewscreen module', async () => {
     expect(document.getElementById('viewscreenLabel').textContent).toBe('STANDBY');
 
     await setScene({ kind: 'location', id: 'terra_prime', label: 'Terra Prime', sub: 'HAZARD LVL 1', emoji: '🪐' });
-    expect(document.getElementById('viewscreenFallback').textContent).toBe('🪐');
+    expect(document.getElementById('viewscreenImage').getAttribute('src')).toContain('terra_prime.jpg');
+    expect(document.getElementById('viewscreenPicture').classList.contains('hidden')).toBe(false);
     expect(document.getElementById('viewscreenSubLabel').textContent).toBe('HAZARD LVL 1');
 
     await setScene({ kind: 'npc', id: 'vance', label: 'Vance', sub: 'Federation', emoji: '🦾' });

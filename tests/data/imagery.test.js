@@ -12,7 +12,8 @@ import {
     enemyImages,
     bossImages,
     locationImages,
-    districtImages
+    districtImages,
+    eventImages
 } from '../../data/imagery.js';
 import { enemies, bosses } from '../../data/enemies.js';
 import { locations } from '../../data/locations.js';
@@ -30,6 +31,7 @@ const enemyNames = enemies.map((e) => e.name);
 const bossIds = bosses.map((b) => b.id);
 const locationIds = Object.keys(locations);
 const districtIds = locationIds.flatMap((id) => (locations[id].districts || []).map((d) => d.id));
+const eventIds = ['derelict_boarding', 'hyperspace'];
 
 describe('imagery registry keys match real game IDs', () => {
     test('every NPC key exists in the dialogue NPCS map', () => {
@@ -53,10 +55,14 @@ describe('imagery registry keys match real game IDs', () => {
     test('every district key matches a district id in data/locations.js', () => {
         Object.keys(districtImages).forEach((key) => expect(districtIds).toContain(key));
     });
+
+    test('every event key matches a caller-supplied event slug', () => {
+        Object.keys(eventImages).forEach((key) => expect(eventIds).toContain(key));
+    });
 });
 
 describe('imagery registry records', () => {
-    const allRecords = [npcImages, enemyImages, bossImages, locationImages, districtImages]
+    const allRecords = [npcImages, enemyImages, bossImages, locationImages, districtImages, eventImages]
         .flatMap((registry) => Object.entries(registry));
 
     test('the registry is not accidentally empty', () => {
@@ -71,7 +77,7 @@ describe('imagery registry records', () => {
 
     test.each(allRecords)('%s uses a functional accent color', (key, record) => {
         if (record.accent === undefined) return;
-        expect(['orange', 'red', 'green', 'blue', 'cyan', 'amber']).toContain(record.accent);
+        expect(['orange', 'red', 'green', 'blue', 'cyan', 'amber', 'purple', 'teal']).toContain(record.accent);
     });
 
     test.each(allRecords)('%s has all three image variants on disk', (key, record) => {

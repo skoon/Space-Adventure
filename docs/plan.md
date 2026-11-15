@@ -150,6 +150,16 @@
 - **Generic NPC Interceptors:** Created a generic turn-in handler for NPCs and companion crew members, allowing any non-custom quest to be turned in directly via dialogue/crew chat.
 - **Class-Specific Main Story Variants:** Main story quests are duplicated into `_warrior`, `_rogue`, and `_scientist` variants with distinct objective numbers, target enemies, and items tailored to the role.
 - **Integration & Verification:** Mapped automatically in quest systems and verified via tests in [class_quests_turnin.test.js](file:///mnt/d/source/Roogames/Space%20Adventure/tests/systems/class_quests_turnin.test.js).
+
+### Story Flags & Reactive Narrative (Completed)
+**How it works:** Introduces persistent narrative state tracking that operates independently of quest progress, enabling dynamic NPC responses and companion interjections based on player choices.
+**Mechanics:**
+- **Story Flags via setFlags/incFlags:** Quest choices and steps can set arbitrary narrative flags (`setFlags: { vance_betrayed: true }`) or increment counters (`incFlags: { faction_conflicts: 1 }`). These persist across the full game state.
+- **Flag Conditions in Dialogue:** Quests can gate choices, dialogue text variants, and NPC availability using `showIf: { memoryFlag: 'key' }` or `showIf: { flag: { key: value } }` conditions.
+- **Reactive NPC Greetings:** `data/npc_reactions.js` defines variant greeting responses per NPC. When the player encounters an NPC, the system evaluates conditions and renders the first matching variant, enabling NPCs to acknowledge past choices ("You've got some nerve showing your face here.").
+- **Companion Interjections:** Crew members can inject personalized comments during dialogue via `choice.companionComment` arrays, adding narrative flavor and emotional stakes to major decisions.
+- **Integration & Verification:** Fully integrated into [systems/quests.js](file:///d:/source/Roogames/Space%20Adventure/systems/quests.js), [data/npc_reactions.js](file:///d:/source/Roogames/Space%20Adventure/data/npc_reactions.js), and [systems/companions.js](file:///d:/source/Roogames/Space%20Adventure/systems/companions.js); covered by unit tests in [quests.test.js](file:///d:/source/Roogames/Space%20Adventure/tests/systems/quests.test.js).
+
 ---
 
 ## 🔮 Future / Planned Ideas

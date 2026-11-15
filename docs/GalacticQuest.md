@@ -1,6 +1,6 @@
 # GalacticQuest — Living Project Reference
 
-> **Last Updated:** 2026-07-20  
+> **Last Updated:** 2026-09-12  
 > **Project Name:** Galactic Odyssey (codebase root: `Space Adventure`)  
 > **Tech Stack:** Vanilla JavaScript (ES6+ Modules), HTML5, CSS3  
 > **Entry Point:** [`index.html`](file:///d:/source/Roogames/Space%20Adventure/index.html)  
@@ -219,6 +219,9 @@ state.character = {
 | **Successor Quest Auto-Chain** | Completing Act I auto-accepts correct Act II branch per faction chosen | [`systems/quests.js`](file:///d:/source/Roogames/Space%20Adventure/systems/quests.js) |
 | **Location/Travel Quest Gating** | Planet-locked quests; travel-state event hooks for distress signals | [`systems/quests.js`](file:///d:/source/Roogames/Space%20Adventure/systems/quests.js) |
 | **Planetary Quest Board** | Quests categorized: Main Story, Sidequest, Faction Contract | [`quest-ui.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/quest-ui.js) |
+| **Story Flags System** | `setFlags` / `incFlags` per quest choice/step; persistent narrative state tracking independent of quest progress | [`systems/quests.js`](file:///d:/source/Roogames/Space%20Adventure/systems/quests.js) |
+| **Reactive NPC Greetings** | NPCs respond dynamically based on prior story flags via `data/npc_reactions.js` variants; first matching `showIf` condition wins | [`data/npc_reactions.js`](file:///d:/source/Roogames/Space%20Adventure/data/npc_reactions.js), [`systems/quests.js`](file:///d:/source/Roogames/Space%20Adventure/systems/quests.js) |
+| **Companion Interjections** | Crew members comment on significant story choices via `choice.companionComment` entries; triggers via dialogue overlay | [`systems/companions.js`](file:///d:/source/Roogames/Space%20Adventure/systems/companions.js), [`dialogue-ui.js`](file:///d:/source/Roogames/Space%20Adventure/systems/ui/dialogue-ui.js) |
 
 ---
 

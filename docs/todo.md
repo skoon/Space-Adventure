@@ -128,6 +128,7 @@
 - [x] **Quest Log UI** - Track active and completed quests
 - [x] **Quest Rewards** - XP, items, and story progression
 - [x] **Branching Narrative Arcs** - Multi-stage story arcs with dialogue choice forks
+- [x] **Story Flags System** - Persistent narrative state tracking via setFlags/incFlags per choice/step
   - [x] Refactor quest data structure in `systems/quests.js` to support multi-stage quests with state-dependent branch nodes.
   - [x] Create a quest progression state machine that updates based on player choices rather than just linear targets.
   - [x] Update the Quest Log UI to show branching outcomes and active path names.
@@ -142,6 +143,8 @@
   - [x] Add `disposition` rating (numeric scale, e.g., -100 to +100) and `memoryFlags` array to each NPC's state in the save game data.
   - [x] Implement relationship change triggers (e.g., agreeing with Vance increases Federation reputation/disposition, but decreases Corsair Envoy disposition).
   - [x] Apply disposition impacts: high disposition lowers shop prices, unlocks secret quests, or grants companion recruitment; negative disposition sparks hostile dialogue or travel ambushes.
+- [x] **Reactive NPC Greetings** - NPCs respond dynamically based on prior story flags via variant dialogue entries
+- [x] **Companion Interjections** - Crew members comment on significant story choices during dialogue
 - [x] **Attribute & Role Checks** - Specific dialog options for roles or attribute thresholds (e.g., Scientist hacking, Rogue negotiating, Warrior intimidating)
   - [x] Create a dialogue choice evaluation engine in `systems/quests.js` that checks player stats/roles (e.g., `role === 'Scientist' && stats.intelligence >= 15`).
   - [x] Format dialogue choice UI to render check-dependent options: green/enabled for passed checks, greyed out/locked for failed ones (e.g., "[Hack Terminal] - Requires Scientist and INT 15").

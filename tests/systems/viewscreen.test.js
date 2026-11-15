@@ -10,7 +10,7 @@ import {
     getThumbPath,
     paintThumb
 } from '../../systems/ui/viewscreen.js';
-import { npcImages, enemyImages, IMAGE_BASE } from '../../data/imagery.js';
+import { npcImages, enemyImages, locationImages, IMAGE_BASE } from '../../data/imagery.js';
 
 const PANEL_HTML = `
 <div id="viewscreenPanel" class="viewscreen-panel">
@@ -31,6 +31,7 @@ const PANEL_HTML = `
 /** Registered art used across the suite — asserted to exist so a registry rename fails loudly. */
 const VANCE = npcImages.vance;
 const XENOBOT = enemyImages['Xenobot'];
+const TERRA_PRIME = locationImages.terra_prime;
 
 let showImages;
 
@@ -81,25 +82,25 @@ describe('viewscreen rendering', () => {
         await setScene({ kind: 'npc', id: 'vance', label: 'Vance' });
         expect(panel().getAttribute('data-accent')).toBe(VANCE.accent);
 
-        await setScene({ kind: 'npc', id: 'nesta', label: 'Nesta', emoji: '🦹' });
+        await setScene({ kind: 'npc', id: 'unknown_npc', label: 'Unknown', emoji: '🦹' });
         expect(panel().hasAttribute('data-accent')).toBe(false);
     });
 
     test('an unregistered key hides <picture> and renders the emoji fallback with the caption intact', async () => {
         await mount();
-        await setScene({ kind: 'npc', id: 'nesta', label: 'Envoy Nesta', sub: 'Void Corsairs', emoji: '🦹' });
+        await setScene({ kind: 'npc', id: 'unknown_npc', label: 'Unknown Contact', sub: 'Unidentified', emoji: '🦹' });
 
         expect(isHidden(el('viewscreenPicture'))).toBe(true);
         expect(isHidden(el('viewscreenFallback'))).toBe(false);
         expect(el('viewscreenFallback').textContent).toBe('🦹');
         expect(el('viewscreenImage').hasAttribute('src')).toBe(false);
-        expect(el('viewscreenLabel').textContent).toBe('Envoy Nesta');
-        expect(el('viewscreenSubLabel').textContent).toBe('Void Corsairs');
+        expect(el('viewscreenLabel').textContent).toBe('Unknown Contact');
+        expect(el('viewscreenSubLabel').textContent).toBe('Unidentified');
     });
 
     test('an unregistered key with no emoji falls back to the per-kind default', async () => {
         await mount();
-        await setScene({ kind: 'location', id: 'terra_prime', label: 'Terra Prime' });
+        await setScene({ kind: 'location', id: 'unknown_location', label: 'Unknown World' });
         expect(el('viewscreenFallback').textContent).toBe('🪐');
     });
 
@@ -149,8 +150,8 @@ describe('priority stack', () => {
         await clearScene('enemy');
         expect(el('viewscreenLabel').textContent).toBe('Terra Prime');
         expect(el('viewscreenSubLabel').textContent).toBe('HAZARD LVL 1');
-        expect(isHidden(el('viewscreenPicture'))).toBe(true);
-        expect(el('viewscreenFallback').textContent).toBe('🪐');
+        expect(isHidden(el('viewscreenPicture'))).toBe(false);
+        expect(el('viewscreenImage').getAttribute('src')).toBe(`${IMAGE_BASE}${TERRA_PRIME.path}.jpg`);
     });
 
     test('a lower-priority scene pushed under the current one does not steal the panel', async () => {
@@ -226,7 +227,7 @@ describe('showImages setting', () => {
     test('getThumbPath returns the thumb variant, or null when art is missing or imagery is off', async () => {
         await mount();
         expect(getThumbPath('npc', 'vance')).toBe(`${IMAGE_BASE}${VANCE.path}-thumb.webp`);
-        expect(getThumbPath('npc', 'nesta')).toBe(null);
+        expect(getThumbPath('npc', 'unknown_npc')).toBe(null);
         expect(getThumbPath('bogus', 'vance')).toBe(null);
 
         showImages = false;
@@ -249,7 +250,7 @@ describe('paintThumb', () => {
     test('leaves the emoji in place when no art is registered', async () => {
         await mount();
         const host = document.createElement('div');
-        paintThumb(host, 'npc', 'mercer', '🔧', 'Mercer');
+        paintThumb(host, 'npc', 'unknown_npc', '🔧', 'Unknown Contact');
 
         expect(host.querySelector('img')).toBeNull();
         expect(host.textContent).toBe('🔧');

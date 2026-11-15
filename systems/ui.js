@@ -1,3 +1,54 @@
+export class HUD {
+    static update(character) {
+        if (!character) return;
+        
+        const healthFill = document.getElementById('hud-health-fill');
+        const healthText = document.getElementById('hud-health-text');
+        if (healthFill && character.maxHp) {
+            const pct = Math.max(0, Math.min(100, (character.hp / character.maxHp) * 100));
+            healthFill.style.width = `${pct}%`;
+        }
+        if (healthText) {
+            healthText.textContent = `${character.hp} / ${character.maxHp}`;
+        }
+
+        const energyFill = document.getElementById('hud-energy-fill');
+        const energyText = document.getElementById('hud-energy-text');
+        const maxEnergy = character.maxEnergy || 100;
+        const energy = character.energy !== undefined ? character.energy : maxEnergy;
+        if (energyFill) {
+            const pct = Math.max(0, Math.min(100, (energy / maxEnergy) * 100));
+            energyFill.style.width = `${pct}%`;
+        }
+        if (energyText) {
+            energyText.textContent = `${energy} / ${maxEnergy}`;
+        }
+
+        const xpFill = document.getElementById('hud-xp-fill');
+        const xpText = document.getElementById('hud-xp-text');
+        const xpToNext = character.xpToNext || 100;
+        const xp = character.xp || 0;
+        if (xpFill) {
+            const pct = Math.max(0, Math.min(100, (xp / xpToNext) * 100));
+            xpFill.style.width = `${pct}%`;
+        }
+        if (xpText) {
+            xpText.textContent = `${xp} / ${xpToNext}`;
+        }
+
+        const alertsBox = document.getElementById('hud-alerts');
+        if (alertsBox) {
+            if (character.alerts && character.alerts.length > 0) {
+                alertsBox.textContent = character.alerts.join(' | ');
+                alertsBox.classList.add('active');
+            } else {
+                alertsBox.textContent = '';
+                alertsBox.classList.remove('active');
+            }
+        }
+    }
+}
+
 /**
  * UI System Module
  * Handles UI updates, notifications, logs, and quest UI
