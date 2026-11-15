@@ -79,6 +79,7 @@ import { initViewscreen, setScene, clearScene, resetViewscreen, repaintViewscree
 import { initUpgrades } from './upgrades.js';
 import { checkAchievement } from './achievements.js';
 import { initAchievementsUI, showAchievementsUI, closeAchievementsUI } from './ui/achievements-ui.js';
+import { showCodexUI, closeCodexUI } from './ui/codex-ui.js';
 import { initCompanionsUI } from './ui/companions-ui.js';
 import { initCyberneticsUI } from './ui/cybernetics-ui.js';
 import { getActiveCompanion } from './companions.js';
@@ -100,6 +101,7 @@ export {
     showDialog, hideDialog,
     showStatsAllocationUI, closeStatsAllocationUI, allocateStat,
     showAchievementsUI, closeAchievementsUI,
+    showCodexUI, closeCodexUI,
     showJobBoard,
     showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl,
     showDistricts

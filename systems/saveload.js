@@ -61,7 +61,9 @@ function getGameState() {
         companionCooldown: state.companionCooldown || 0,
         currentLocation: state.currentLocation || "terra_prime", // Fix missing location bug
         activeCrewDirective: state.activeCrewDirective || null,
-        worldFlags: state.worldFlags || {}
+        worldFlags: state.worldFlags || {},
+        codex: state.codex || { unlocked: ["terra_prime"], unread: [] },
+        cutscenesSeen: state.cutscenesSeen || []
     };
 }
 
@@ -151,6 +153,19 @@ export function loadGame(slot) {
 
         // Restore worldFlags
         state.worldFlags = saveData.worldFlags || {};
+
+        // Restore codex & cutscenesSeen (seed terra_prime for older saves)
+        const loadedCodex = saveData.codex && Array.isArray(saveData.codex.unlocked)
+            ? saveData.codex
+            : { unlocked: [], unread: [] };
+        if (!loadedCodex.unlocked.includes("terra_prime")) {
+            loadedCodex.unlocked.push("terra_prime");
+        }
+        if (!Array.isArray(loadedCodex.unread)) {
+            loadedCodex.unread = [];
+        }
+        state.codex = loadedCodex;
+        state.cutscenesSeen = Array.isArray(saveData.cutscenesSeen) ? saveData.cutscenesSeen : [];
 
         // Restore dynamic rarity items in catalog
         restoreSavedRarityItems(state.inventory, state.character?.equipment);
@@ -533,6 +548,8 @@ export function startNewGame(slot) {
     };
     state.activeCompanion = null;
     state.companionCooldown = 0;
+    state.codex = { unlocked: ["terra_prime"], unread: [] };
+    state.cutscenesSeen = [];
     
     // Clear DOM inputs
     const nameInput = document.getElementById("nameInput");

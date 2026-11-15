@@ -27,6 +27,7 @@ export const theme = {
     attributes: "📊 Attributes",
     scanSignals: "📡 Scan Signals",
     achievements: "🏆 Achievements",
+    codex: "📖 Codex",
     engine: "Engine",
     medbay: "Medical Bay",
     cargo: "Cargo Hold",

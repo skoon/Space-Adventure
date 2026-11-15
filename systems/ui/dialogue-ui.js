@@ -5,6 +5,7 @@
  */
 
 import { t } from '../theme-engine.js';
+import { unlockCodexEntry } from '../codex.js';
 
 let state;
 let updateUI;
@@ -169,6 +170,7 @@ export function showDialogue(title, text, options = []) {
 
     // Identify speaker and active mood
     const speaker = identifySpeaker(title, text);
+    unlockCodexEntry(speaker.key);
     const mood = getMood(speaker.key);
 
     // Update left panel (NPC info)

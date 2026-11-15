@@ -27,6 +27,10 @@ import { initAchievements } from './systems/achievements.js';
 import { initCompanions, companionInterject } from './systems/companions.js';
 import { initCybernetics } from './systems/cybernetics.js';
 import { initAudio } from './systems/audio.js';
+import { initCodex } from './systems/codex.js';
+import { initCodexUI, showCodexUI, closeCodexUI } from './systems/ui/codex-ui.js';
+import { initCutscene, advanceBeat, skipCutscene } from './systems/cutscene.js';
+import { initCutsceneUI, renderCutscene, hideCutscene } from './systems/ui/cutscene-ui.js';
 import { handleInstallImplant, handleUninstallImplant, handleInstallModChip, handleUninstallModChip, handleBuySpecializationPoint } from './systems/ui/cybernetics-ui.js';
 
 import { locations } from './data/locations.js';
@@ -354,6 +358,18 @@ function initializeGame() {
 
   // Initialize Audio
   initAudio();
+
+  // Initialize Codex & Cutscenes
+  initCodex({
+    ...deps,
+    ui: { addLog }
+  });
+  initCodexUI({ state });
+  initCutsceneUI({ advanceBeat, skipCutscene });
+  initCutscene({
+    state,
+    ui: { renderCutscene, hideCutscene }
+  });
 }
 
 // ============================================
@@ -429,6 +445,8 @@ window.closeStatsAllocationUI = closeStatsAllocationUI;
 window.allocateStat = allocateStat;
 window.showAchievementsUI = showAchievementsUI;
 window.closeAchievementsUI = closeAchievementsUI;
+window.showCodexUI = showCodexUI;
+window.closeCodexUI = closeCodexUI;
 
 // Companion functions
 window.triggerCompanionAbility = triggerCompanionAbility;

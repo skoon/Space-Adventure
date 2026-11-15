@@ -5,6 +5,8 @@
 
 import { checkAchievement } from './achievements.js';
 import { rollMarketEvent } from './market.js';
+import { unlockCodexEntry } from './codex.js';
+import { playCutscene } from './cutscene.js';
 
 // State object reference
 let state;
@@ -281,6 +283,10 @@ function showArrivalScene(location) {
 
 function completeTravel(location) {
     state.currentLocation = location.id;
+    unlockCodexEntry(location.id);
+    if (location.id === 'derelict') {
+        playCutscene('derelict_breach');
+    }
     showArrivalScene(location);
     addLog(`🚀 Traveling to ${location.name}...`);
     addLog(`ARRIVAL: ${location.description}`);

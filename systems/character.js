@@ -3,6 +3,8 @@
  * Handles character creation, leveling, and XP management
  */
 
+import { unlockCodexEntry } from './codex.js';
+
 // State object reference
 let state;
 
@@ -119,6 +121,7 @@ export function createCharacter(event) {
     };
 
     state.gameState = "exploring";
+    unlockCodexEntry("terra_prime");
     showScreen("exploring");
     addLog(`Welcome, ${name} the ${race} ${role}! Your journey begins...`);
     updateUI();

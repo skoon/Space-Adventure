@@ -4,6 +4,9 @@ import { checkAchievement } from './achievements.js';
 import { COMPANIONS, getCompanionAbilityValue, resetCompanionTalkFlags } from './companions.js';
 import { getSystemInstability } from './cybernetics.js';
 import { eventEmitter } from "./eventEmitter.js";
+import { unlockCodexEntry } from './codex.js';
+import { playCutscene } from './cutscene.js';
+import { buildTreeFromDescriptor, evaluateBehaviorTree, NODE_STATUS, DEFAULT_AI_PROFILES } from './ai/behaviorTree.js';
 
 // State object that holds getters/setters
 let state;
@@ -230,6 +233,9 @@ export function encounterBoss() {
     if (setScene) setScene({ kind: 'boss', id: state.enemy.id, label: state.enemy.name, sub: `HP ${state.enemy.hp}/${state.enemy.maxHp}`, emoji: '💀' });
     updateCombatUI();
     addLog(`⚠️ WARNING: YOU HAVE ENCOUNTERED THE AREA BOSS, ${state.enemy.name.toUpperCase()}!`);
+    if (boss.id === 'boss_terra') {
+        playCutscene('first_boss_xylar');
+    }
 }
 
 /**
@@ -1242,6 +1248,247 @@ export function endPlayerTurn() {
 }
 
 /**
+ * Combat Condition Map for Behavior Trees
+ */
+export const combatConditionMap = {
+    playerHasEnergyOrShield: (ctx) => {
+        const energy = ctx.character?.energy ?? (ctx.state?.character?.energy ?? 0);
+        const hasShield = (ctx.playerStatusEffects || ctx.state?.playerStatusEffects || []).some(e => e.type === "defenseBoost");
+        return energy > 0 || hasShield;
+    },
+    playerHasStatus: (ctx, desc) => {
+        const statusType = desc.arg || desc.status || desc.value;
+        return (ctx.playerStatusEffects || ctx.state?.playerStatusEffects || []).some(e => e.type === statusType);
+    },
+    isPlayerFrozen: (ctx) => {
+        return (ctx.playerStatusEffects || ctx.state?.playerStatusEffects || []).some(e => e.type === "frozen");
+    },
+    enemyHpBelow: (ctx, desc) => {
+        const enemy = ctx.enemy || ctx.state?.enemy;
+        if (!enemy) return false;
+        const max = enemy.maxHp || enemy.hp;
+        const threshold = desc.threshold !== undefined ? desc.threshold : (desc.arg !== undefined ? desc.arg : 0.5);
+        return (enemy.hp / max) < threshold;
+    },
+    notEnraged: (ctx) => {
+        const enemy = ctx.enemy || ctx.state?.enemy;
+        return !enemy?.enraged;
+    },
+    notVoidCharged: (ctx) => {
+        const enemy = ctx.enemy || ctx.state?.enemy;
+        return !enemy?.voidCharged;
+    },
+    randomChance: (ctx, desc) => {
+        const chance = desc.chance !== undefined ? desc.chance : (desc.arg !== undefined ? desc.arg : 0.5);
+        return Math.random() < chance;
+    },
+    isBossPhase: (ctx, desc) => {
+        const enemy = ctx.enemy || ctx.state?.enemy;
+        const phase = desc.phase !== undefined ? desc.phase : 1;
+        return Boolean(enemy?.isBoss && (enemy.currentPhase || 0) >= phase);
+    }
+};
+
+/**
+ * Apply enemy damage to player, accounting for blocking, subdermal plating, HP decrease, and intense combat trigger.
+ */
+function applyEnemyDamage(damage, logMsg, isBlocking = false, isSpecial = false) {
+    if (isBlocking) {
+        damage = Math.max(1, Math.floor(damage * 0.5));
+        addLog(`🛡️ You blocked ${state.enemy.name}'s ${isSpecial ? 'special ' : ''}attack, reducing damage!`);
+        updateCombatLog();
+    }
+
+    // Sub-dermal Plating absorption
+    if (state.character.cybernetics && state.character.cybernetics.torso === 'subdermal_plating' && state.character.energy > 0) {
+        let absorbAmount = Math.floor(damage * 0.15);
+        if (absorbAmount > 0) {
+            absorbAmount = Math.min(absorbAmount, state.character.energy);
+            damage -= absorbAmount;
+            state.character.energy -= absorbAmount;
+            addLog(`🛡️ CYBERNETICS: Sub-dermal Plating converted ${absorbAmount} damage into energy drain.`);
+        }
+    }
+
+    state.character.hp -= damage;
+    if (!state.combatIntenseTriggered && state.character.hp > 0 && state.character.hp < state.character.maxHp * 0.3) {
+        state.combatIntenseTriggered = true;
+        eventEmitter.emit("combatIntense");
+    }
+
+    if (logMsg) {
+        addLog(logMsg);
+    }
+    updateCombatLog();
+    return damage;
+}
+
+/**
+ * Turn-end wrap up for enemy turn
+ */
+function finishEnemyTurn() {
+    // Regenerate energy (5 per turn)
+    state.character.energy = Math.min(state.character.maxEnergy, (state.character.energy || state.character.maxEnergy) + 5);
+
+    // Reset AP for the new turn with stances & statuses applied
+    let startingAp = state.character.maxAp || 3;
+    if (state.playerStatusEffects.some(e => e.type === "frozen")) {
+        startingAp = Math.max(1, startingAp - 1);
+        addLog("❄️ You are Frozen! Starting AP reduced by 1.");
+    }
+    const apDrainedEffect = state.playerStatusEffects.find(e => e.type === "apDrained");
+    if (apDrainedEffect) {
+        startingAp = Math.max(1, startingAp - apDrainedEffect.value);
+        addLog(`❄️ AP Drain: Starting AP reduced by ${apDrainedEffect.value}.`);
+    }
+    
+    if (state.combatStance === "Support Overclock") {
+        startingAp += 1;
+        addLog("⚡ Stance: Support Overclock provides +1 AP!");
+        
+        if (state.companionCooldown > 0) {
+            state.companionCooldown = Math.max(0, state.companionCooldown - 1);
+        }
+    }
+    
+    state.character.ap = startingAp;
+    if (state.companionCooldown > 0) {
+        state.companionCooldown--;
+    }
+
+    checkEmergencyNanites();
+    if (state.character.hp <= 0) {
+        addLog("You have been defeated...");
+        eventEmitter.emit("combatEnd");
+        if (state.derelict && state.derelict.active) {
+            import('./derelict.js').then(m => m.failRun());
+        } else {
+            state.gameState = "defeat";
+            showScreen("defeat");
+        }
+    } else {
+        processStatusEffects();
+    }
+
+    updateCombatUI();
+    updateUI();
+}
+
+/**
+ * Combat Action Map for Behavior Trees
+ */
+export const combatActionMap = {
+    drainShieldAndEnergy: (ctx, desc) => {
+        const amount = desc.amount || 10;
+        state.character.energy = Math.max(0, (state.character.energy || 0) - amount);
+        addLog(`🤖 ${state.enemy.name} hacks your shield capacitors, draining ${amount} Energy!`);
+        
+        let shieldEffect = state.playerStatusEffects.find(e => e.type === "defenseBoost");
+        if (shieldEffect) {
+            shieldEffect.value = Math.max(0, shieldEffect.value - amount);
+            if (shieldEffect.value === 0) {
+                state.playerStatusEffects = state.playerStatusEffects.filter(e => e.type !== "defenseBoost");
+                addLog("🛡️ Your defense shield was completely depleted!");
+            } else {
+                addLog(`🛡️ Your defense shield was reduced (now +${shieldEffect.value} DEF).`);
+            }
+        }
+        updateCombatLog();
+        return NODE_STATUS.SUCCESS;
+    },
+    shatterStrike: (ctx, desc) => {
+        const mult = desc.multiplier || 2.0;
+        const minDamage = Math.max(1, Math.floor(state.enemy.attack * 0.15));
+        let damage = Math.max(minDamage, Math.floor(state.enemy.attack * mult) - ctx.effectiveDefense);
+        applyEnemyDamage(damage, `❄️ SHATTERING STRIKE! ${state.enemy.name} shatters your frozen defenses for ${damage} damage!`, ctx.isBlocking);
+        return NODE_STATUS.SUCCESS;
+    },
+    freezeAttack: (ctx, desc) => {
+        const mult = desc.multiplier || 1.5;
+        const minDamage = Math.max(1, Math.floor(state.enemy.attack * 0.15));
+        let damage = Math.max(minDamage, Math.floor(state.enemy.attack * mult) - ctx.effectiveDefense);
+        applyEnemyDamage(damage, `❄️ CRITICAL HIT! The ${state.enemy.name} hits you for ${damage} damage and freezes you!`, ctx.isBlocking);
+        state.playerStatusEffects.push({ type: "frozen", duration: desc.duration || 2 });
+        return NODE_STATUS.SUCCESS;
+    },
+    enrage: (ctx, desc) => {
+        state.enemy.enraged = true;
+        const buff = desc.attackBuff || 6;
+        state.enemy.attack += buff;
+        addLog(`🔥 ${state.enemy.name} flies into an enraged frenzy, boosting its attack to ${state.enemy.attack}!`);
+        const mult = desc.slamMultiplier || 1.4;
+        const minDamage = Math.max(1, Math.floor(state.enemy.attack * 0.15));
+        let damage = Math.max(minDamage, Math.floor(state.enemy.attack * mult) - ctx.effectiveDefense);
+        applyEnemyDamage(damage, `💥 ${state.enemy.name} slams you in a fit of rage for ${damage} damage!`, ctx.isBlocking);
+        return NODE_STATUS.SUCCESS;
+    },
+    voidCharge: (ctx, desc) => {
+        state.enemy.voidCharged = true;
+        const buff = desc.attackBuff || 8;
+        state.enemy.attack += buff;
+        addLog(`🌑 ${state.enemy.name} supercharges with void energy, boosting attack to ${state.enemy.attack}!`);
+        const mult = desc.strikeMultiplier || 1.5;
+        const minDamage = Math.max(1, Math.floor(state.enemy.attack * 0.15));
+        let damage = Math.max(minDamage, Math.floor(state.enemy.attack * mult) - ctx.effectiveDefense);
+        applyEnemyDamage(damage, `💀 ${state.enemy.name} strikes with void power for ${damage} damage!`, ctx.isBlocking);
+        return NODE_STATUS.SUCCESS;
+    },
+    bossSpecialAttack: (ctx, desc) => {
+        const mult = desc.damageMultiplier || 2.0;
+        const minSpDamage = Math.max(2, Math.floor(state.enemy.attack * mult * 0.15));
+        let spDamage = Math.max(minSpDamage, Math.floor(state.enemy.attack * mult) - ctx.effectiveDefense);
+        const msg = desc.msg || `${state.enemy.name} unleashes ${desc.name || 'a special attack'}!`;
+        applyEnemyDamage(spDamage, `💀 ${msg} It hits you for ${spDamage} damage!`, ctx.isBlocking, true);
+        return NODE_STATUS.SUCCESS;
+    },
+    standardAttack: (ctx) => {
+        const minDamage = Math.max(1, Math.floor(state.enemy.attack * 0.15));
+        let damage = Math.max(minDamage, state.enemy.attack - ctx.effectiveDefense);
+        
+        let isEnemyCrit = false;
+        if (state.enemy.name === "Cryo Drake" && Math.random() < 0.20) {
+            isEnemyCrit = true;
+            damage = Math.floor(damage * 1.5);
+        }
+        
+        if (isEnemyCrit) {
+            applyEnemyDamage(damage, `❄️ CRITICAL HIT! The Cryo Drake hits you for ${damage} damage and freezes you!`, ctx.isBlocking);
+            state.playerStatusEffects.push({ type: "frozen", duration: 2 });
+        } else {
+            applyEnemyDamage(damage, `${state.enemy.name} hits you for ${damage} damage.`, ctx.isBlocking);
+        }
+        
+        // Frost parasite AP drain on hit
+        if (state.enemy.name === "Frost parasite") {
+            state.playerStatusEffects.push({ type: "apDrained", value: 1, duration: 1 });
+            addLog("❄️ The Frost parasite hit drains 1 AP from your next turn!");
+            updateCombatLog();
+        }
+        
+        // 15% status effect chance
+        if (Math.random() < 0.15 && state.enemy.attack > 0) {
+            const effects = ["poison", "burn", "defenseBreak"];
+            const randomEffect = effects[Math.floor(Math.random() * effects.length)];
+            let existingEffect = state.playerStatusEffects.find(e => e.type === randomEffect);
+            if (!existingEffect) {
+                if (randomEffect === "defenseBreak") {
+                    state.playerStatusEffects.push({ type: "defenseBreak", value: 3, duration: 3 });
+                    addLog(`⚠️ ${state.enemy.name} broke your defense! (-3 DEF for 3 turns)`);
+                } else if (randomEffect === "poison") {
+                    state.playerStatusEffects.push({ type: "poison", damage: 5, duration: 3 });
+                    addLog(`☠️ ${state.enemy.name} poisoned you!`);
+                } else if (randomEffect === "burn") {
+                    state.playerStatusEffects.push({ type: "burn", damage: 8, duration: 2 });
+                    addLog(`🔥 ${state.enemy.name} set you on fire!`);
+                }
+                updateCombatLog();
+            }
+        }
+        return NODE_STATUS.SUCCESS;
+    }
+};
+
+/**
  * Enemy's turn to attack
  */
 export function enemyTurn() {
@@ -1313,23 +1560,6 @@ export function enemyTurn() {
         return;
     }
 
-    // Security Sentinel turn action
-    if (state.enemy.name === "Security Sentinel") {
-        state.character.energy = Math.max(0, (state.character.energy || 0) - 10);
-        addLog("🤖 Security Sentinel hacks your shield capacitors, draining 10 Energy!");
-        
-        let shieldEffect = state.playerStatusEffects.find(e => e.type === "defenseBoost");
-        if (shieldEffect) {
-            shieldEffect.value = Math.max(0, shieldEffect.value - 10);
-            if (shieldEffect.value === 0) {
-                state.playerStatusEffects = state.playerStatusEffects.filter(e => e.type !== "defenseBoost");
-                addLog("🛡️ Your defense shield was completely depleted!");
-            } else {
-                addLog(`🛡️ Your defense shield was reduced (now +${shieldEffect.value} DEF).`);
-            }
-        }
-    }
-
     // Check if player is dodging
     const dodgeEffect = state.playerStatusEffects.find(e => e.type === "dodging");
     if (dodgeEffect) {
@@ -1362,80 +1592,36 @@ export function enemyTurn() {
     let effectiveDefense = stats.defense - (activeDefenseBreak?.value || 0);
     effectiveDefense = Math.max(0, effectiveDefense); // Don't let defense go below 0
 
-    // Boss Special Attacks
+    // Evaluate Advanced AI Behavior Tree if enemy has an aiProfile
+    const aiProfile = state.enemy.aiProfile || (DEFAULT_AI_PROFILES && DEFAULT_AI_PROFILES[state.enemy.name]);
+    if (aiProfile) {
+        if (!state.enemy._behaviorTree) {
+            state.enemy._behaviorTree = buildTreeFromDescriptor(aiProfile, combatActionMap, combatConditionMap);
+        }
+        const context = {
+            state,
+            enemy: state.enemy,
+            character: state.character,
+            playerStatusEffects: state.playerStatusEffects,
+            enemyStatusEffects: state.enemyStatusEffects,
+            effectiveDefense,
+            isBlocking
+        };
+        const status = evaluateBehaviorTree(state.enemy._behaviorTree, context);
+        if (status === NODE_STATUS.SUCCESS) {
+            finishEnemyTurn();
+            return;
+        }
+    }
+
+    // Fallback: Boss Special Attacks
     if (state.enemy.isBoss && state.enemy.specialAttacks) {
         for (let sp of state.enemy.specialAttacks) {
             if (Math.random() < sp.chance) {
                 const minSpDamage = Math.max(2, Math.floor(state.enemy.attack * sp.damageMultiplier * 0.15));
                 let spDamage = Math.max(minSpDamage, Math.floor(state.enemy.attack * sp.damageMultiplier) - effectiveDefense);
-                if (isBlocking) {
-                    spDamage = Math.max(1, Math.floor(spDamage * 0.5));
-                    addLog(`🛡️ You blocked ${state.enemy.name}'s special attack, reducing damage!`);
-                }
-                
-                // Sub-dermal Plating absorption
-                if (state.character.cybernetics && state.character.cybernetics.torso === 'subdermal_plating' && state.character.energy > 0) {
-                    let absorbAmount = Math.floor(spDamage * 0.15);
-                    if (absorbAmount > 0) {
-                        absorbAmount = Math.min(absorbAmount, state.character.energy);
-                        spDamage -= absorbAmount;
-                        state.character.energy -= absorbAmount;
-                        addLog(`🛡️ CYBERNETICS: Sub-dermal Plating converted ${absorbAmount} damage into energy drain.`);
-                    }
-                }
-                
-                state.character.hp -= spDamage;
-                if (!state.combatIntenseTriggered && state.character.hp > 0 && state.character.hp < state.character.maxHp * 0.3) {
-                    state.combatIntenseTriggered = true;
-                    eventEmitter.emit("combatIntense");
-                }
-                addLog(`💀 ${sp.msg} It hits you for ${spDamage} damage!`);
-                updateCombatLog();
-                
-                // Rest of turn logic (status effects, energy, etc.)
-                state.character.energy = Math.min(state.character.maxEnergy, (state.character.energy || state.character.maxEnergy) + 5);
-                
-                // Reset AP for the new turn with stances & statuses applied
-                let startingAp = state.character.maxAp || 3;
-                if (state.playerStatusEffects.some(e => e.type === "frozen")) {
-                    startingAp = Math.max(1, startingAp - 1);
-                    addLog("❄️ You are Frozen! Starting AP reduced by 1.");
-                }
-                const apDrainedEffect = state.playerStatusEffects.find(e => e.type === "apDrained");
-                if (apDrainedEffect) {
-                    startingAp = Math.max(1, startingAp - apDrainedEffect.value);
-                    addLog(`❄️ AP Drain: Starting AP reduced by ${apDrainedEffect.value}.`);
-                }
-                
-                if (state.combatStance === "Support Overclock") {
-                    startingAp += 1;
-                    addLog("⚡ Stance: Support Overclock provides +1 AP!");
-                    
-                    if (state.companionCooldown > 0) {
-                        state.companionCooldown = Math.max(0, state.companionCooldown - 1);
-                    }
-                }
-                
-                state.character.ap = startingAp;
-                if (state.companionCooldown > 0) {
-                    state.companionCooldown--;
-                }
-                
-                checkEmergencyNanites();
-                if (state.character.hp <= 0) {
-                    addLog("You have been defeated...");
-                    eventEmitter.emit("combatEnd");
-                    if (state.derelict && state.derelict.active) {
-                        import('./derelict.js').then(m => m.failRun());
-                    } else {
-                        state.gameState = "defeat";
-                        showScreen("defeat");
-                    }
-                } else {
-                    processStatusEffects();
-                }
-                updateCombatUI();
-                updateUI();
+                applyEnemyDamage(spDamage, `💀 ${sp.msg} It hits you for ${spDamage} damage!`, isBlocking, true);
+                finishEnemyTurn();
                 return; // End turn early
             }
         }
@@ -1451,36 +1637,12 @@ export function enemyTurn() {
         damage = Math.floor(damage * 1.5);
     }
 
-    if (isBlocking) {
-        damage = Math.max(1, Math.floor(damage * 0.5)); // 50% damage reduction, minimum 1
-        addLog(`🛡️ You blocked ${state.enemy.name}'s attack, reducing damage!`);
-        updateCombatLog();
-    }
-
-    // Sub-dermal Plating absorption
-    if (state.character.cybernetics && state.character.cybernetics.torso === 'subdermal_plating' && state.character.energy > 0) {
-        let absorbAmount = Math.floor(damage * 0.15);
-        if (absorbAmount > 0) {
-            absorbAmount = Math.min(absorbAmount, state.character.energy);
-            damage -= absorbAmount;
-            state.character.energy -= absorbAmount;
-            addLog(`🛡️ CYBERNETICS: Sub-dermal Plating converted ${absorbAmount} damage into energy drain.`);
-        }
-    }
-
-    state.character.hp -= damage;
-    if (!state.combatIntenseTriggered && state.character.hp > 0 && state.character.hp < state.character.maxHp * 0.3) {
-        state.combatIntenseTriggered = true;
-        eventEmitter.emit("combatIntense");
-    }
-
     if (isEnemyCrit) {
-        addLog(`❄️ CRITICAL HIT! The Cryo Drake hits you for ${damage} damage and freezes you!`);
+        applyEnemyDamage(damage, `❄️ CRITICAL HIT! The Cryo Drake hits you for ${damage} damage and freezes you!`, isBlocking);
         state.playerStatusEffects.push({ type: "frozen", duration: 2 });
     } else {
-        addLog(`${state.enemy.name} hits you for ${damage} damage.`);
+        applyEnemyDamage(damage, `${state.enemy.name} hits you for ${damage} damage.`, isBlocking);
     }
-    updateCombatLog();
 
     // Frost parasite AP drain on hit
     if (state.enemy.name === "Frost parasite") {
@@ -1510,52 +1672,7 @@ export function enemyTurn() {
         }
     }
 
-    // Regenerate energy (5 per turn)
-    state.character.energy = Math.min(state.character.maxEnergy, (state.character.energy || state.character.maxEnergy) + 5);
-
-    // Reset AP for the new turn with stances & statuses applied
-    let startingAp = state.character.maxAp || 3;
-    if (state.playerStatusEffects.some(e => e.type === "frozen")) {
-        startingAp = Math.max(1, startingAp - 1);
-        addLog("❄️ You are Frozen! Starting AP reduced by 1.");
-    }
-    const apDrainedEffect = state.playerStatusEffects.find(e => e.type === "apDrained");
-    if (apDrainedEffect) {
-        startingAp = Math.max(1, startingAp - apDrainedEffect.value);
-        addLog(`❄️ AP Drain: Starting AP reduced by ${apDrainedEffect.value}.`);
-    }
-    
-    if (state.combatStance === "Support Overclock") {
-        startingAp += 1;
-        addLog("⚡ Stance: Support Overclock provides +1 AP!");
-        
-        if (state.companionCooldown > 0) {
-            state.companionCooldown = Math.max(0, state.companionCooldown - 1);
-        }
-    }
-    
-    state.character.ap = startingAp;
-    if (state.companionCooldown > 0) {
-        state.companionCooldown--;
-    }
-
-    checkEmergencyNanites();
-    if (state.character.hp <= 0) {
-        addLog("You have been defeated...");
-        eventEmitter.emit("combatEnd");
-        if (state.derelict && state.derelict.active) {
-            import('./derelict.js').then(m => m.failRun());
-        } else {
-            state.gameState = "defeat";
-            showScreen("defeat");
-        }
-    } else {
-        // Start of player's new turn
-        processStatusEffects();
-    }
-
-    updateCombatUI();
-    updateUI();
+    finishEnemyTurn();
 }
 
 /**
@@ -1566,7 +1683,17 @@ export function winCombat() {
 
     const enemyName = state.enemy.name;
     const isBoss = state.enemy.isBoss;
-    eventEmitter.emit("combatEnd"); 
+    eventEmitter.emit("combatEnd");
+    const codexEnemyMap = {
+        "Xenobot": "xenobot",
+        "Sand Worm": "sand_worm",
+        "Void Stalker": "void_stalker",
+        "Overlord Xylar": "overlord_xylar",
+        "Void Sentinel Alpha": "void_sentinel_alpha"
+    };
+    if (codexEnemyMap[enemyName]) {
+        unlockCodexEntry(codexEnemyMap[enemyName]);
+    } 
     // Magma Elemental: Explodes on death
     if (enemyName === "Magma Elemental") {
         eventEmitter.emit("explosion");
