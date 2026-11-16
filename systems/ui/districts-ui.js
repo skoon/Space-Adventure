@@ -7,6 +7,7 @@ import { showDialogue, hideDialogue } from './dialogue-ui.js';
 import { acceptQuest, completeQuest, getRoleQuestId, resolveVariantText } from '../quests.js';
 import { t } from '../theme-engine.js';
 import { npcReactions } from '../../data/npc_reactions.js';
+import { initPlanetHub, disposePlanetHub } from './planet-hub.js';
 
 let state;
 let deps;
@@ -63,6 +64,61 @@ export function renderDistricts() {
 
     const districts = location.districts || [];
 
+    // Ensure a <canvas id="planetHubCanvas" width="420" height="180"> container exists above #districtsContainer inside #districtsModal
+    let canvas = document.getElementById("planetHubCanvas");
+    if (!canvas && container.parentNode) {
+        const hubWrapper = document.createElement("div");
+        hubWrapper.id = "planetHubWrapper";
+        hubWrapper.className = "flex justify-center items-center mb-3 bg-black/40 rounded border border-cyan-950/80 p-1 relative overflow-hidden";
+
+        canvas = document.createElement("canvas");
+        canvas.id = "planetHubCanvas";
+        canvas.width = 420;
+        canvas.height = 180;
+        canvas.className = "w-full max-w-[420px] h-[180px] rounded block cursor-crosshair";
+
+        hubWrapper.appendChild(canvas);
+        container.parentNode.insertBefore(hubWrapper, container);
+    }
+
+    if (canvas) {
+        initPlanetHub(canvas, location, districts, (district) => {
+            const card = document.getElementById(`district-card-${district.id}`);
+            if (card) {
+                if (typeof card.scrollIntoView === 'function') {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+                card.classList.add('border-cyan-400', 'shadow-[0_0_15px_rgba(6,182,212,0.5)]');
+                setTimeout(() => {
+                    card.classList.remove('border-cyan-400', 'shadow-[0_0_15px_rgba(6,182,212,0.5)]');
+                }, 1500);
+                const btn = card.querySelector('button');
+                if (btn && typeof btn.focus === 'function') {
+                    btn.focus();
+                }
+            } else {
+                if (district.npc) {
+                    talkToNPC(district.npc);
+                } else if (district.id) {
+                    exploreDistrict(district.id);
+                }
+            }
+        });
+    }
+
+    // Attach dispose on modal close buttons if present
+    const modal = document.getElementById("districtsModal");
+    if (modal) {
+        const closeBtns = modal.querySelectorAll('button');
+        closeBtns.forEach(btn => {
+            if (btn.textContent && (btn.textContent.includes('×') || btn.textContent.toLowerCase().includes('close'))) {
+                btn.addEventListener('click', () => {
+                    disposePlanetHub();
+                }, { once: true });
+            }
+        });
+    }
+
     if (districts.length === 0) {
         container.innerHTML = `<div class="text-gray-500 italic text-center p-6 font-mono text-xs">${t("No local districts mapped for this sector.")}</div>`;
         return;
@@ -70,6 +126,7 @@ export function renderDistricts() {
 
     districts.forEach(dist => {
         const card = document.createElement("div");
+        card.id = `district-card-${dist.id}`;
         card.className = "bg-gray-900/80 border border-cyan-950 hover:border-cyan-500/30 p-4 rounded flex justify-between items-center transition-all duration-300 shadow-inner";
 
         let actionBtnHtml = "";
@@ -242,14 +299,22 @@ export function renderDistricts() {
 }
 
 /**
- * Explore a generic district without an NPC
+ * Close the districts modal and dispose active planet hub loop
  */
-export function exploreDistrict(distId) {
+export function closeDistricts() {
     const modal = document.getElementById("districtsModal");
     if (modal) {
         modal.classList.add("hidden");
         modal.style.display = "none";
     }
+    disposePlanetHub();
+}
+
+/**
+ * Explore a generic district without an NPC
+ */
+export function exploreDistrict(distId) {
+    closeDistricts();
 
     const loc = deps.data.locations[state.currentLocation];
     const dist = loc?.districts?.find(d => d.id === distId);
@@ -269,11 +334,7 @@ export function exploreDistrict(distId) {
  */
 export function talkToNPC(npcId) {
     // Hide districts modal first
-    const modal = document.getElementById("districtsModal");
-    if (modal) {
-        modal.classList.add("hidden");
-        modal.style.display = "none";
-    }
+    closeDistricts();
 
     if (!state.character) return;
 

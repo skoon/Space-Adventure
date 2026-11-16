@@ -178,7 +178,10 @@ describe('Advanced AI Behavior Tree System', () => {
         let mockCombatElements;
         let mockUi;
 
+        let randomSpy;
+
         beforeEach(() => {
+            randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
             mockState = {
                 character: {
                     name: 'Hero',
@@ -235,6 +238,10 @@ describe('Advanced AI Behavior Tree System', () => {
                 exploration: { simulateExploration: jest.fn() },
                 settings: { getDifficulty: () => ({ enemyHpModifier: 1, enemyDmgModifier: 1 }) }
             });
+        });
+
+        afterEach(() => {
+            if (randomSpy) randomSpy.mockRestore();
         });
 
         test('Security Sentinel behavior tree drains energy and shield when player has defenseBoost', () => {

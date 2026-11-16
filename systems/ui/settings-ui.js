@@ -21,6 +21,7 @@ export function showSettingsModal() {
     
     const currentDiff = deps.settings.getDifficulty();
     const showImages = deps.settings.getShowImages ? deps.settings.getShowImages() : true;
+    const currentLocale = deps.settings.getLocale ? deps.settings.getLocale() : 'en';
     
     showDialog(
         "Settings",
@@ -40,6 +41,12 @@ export function showSettingsModal() {
                 Viewscreen Imagery
             </label>
             <p class="text-xs text-gray-400 mb-4">Off shows emoji only — lighter on slow connections.</p>
+
+            <h3 class="font-bold text-yellow-400 mb-2">Language / Idioma</h3>
+            <select id="inGameLocaleSelect" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+                <option value="en" ${currentLocale === 'en' ? 'selected' : ''}>English</option>
+                <option value="es" ${currentLocale === 'es' ? 'selected' : ''}>Español</option>
+            </select>
             
             <div class="mt-4 pt-4 border-t border-gray-700 text-center text-xs text-gray-500">
                 Version: <span class="text-gray-400 font-mono">${VERSION}</span>
@@ -82,6 +89,14 @@ export function showSettingsModal() {
             imagesToggle.addEventListener("change", (e) => {
                 deps.settings.setShowImages(e.target.checked);
                 if (deps.ui && deps.ui.repaintViewscreen) deps.ui.repaintViewscreen();
+                if (deps.ui && deps.ui.updateUI) deps.ui.updateUI();
+            });
+        }
+
+        const localeSelect = document.getElementById("inGameLocaleSelect");
+        if (localeSelect && deps.settings.setLocale) {
+            localeSelect.addEventListener("change", (e) => {
+                deps.settings.setLocale(e.target.value);
                 if (deps.ui && deps.ui.updateUI) deps.ui.updateUI();
             });
         }

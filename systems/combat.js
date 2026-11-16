@@ -1,6 +1,6 @@
 import { rollRarity } from './rarity.js';
 import { items } from '../data/items.js';
-import { checkAchievement } from './achievements.js';
+import { checkAchievement, updateDailyProgress } from './achievements.js';
 import { COMPANIONS, getCompanionAbilityValue, resetCompanionTalkFlags } from './companions.js';
 import { getSystemInstability } from './cybernetics.js';
 import { eventEmitter } from "./eventEmitter.js";
@@ -1766,8 +1766,10 @@ export function winCombat() {
     // Stats tracking and Achievement check
     state.stats = state.stats || {};
     state.stats.enemiesDefeated = (state.stats.enemiesDefeated || 0) + 1;
+    updateDailyProgress("enemiesDefeated", 1);
     if (isBoss) {
         state.stats.bossesDefeated = (state.stats.bossesDefeated || 0) + 1;
+        updateDailyProgress("bossesDefeated", 1);
     }
     checkAchievement("combat");
     

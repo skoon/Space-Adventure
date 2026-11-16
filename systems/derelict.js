@@ -1,6 +1,6 @@
 import { rollRarity } from './rarity.js';
 import { items } from '../data/items.js';
-import { checkAchievement } from './achievements.js';
+import { checkAchievement, updateDailyProgress } from './achievements.js';
 import { initDungeonRenderer } from './ui/dungeon-renderer.js';
 
 let state;
@@ -388,6 +388,7 @@ export function escapeShip() {
     // Stats tracking and Achievement check
     state.stats = state.stats || {};
     state.stats.derelictsCompleted = (state.stats.derelictsCompleted || 0) + 1;
+    updateDailyProgress("derelictRuns", 1);
     checkAchievement("derelict", { completed: true });
 
     finishRun();

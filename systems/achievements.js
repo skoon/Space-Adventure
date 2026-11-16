@@ -78,6 +78,65 @@ export const ACHIEVEMENTS = {
     }
 };
 
+export const DAILY_CHALLENGES = [
+    {
+        id: "daily_enemies",
+        title: "Combat Sweep",
+        description: "Defeat 5 enemies in combat.",
+        stat: "enemiesDefeated",
+        target: 5,
+        reward: { credits: 250, text: "250 Credits" }
+    },
+    {
+        id: "daily_crafting",
+        title: "Field Engineering",
+        description: "Craft 2 items at the workshop.",
+        stat: "itemsCrafted",
+        target: 2,
+        reward: { credits: 200, text: "200 Credits" }
+    },
+    {
+        id: "daily_locations",
+        title: "Sector Recon",
+        description: "Visit or travel to 3 different destinations.",
+        stat: "locationsVisited",
+        target: 3,
+        reward: { credits: 300, text: "300 Credits" }
+    },
+    {
+        id: "daily_bosses",
+        title: "Apex Threat",
+        description: "Defeat 1 boss enemy.",
+        stat: "bossesDefeated",
+        target: 1,
+        reward: { credits: 500, text: "500 Credits" }
+    },
+    {
+        id: "daily_derelict",
+        title: "Salvage Operation",
+        description: "Complete 1 Derelict Ship exploration run.",
+        stat: "derelictRuns",
+        target: 1,
+        reward: { credits: 350, text: "350 Credits" }
+    },
+    {
+        id: "daily_credits",
+        title: "Bounty Hunter",
+        description: "Earn or collect 500 credits.",
+        stat: "creditsEarned",
+        target: 500,
+        reward: { credits: 250, text: "250 Credits" }
+    },
+    {
+        id: "daily_upgrades",
+        title: "Arms Overhaul",
+        description: "Upgrade any piece of equipment.",
+        stat: "itemsUpgraded",
+        target: 1,
+        reward: { credits: 200, text: "200 Credits" }
+    }
+];
+
 let state;
 let addLog, updateUI, showDialog;
 
@@ -200,4 +259,132 @@ export function checkAchievement(category, data) {
             }
             break;
     }
+}
+
+/**
+ * Returns a date key formatted as 'YYYY-MM-DD'
+ */
+export function getTodayDateKey(date = new Date()) {
+    const d = (date instanceof Date) ? date : new Date(date);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+/**
+ * Deterministically hash a string to a positive integer
+ */
+function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+    }
+    return Math.abs(hash);
+}
+
+/**
+ * Deterministically pick 3 daily challenges for the given date
+ */
+export function getDailyChallenges(dateKey = getTodayDateKey()) {
+    const seed = hashString(String(dateKey));
+    const pool = [...DAILY_CHALLENGES];
+    const selected = [];
+    let currentSeed = seed;
+
+    while (selected.length < 3 && pool.length > 0) {
+        currentSeed = (currentSeed * 9301 + 49297) % 233280;
+        const index = Math.floor((currentSeed / 233280) * pool.length);
+        selected.push(pool.splice(index, 1)[0]);
+    }
+
+    return selected;
+}
+
+/**
+ * Initializes or rolls over state.dailyChallenges when the date changes
+ */
+export function ensureDailyChallengesState(dateKey = getTodayDateKey()) {
+    if (!state) return null;
+
+    if (!state.dailyChallenges || state.dailyChallenges.date !== dateKey) {
+        state.dailyChallenges = {
+            date: dateKey,
+            progress: {},
+            claimed: []
+        };
+    }
+
+    state.dailyChallenges.progress = state.dailyChallenges.progress || {};
+    state.dailyChallenges.claimed = state.dailyChallenges.claimed || [];
+    return state.dailyChallenges;
+}
+
+/**
+ * Increments progress for a given stat in today's daily challenges
+ */
+export function updateDailyProgress(statKey, amount = 1) {
+    if (!state || !statKey) return;
+    const daily = ensureDailyChallengesState();
+    if (!daily) return;
+    const current = daily.progress[statKey] || 0;
+    daily.progress[statKey] = current + amount;
+}
+
+/**
+ * Validates and claims a daily challenge reward
+ */
+export function claimDailyReward(challengeId) {
+    if (!state || !state.character || !challengeId) return false;
+
+    const todayState = ensureDailyChallengesState();
+    if (!todayState) return false;
+
+    // Check if already claimed
+    if (todayState.claimed && todayState.claimed.includes(challengeId)) {
+        return false;
+    }
+
+    // Check if challenge is in today's 3
+    const todayChallenges = getDailyChallenges(todayState.date);
+    const challenge = todayChallenges.find(c => c.id === challengeId);
+    if (!challenge) return false;
+
+    // Validate requirement met
+    const currentProgress = (todayState.progress && todayState.progress[challenge.stat]) || 0;
+    if (currentProgress < challenge.target) {
+        return false;
+    }
+
+    // Award reward credits
+    if (challenge.reward && challenge.reward.credits) {
+        state.character.credits = (state.character.credits || 0) + challenge.reward.credits;
+    }
+
+    todayState.claimed.push(challengeId);
+
+    const rewardText = challenge.reward ? challenge.reward.text : `${challenge.reward.credits} Credits`;
+    if (addLog) {
+        addLog(`🎯 DAILY CHALLENGE COMPLETED: ${challenge.title}! Reward: ${rewardText}`);
+    }
+
+    if (showDialog) {
+        showDialog(
+            "🎯 Daily Challenge Completed!",
+            `You completed <strong>${challenge.title}</strong>!<br/><br/>
+             Reward: <span class="text-green-400 font-bold">${rewardText}</span>`
+        );
+    }
+
+    if (updateUI) {
+        updateUI();
+    }
+
+    // Optional silent autosave trigger
+    if (typeof window !== 'undefined' && window.saveGame) {
+        window.saveGame(true);
+    }
+
+    return true;
 }

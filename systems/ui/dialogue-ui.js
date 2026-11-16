@@ -6,6 +6,7 @@
 
 import { t } from '../theme-engine.js';
 import { unlockCodexEntry } from '../codex.js';
+import { getAudioManager } from '../audio.js';
 
 let state;
 let updateUI;
@@ -171,6 +172,7 @@ export function showDialogue(title, text, options = []) {
     // Identify speaker and active mood
     const speaker = identifySpeaker(title, text);
     unlockCodexEntry(speaker.key);
+    getAudioManager()?.playVoice(speaker.key);
     const mood = getMood(speaker.key);
 
     // Update left panel (NPC info)
@@ -276,6 +278,7 @@ export function showDialogue(title, text, options = []) {
  * Close the dialogue overlay
  */
 export function hideDialogue() {
+    getAudioManager()?.stopVoice();
     const overlay = document.getElementById("dialogueOverlay");
     if (overlay) {
         overlay.style.display = "none";

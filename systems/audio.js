@@ -27,6 +27,8 @@ export class AudioManager {
     };
 
     this.current = null;
+    this.voice = null;
+    this.voiceClips = {};
     this.muted = false;
     this.volume = 1.0;
     this._fadeInterval = null;
@@ -165,10 +167,38 @@ export class AudioManager {
     }
   }
 
+  playVoice(speakerKey, clipId = 'greeting') {
+    this.stopVoice();
+    if (!speakerKey) return;
+    const clipKey = `${speakerKey}_${clipId}`;
+    if (!this.voiceClips[clipKey]) {
+      this.voiceClips[clipKey] = new Audio(`assets/audio/voice/${speakerKey}_${clipId}.mp3`);
+    }
+    const audio = this.voiceClips[clipKey];
+    this.voice = audio;
+    try {
+      audio.currentTime = 0;
+    } catch (_) {}
+    audio.volume = this.muted ? 0 : this.volume;
+    this._safePlay(audio);
+  }
+
+  stopVoice() {
+    if (this.voice) {
+      try {
+        this.voice.pause();
+      } catch (_) {}
+      this.voice = null;
+    }
+  }
+
   setVolume(v) {
     this.volume = v;
     if (this.current && !this.muted) {
       this.current.volume = v;
+    }
+    if (this.voice && !this.muted) {
+      this.voice.volume = v;
     }
   }
 
@@ -176,6 +206,9 @@ export class AudioManager {
     this.muted = flag;
     if (this.current) {
       this.current.volume = flag ? 0 : this.volume;
+    }
+    if (this.voice) {
+      this.voice.volume = flag ? 0 : this.volume;
     }
   }
 
@@ -188,6 +221,7 @@ export class AudioManager {
     if (this.current) {
       this.current.pause();
     }
+    this.stopVoice();
     if (this._eventHandlers) {
       for (const [event, fn] of this._eventHandlers) {
         if (typeof eventEmitter.off === "function") {

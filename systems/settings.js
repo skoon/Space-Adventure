@@ -3,6 +3,8 @@
  * Manages game configuration like difficulty, volume, etc.
  */
 
+import { setLocale as setThemeLocale, applyLocaleToDOM } from './theme-engine.js';
+
 // Difficulty Definitions
 export const DIFFICULTIES = {
     EASY: {
@@ -33,7 +35,8 @@ export const DIFFICULTIES = {
 
 let currentSettings = {
     difficulty: 'normal',
-    showImages: true
+    showImages: true,
+    locale: 'en'
 };
 
 /**
@@ -49,6 +52,8 @@ export function initSettings() {
             console.error("Failed to load settings:", e);
         }
     }
+    currentSettings.locale = setThemeLocale(currentSettings.locale || 'en');
+    applyLocaleToDOM();
     console.log("Settings initialized:", currentSettings);
 }
 
@@ -88,6 +93,25 @@ export function setShowImages(enabled) {
     currentSettings.showImages = !!enabled;
     saveSettings();
     return currentSettings.showImages;
+}
+
+/**
+ * Get active locale setting
+ */
+export function getLocale() {
+    return currentSettings.locale || 'en';
+}
+
+/**
+ * Set active locale setting
+ * @param {string} lang
+ */
+export function setLocale(lang) {
+    const active = setThemeLocale(lang);
+    currentSettings.locale = active;
+    saveSettings();
+    applyLocaleToDOM();
+    return active;
 }
 
 /**

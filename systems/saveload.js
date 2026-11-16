@@ -63,7 +63,8 @@ function getGameState() {
         activeCrewDirective: state.activeCrewDirective || null,
         worldFlags: state.worldFlags || {},
         codex: state.codex || { unlocked: ["terra_prime"], unread: [] },
-        cutscenesSeen: state.cutscenesSeen || []
+        cutscenesSeen: state.cutscenesSeen || [],
+        dailyChallenges: state.dailyChallenges || null
     };
 }
 
@@ -166,6 +167,7 @@ export function loadGame(slot) {
         }
         state.codex = loadedCodex;
         state.cutscenesSeen = Array.isArray(saveData.cutscenesSeen) ? saveData.cutscenesSeen : [];
+        state.dailyChallenges = saveData.dailyChallenges || null;
 
         // Restore dynamic rarity items in catalog
         restoreSavedRarityItems(state.inventory, state.character?.equipment);
@@ -550,6 +552,7 @@ export function startNewGame(slot) {
     state.companionCooldown = 0;
     state.codex = { unlocked: ["terra_prime"], unread: [] };
     state.cutscenesSeen = [];
+    state.dailyChallenges = null;
     
     // Clear DOM inputs
     const nameInput = document.getElementById("nameInput");

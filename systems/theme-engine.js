@@ -4,6 +4,49 @@
  */
 
 import { theme } from '../data/theme.js';
+import { locales, SUPPORTED_LOCALES } from '../data/locales.js';
+
+let currentLocale = 'en';
+
+/**
+ * Get active locale
+ */
+export function getLocale() {
+    return currentLocale;
+}
+
+/**
+ * Set active locale (validates against SUPPORTED_LOCALES, falls back to 'en')
+ */
+export function setLocale(lang) {
+    if (typeof lang === 'string' && SUPPORTED_LOCALES.includes(lang.toLowerCase())) {
+        currentLocale = lang.toLowerCase();
+    } else {
+        currentLocale = 'en';
+    }
+    return currentLocale;
+}
+
+/**
+ * Translate a UI key using active locale dictionary, falling back to English, then key itself
+ */
+export function localize(key) {
+    return locales[currentLocale]?.[key] ?? locales.en?.[key] ?? key;
+}
+
+/**
+ * Rewrite all [data-i18n] DOM elements using active locale
+ */
+export function applyLocaleToDOM() {
+    if (typeof document === 'undefined') return;
+    const elements = document.querySelectorAll('[data-i18n]');
+    elements.forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (key) {
+            el.textContent = localize(key);
+        }
+    });
+}
 
 /**
  * Get active theme ID (default to space)
@@ -101,4 +144,6 @@ export function applyThemeToDOM() {
     if (styleSheet) {
         styleSheet.remove();
     }
+
+    applyLocaleToDOM();
 }

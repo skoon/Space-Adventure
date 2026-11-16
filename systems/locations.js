@@ -3,7 +3,7 @@
  * Handles location data and travel logic
  */
 
-import { checkAchievement } from './achievements.js';
+import { checkAchievement, updateDailyProgress } from './achievements.js';
 import { rollMarketEvent } from './market.js';
 import { unlockCodexEntry } from './codex.js';
 import { playCutscene } from './cutscene.js';
@@ -284,6 +284,7 @@ function showArrivalScene(location) {
 function completeTravel(location) {
     state.currentLocation = location.id;
     unlockCodexEntry(location.id);
+    updateDailyProgress("locationsVisited", 1);
     if (location.id === 'derelict') {
         playCutscene('derelict_breach');
     }

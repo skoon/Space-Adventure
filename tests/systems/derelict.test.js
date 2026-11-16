@@ -1,5 +1,6 @@
 jest.mock('../../systems/achievements.js', () => ({
-    checkAchievement: jest.fn()
+    checkAchievement: jest.fn(),
+    updateDailyProgress: jest.fn()
 }));
 
 import { initDerelict, startDerelictRun, exploreRoom, escapeShip, failRun, turnLeft, turnRight, uTurn } from '../../systems/derelict.js';
