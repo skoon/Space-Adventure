@@ -7,6 +7,7 @@ import { showDialogue, hideDialogue } from './dialogue-ui.js';
 import { acceptQuest, completeQuest, getRoleQuestId, resolveVariantText } from '../quests.js';
 import { t } from '../theme-engine.js';
 import { npcReactions } from '../../data/npc_reactions.js';
+import { unlockCodexEntry } from '../codex.js';
 import { initPlanetHub, disposePlanetHub } from './planet-hub.js';
 
 let state;
@@ -320,6 +321,8 @@ export function exploreDistrict(distId) {
     const dist = loc?.districts?.find(d => d.id === distId);
     if (!dist) return;
 
+    unlockCodexEntry(dist.id);
+
     if (deps.ui && deps.ui.setScene) {
         deps.ui.setScene({ kind: 'district', id: dist.id, label: dist.name, emoji: dist.icon || '🏢' });
     }
@@ -335,6 +338,12 @@ export function exploreDistrict(distId) {
 export function talkToNPC(npcId) {
     // Hide districts modal first
     closeDistricts();
+
+    const loc = deps?.data?.locations?.[state?.currentLocation];
+    const matchingDistrict = loc?.districts?.find(d => d.npc === npcId);
+    if (matchingDistrict) {
+        unlockCodexEntry(matchingDistrict.id);
+    }
 
     if (!state.character) return;
 

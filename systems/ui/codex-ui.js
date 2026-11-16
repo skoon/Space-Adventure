@@ -4,7 +4,7 @@
  */
 
 import { CODEX_CATEGORIES, CODEX_CATEGORY_META } from '../../data/codex.js';
-import { IMAGE_BASE, npcImages, enemyImages, bossImages, locationImages } from '../../data/imagery.js';
+import { IMAGE_BASE, npcImages, enemyImages, bossImages, locationImages, districtImages } from '../../data/imagery.js';
 import {
     getCodexEntries,
     getCodexProgress,
@@ -276,6 +276,7 @@ function renderEntriesList() {
 
 const CODEX_ENEMY_IMAGE_KEYS = {
     xenobot: ['enemy', 'Xenobot'],
+    plasmavore: ['enemy', 'Plasmavore'],
     sand_worm: ['enemy', 'Sand Worm'],
     void_stalker: ['enemy', 'Void Stalker'],
     overlord_xylar: ['boss', 'boss_terra'],
@@ -292,7 +293,7 @@ function resolveCodexImage(entry) {
 
     let record = null;
     if (entry.category === 'locations') {
-        record = locationImages[entry.id] || null;
+        record = locationImages[entry.id] || districtImages[entry.id] || null;
     } else if (entry.category === 'characters') {
         record = npcImages[entry.id] || null;
     } else if (entry.category === 'enemies') {

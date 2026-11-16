@@ -318,6 +318,7 @@ describe('Codex System', () => {
 
         test('renders entry image when available in imagery registry and omits it otherwise', () => {
             unlockCodexEntry('terra_prime');
+            unlockCodexEntry('plasmavore');
             unlockCodexEntry('precursor_tech');
 
             showCodexUI();
@@ -326,8 +327,25 @@ describe('Codex System', () => {
             expect(img).not.toBeNull();
             expect(img.getAttribute('src')).toContain('assets/images/locations/terra_prime.jpg');
 
+            selectCodexEntry('plasmavore');
+            const plasmaImg = document.getElementById('codexEntryImage');
+            expect(plasmaImg).not.toBeNull();
+            expect(plasmaImg.getAttribute('src')).toContain('assets/images/enemies/plasmavore.jpg');
+
             selectCodexEntry('precursor_tech');
             expect(document.getElementById('codexEntryImage')).toBeNull();
+        });
+
+        test('Terra Prime districts have codex entries and resolve districtImages', () => {
+            ['terra_prime_fed_hq', 'terra_prime_bazaar', 'terra_prime_residential'].forEach((id) => {
+                expect(unlockCodexEntry(id)).toBe(true);
+            });
+
+            showCodexUI();
+            selectCodexEntry('terra_prime_fed_hq');
+            const img = document.getElementById('codexEntryImage');
+            expect(img).not.toBeNull();
+            expect(img.getAttribute('src')).toContain('assets/images/districts/terra_prime_fed_hq.jpg');
         });
     });
 });

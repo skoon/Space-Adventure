@@ -24,6 +24,30 @@ export const codexEntries = [
         unlockHint: 'Visit Terra Prime or explore its districts.'
     },
     {
+        id: 'terra_prime_fed_hq',
+        category: 'locations',
+        title: 'Federation Command HQ',
+        summary: 'Heavily fortified garrison headquarters and tactical war room on Terra Prime.',
+        body: 'Rising above the central landing pad of Terra Prime, Federation Command HQ houses encrypted subspace relays, orbital defense arrays, and the sector tactical war room. Captain Vance coordinates patrols, bounty assignments, and convoy escorts from within its blast-shielded command deck.',
+        unlockHint: 'Visit Federation Command HQ in Terra Prime Districts.'
+    },
+    {
+        id: 'terra_prime_bazaar',
+        category: 'locations',
+        title: 'Bazaar District',
+        summary: 'A bustling marketplace of merchants, salvagers, and off-world traders.',
+        body: 'Stretching beneath weather-shielded canopies, the Bazaar District is Terra Prime’s commercial heart. Frontier prospectors trade salvaged alloys, medical synthesizers, and exotic rations alongside licensed Federation supply brokers.',
+        unlockHint: 'Explore the Bazaar District in Terra Prime Districts.'
+    },
+    {
+        id: 'terra_prime_residential',
+        category: 'locations',
+        title: 'Residential Sector',
+        summary: 'Quiet civilian habitat domes, hydroponic gardens, and colony recreation zones.',
+        body: 'Designed as a refuge from frontier hardship, the Residential Sector encloses terraced parks, atmospheric gardens, and modular living quarters beneath reinforced glass domes. Off-duty crews and civilian families gather here between orbital rotations.',
+        unlockHint: 'Explore the Residential Sector in Terra Prime Districts.'
+    },
+    {
         id: 'xylo_delta',
         category: 'locations',
         title: 'Xylo Delta',
@@ -106,6 +130,14 @@ export const codexEntries = [
         summary: 'Autonomous bipedal combat droids left over from the colonial wars.',
         body: 'Xenobots are rugged, mass-manufactured infantry automatons equipped with energy rifles and reactive alloy plating. Abandoned following planetary ceasefires, their identification subroutines have degraded over decades, designating all approaching carbon-based lifeforms as hostile combatants. They communicate across localized radio subnets, coordinating flanking maneuvers when intruders breach their patrol perimeters.',
         unlockHint: 'Defeat a Xenobot in combat on Terra Prime.'
+    },
+    {
+        id: 'plasmavore',
+        category: 'enemies',
+        title: 'Plasmavores',
+        summary: 'Coiling energy predators that siphon thermal and plasma discharges to fuel their attacks.',
+        body: 'Plasmavores are silicon-plasma organisms native to high-energy zones across Terra Prime and Xylo Delta. Drawn to weapon discharges and exposed power conduits, their coiled bodies absorb ambient ionized gas and convert it into searing arcs of superheated plasma. Prospectors carry insulated plating when traversing territories where Plasmavores nest.',
+        unlockHint: 'Defeat a Plasmavore on Terra Prime or Xylo Delta.'
     },
     {
         id: 'sand_worm',

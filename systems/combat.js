@@ -1686,6 +1686,7 @@ export function winCombat() {
     eventEmitter.emit("combatEnd");
     const codexEnemyMap = {
         "Xenobot": "xenobot",
+        "Plasmavore": "plasmavore",
         "Sand Worm": "sand_worm",
         "Void Stalker": "void_stalker",
         "Overlord Xylar": "overlord_xylar",
