@@ -22,6 +22,8 @@ export function showSettingsModal() {
     const currentDiff = deps.settings.getDifficulty();
     const showImages = deps.settings.getShowImages ? deps.settings.getShowImages() : true;
     const currentLocale = deps.settings.getLocale ? deps.settings.getLocale() : 'en';
+    const currentVolume = deps.settings.getVolume ? deps.settings.getVolume() : 1.0;
+    const isMuted = deps.settings.getMuted ? deps.settings.getMuted() : false;
     
     showDialog(
         "Settings",
@@ -41,6 +43,19 @@ export function showSettingsModal() {
                 Viewscreen Imagery
             </label>
             <p class="text-xs text-gray-400 mb-4">Off shows emoji only — lighter on slow connections.</p>
+
+            <h3 class="font-bold text-yellow-400 mb-2">Audio</h3>
+            <label class="flex items-center gap-2 text-sm text-gray-300 mb-2 cursor-pointer">
+                <input type="checkbox" id="inGameMuteAudio" class="accent-cyan-500" ${isMuted ? 'checked' : ''}>
+                Mute Audio
+            </label>
+            <div class="mb-4">
+                <div class="flex justify-between text-xs text-gray-300 mb-1">
+                    <label for="inGameVolumeSlider">Master Volume</label>
+                    <span id="inGameVolumeValue" class="font-mono text-cyan-400">${Math.round(currentVolume * 100)}%</span>
+                </div>
+                <input type="range" id="inGameVolumeSlider" min="0" max="100" step="5" value="${Math.round(currentVolume * 100)}" class="w-full accent-cyan-500">
+            </div>
 
             <h3 class="font-bold text-yellow-400 mb-2">Language / Idioma</h3>
             <select id="inGameLocaleSelect" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
@@ -91,6 +106,25 @@ export function showSettingsModal() {
                 if (deps.ui && deps.ui.repaintViewscreen) deps.ui.repaintViewscreen();
                 if (deps.ui && deps.ui.updateUI) deps.ui.updateUI();
             });
+        }
+
+        const muteCheckbox = document.getElementById("inGameMuteAudio");
+        if (muteCheckbox && deps.settings.setMuted) {
+            muteCheckbox.addEventListener("change", (e) => {
+                deps.settings.setMuted(e.target.checked);
+            });
+        }
+
+        const volumeSlider = document.getElementById("inGameVolumeSlider");
+        const volumeValue = document.getElementById("inGameVolumeValue");
+        if (volumeSlider && deps.settings.setVolume) {
+            const handleVolumeChange = (e) => {
+                const val = Number(e.target.value) / 100;
+                if (volumeValue) volumeValue.textContent = `${Math.round(val * 100)}%`;
+                deps.settings.setVolume(val);
+            };
+            volumeSlider.addEventListener("input", handleVolumeChange);
+            volumeSlider.addEventListener("change", handleVolumeChange);
         }
 
         const localeSelect = document.getElementById("inGameLocaleSelect");

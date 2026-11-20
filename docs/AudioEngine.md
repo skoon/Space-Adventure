@@ -77,6 +77,7 @@ Behavior notes:
 - **Autoplay policy.** Browsers block audio until the user interacts with the page, so the constructor doesn't play anything. It registers a one-time `pointerdown`/`keydown` listener on `document` that starts the ambient track, then removes itself.
 - **Safe playback.** Every `play()` goes through `_safePlay()`, which swallows rejected promises and tolerates `play()` returning `undefined` (jsdom). Audio failures never break the game.
 - **Crossfade** is a no-op if the requested track is already playing. Starting a new fade cancels any fade in progress. When a fade finishes, the old track is paused and rewound.
+- **Settings integration.** `systems/ui/settings-ui.js` exposes a master volume slider (`#inGameVolumeSlider`) and mute toggle (`#inGameMuteAudio`) backed by `systems/settings.js` (`getVolume`/`setVolume`, `getMuted`/`setMuted`), which persist to `localStorage` under `galactic_odyssey_settings` and sync live with `AudioManager`.
 
 ## Adding a new sound
 
@@ -96,6 +97,5 @@ npx jest tests/systems/audio.test.js tests/systems/eventEmitter.test.js tests/sy
 
 ## Known gaps
 
-- No volume/mute control in the settings UI yet. The API exists, but nothing calls it.
 - `combatIntense` only goes one way. If the player heals above 30%, the music stays intense until combat ends.
 - There's no flee action in combat today. If one is added, it must emit `combatEnd`.

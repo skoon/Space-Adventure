@@ -34,16 +34,37 @@ export function localize(key) {
     return locales[currentLocale]?.[key] ?? locales.en?.[key] ?? key;
 }
 
+const EMOJI_PREFIX_RE = /^((?:[\u2300-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])\uFE0F?)\s+/;
+
 /**
- * Rewrite all [data-i18n] DOM elements using active locale
+ * Rewrite all [data-i18n] DOM elements using active locale, preserving leading emojis and data-term tokens
  */
 export function applyLocaleToDOM() {
     if (typeof document === 'undefined') return;
     const elements = document.querySelectorAll('[data-i18n]');
     elements.forEach(el => {
         const key = el.getAttribute('data-i18n');
-        if (key) {
-            el.textContent = localize(key);
+        if (!key) return;
+
+        const trimmed = (el.textContent || '').trim();
+        const emojiMatch = trimmed.match(EMOJI_PREFIX_RE);
+        const leadingEmoji = emojiMatch ? emojiMatch[1] : null;
+
+        if (currentLocale === 'en' && el.hasAttribute('data-term')) {
+            const termText = tToken(el.getAttribute('data-term'));
+            if (leadingEmoji && !EMOJI_PREFIX_RE.test(termText)) {
+                el.textContent = `${leadingEmoji} ${termText}`;
+            } else {
+                el.textContent = termText;
+            }
+            return;
+        }
+
+        const localized = localize(key);
+        if (leadingEmoji && !EMOJI_PREFIX_RE.test(localized)) {
+            el.textContent = `${leadingEmoji} ${localized}`;
+        } else {
+            el.textContent = localized;
         }
     });
 }
@@ -124,11 +145,11 @@ export function applyThemeToDOM() {
         const termText = tToken(token);
         
         // Preserve emoji if any
-        const match = el.innerHTML.trim().match(/^([\u2300-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/);
+        const match = el.innerHTML.trim().match(/^((?:[\u2300-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])\uFE0F?)/);
         if (match) {
             // Keep the emoji, replace the text
             const emoji = match[0];
-            const cleanTerm = termText.replace(/^([\u2300-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])\s*/, "");
+            const cleanTerm = termText.replace(/^((?:[\u2300-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])\uFE0F?)\s*/, "");
             el.innerHTML = `${emoji} ${cleanTerm}`;
         } else {
             el.textContent = termText;

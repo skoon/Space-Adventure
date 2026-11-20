@@ -218,7 +218,7 @@ describe('Daily Challenges System', () => {
     });
 
     test('updateDailyProgress increments progress counters', () => {
-        ensureDailyChallengesState('2026-11-15');
+        ensureDailyChallengesState(getTodayDateKey());
         updateDailyProgress('enemiesDefeated', 1);
         expect(mockState.dailyChallenges.progress.enemiesDefeated).toBe(1);
 
@@ -230,7 +230,7 @@ describe('Daily Challenges System', () => {
     });
 
     test('claimDailyReward validates requirement, awards credits, records claim, and is idempotent', () => {
-        const todayDate = '2026-11-15';
+        const todayDate = getTodayDateKey();
         ensureDailyChallengesState(todayDate);
         const todaysChallenges = getDailyChallenges(todayDate);
         const testChallenge = todaysChallenges[0];

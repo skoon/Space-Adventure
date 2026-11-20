@@ -4,6 +4,7 @@
  */
 
 import { setLocale as setThemeLocale, applyLocaleToDOM } from './theme-engine.js';
+import { getAudioManager } from './audio.js';
 
 // Difficulty Definitions
 export const DIFFICULTIES = {
@@ -33,16 +34,21 @@ export const DIFFICULTIES = {
     }
 };
 
-let currentSettings = {
+const DEFAULT_SETTINGS = {
     difficulty: 'normal',
     showImages: true,
-    locale: 'en'
+    locale: 'en',
+    volume: 1.0,
+    muted: false
 };
+
+let currentSettings = { ...DEFAULT_SETTINGS };
 
 /**
  * Initialize settings from local storage
  */
 export function initSettings() {
+    currentSettings = { ...DEFAULT_SETTINGS };
     const saved = localStorage.getItem('galactic_odyssey_settings');
     if (saved) {
         try {
@@ -52,8 +58,19 @@ export function initSettings() {
             console.error("Failed to load settings:", e);
         }
     }
+    const rawVol = currentSettings.volume;
+    const parsedVolume = (rawVol === null || rawVol === '' || typeof rawVol === 'boolean') ? NaN : Number(rawVol);
+    currentSettings.volume = Number.isFinite(parsedVolume)
+        ? Math.min(1, Math.max(0, parsedVolume))
+        : 1.0;
+    currentSettings.muted = Boolean(currentSettings.muted);
     currentSettings.locale = setThemeLocale(currentSettings.locale || 'en');
     applyLocaleToDOM();
+    const audio = getAudioManager();
+    if (audio) {
+        audio.setVolume(currentSettings.volume);
+        audio.mute(currentSettings.muted);
+    }
     console.log("Settings initialized:", currentSettings);
 }
 
@@ -112,6 +129,49 @@ export function setLocale(lang) {
     saveSettings();
     applyLocaleToDOM();
     return active;
+}
+
+/**
+ * Get master audio volume (0..1)
+ */
+export function getVolume() {
+    const vol = Number(currentSettings.volume);
+    return Number.isFinite(vol) ? Math.min(1, Math.max(0, vol)) : 1.0;
+}
+
+/**
+ * Set master audio volume (clamped to 0..1), persist, and sync with AudioManager
+ * @param {number} v
+ */
+export function setVolume(v) {
+    const num = Number(v);
+    if (Number.isFinite(num)) {
+        currentSettings.volume = Math.min(1, Math.max(0, num));
+    } else {
+        const prev = Number(currentSettings.volume);
+        currentSettings.volume = Number.isFinite(prev) ? Math.min(1, Math.max(0, prev)) : 1.0;
+    }
+    saveSettings();
+    getAudioManager()?.setVolume(currentSettings.volume);
+    return currentSettings.volume;
+}
+
+/**
+ * Get whether audio is muted
+ */
+export function getMuted() {
+    return Boolean(currentSettings.muted);
+}
+
+/**
+ * Set audio mute state, persist, and sync with AudioManager
+ * @param {boolean} flag
+ */
+export function setMuted(flag) {
+    currentSettings.muted = Boolean(flag);
+    saveSettings();
+    getAudioManager()?.mute(currentSettings.muted);
+    return currentSettings.muted;
 }
 
 /**

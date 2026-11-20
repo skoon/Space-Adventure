@@ -29,6 +29,7 @@
             class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm font-bold transition-colors"
             title="Exit to Main Menu"
             data-term="exit"
+            data-i18n="header_exit"
           >
             🚪 Exit
           </button>
@@ -37,6 +38,7 @@
             class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold transition-colors"
             title="Save Game"
             data-term="save"
+            data-i18n="header_save"
           >
             💾 Save
           </button>
@@ -45,6 +47,7 @@
             class="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold transition-colors"
             title="Load Game"
             data-term="load"
+            data-i18n="header_load"
           >
             📂 Load
           </button>
@@ -53,6 +56,7 @@
             class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold transition-colors"
             title="Export Save"
             data-term="export"
+            data-i18n="header_export"
           >
             📤 Export
           </button>
@@ -61,6 +65,7 @@
             class="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-bold transition-colors"
             title="Import Save"
             data-term="import"
+            data-i18n="header_import"
           >
             📥 Import
           </button>
@@ -82,7 +87,7 @@
               Galactic Odyssey
             </h2>
             <div class="flex flex-col gap-4 items-center">
-              <button class="start-button" onclick="startGame()">
+              <button class="start-button" onclick="startGame()" data-i18n="start_begin">
                 Begin Your Journey
               </button>
               <button
@@ -90,6 +95,7 @@
                 class="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg text-lg font-bold transition-colors"
                 id="loadGameButton"
                 style="display: none"
+                data-i18n="start_load"
               >
                 📂 Load Saved Game
               </button>
@@ -205,7 +211,7 @@
               <div class="hud-panel">
                 <div class="hud-bar-wrapper">
                   <div class="hud-bar-label">
-                    <span data-term="hudHull">Hull</span>
+                    <span data-term="hudHull" data-i18n="hud_hull">Hull</span>
                     <span id="hud-health-text">0 / 0</span>
                   </div>
                   <div class="hud-bar-track">
@@ -216,7 +222,7 @@
               <div class="hud-panel">
                 <div class="hud-bar-wrapper">
                   <div class="hud-bar-label">
-                    <span data-term="hudEnergy">Energy</span>
+                    <span data-term="hudEnergy" data-i18n="hud_energy">Energy</span>
                     <span id="hud-energy-text">0 / 0</span>
                   </div>
                   <div class="hud-bar-track">
@@ -227,7 +233,7 @@
               <div class="hud-panel">
                 <div class="hud-bar-wrapper">
                   <div class="hud-bar-label">
-                    <span data-term="hudXp">XP</span>
+                    <span data-term="hudXp" data-i18n="hud_xp">XP</span>
                     <span id="hud-xp-text">0 / 0</span>
                   </div>
                   <div class="hud-bar-track">
@@ -364,7 +370,7 @@
                   </div>
                   <!-- Inventory Grid (Right) -->
                   <div class="md:w-2/3 flex flex-col">
-                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-mono mb-2" data-term="cargoHold">Cargo Hold</div>
+                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-mono mb-2" data-term="cargoHold" data-i18n="ui_cargo_hold">Cargo Hold</div>
                     <div id="inventory" class="flex flex-wrap gap-2 overflow-y-auto flex-grow max-h-[220px] content-start custom-scrollbar-cyan"></div>
                   </div>
                 </div>
@@ -395,7 +401,7 @@
               
               <!-- Column 2: Mission Log Screen -->
               <div class="lg:col-span-1 bg-gray-900/60 border border-cyan-800/50 rounded-lg p-4 shadow-[0_0_15px_rgba(6,182,212,0.1)] flex flex-col min-h-[340px]">
-                <h2 class="text-xs font-bold text-cyan-400 mb-2 tracking-widest uppercase font-mono" data-term="operationsLog">>> Operations Log <<</h2>
+                <h2 class="text-xs font-bold text-cyan-400 mb-2 tracking-widest uppercase font-mono" data-term="operationsLog" data-i18n="ui_operations_log">>> Operations Log <<</h2>
                 <div id="missionLog" class="max-h-[240px] overflow-y-auto pr-2 custom-scrollbar-cyan text-xs font-mono text-cyan-300/90 space-y-1 flex-grow"></div>
               </div>
 
@@ -420,40 +426,40 @@
             <!-- Row 3: Action Console (Bottom Panel) -->
             <div class="bg-gray-900/50 border border-gray-800 rounded-lg p-3 shadow-inner">
               <div class="grid grid-cols-5 gap-3">
-                <button onclick="travelDeeper()" data-term="travelDeeper" class="py-2 px-3 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-800 text-purple-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(168,85,247,0.15)]">
+                <button onclick="travelDeeper()" data-term="travelDeeper" data-i18n="nav_travel_deeper" class="py-2 px-3 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-800 text-purple-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(168,85,247,0.15)]">
                   Travel Deeper
                 </button>
-                <button onclick="useHealItem()" id="healButton" class="py-2 px-3 bg-gray-900 text-gray-500 rounded font-bold border border-gray-800 cursor-not-allowed text-xs uppercase tracking-wider font-mono" disabled>
+                <button onclick="useHealItem()" id="healButton" data-i18n="nav_heal" class="py-2 px-3 bg-gray-900 text-gray-500 rounded font-bold border border-gray-800 cursor-not-allowed text-xs uppercase tracking-wider font-mono" disabled>
                   Use Heal Item
                 </button>
-                <button onclick="import('./systems/ui.js').then((m) => m.showShop())" data-term="tradeShop" class="py-2 px-3 bg-yellow-950/60 hover:bg-yellow-900/80 border border-yellow-800 text-yellow-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono">
+                <button onclick="import('./systems/ui.js').then((m) => m.showShop())" data-term="tradeShop" data-i18n="nav_trade_shop" class="py-2 px-3 bg-yellow-950/60 hover:bg-yellow-900/80 border border-yellow-800 text-yellow-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono">
                   🛒 Trade / Shop
                 </button>
-                <button onclick="import('./systems/ui.js').then((m) => m.showCraftingUI())" class="py-2 px-3 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-800 text-purple-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono">
+                <button onclick="import('./systems/ui.js').then((m) => m.showCraftingUI())" data-i18n="nav_crafting" class="py-2 px-3 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-800 text-purple-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono">
                   🔨 Crafting
                 </button>
-                <button onclick="import('./systems/ui.js').then((m) => m.showJobBoard())" data-term="jobBoard" class="py-2 px-3 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-800 text-cyan-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(6,182,212,0.15)]">
+                <button onclick="import('./systems/ui.js').then((m) => m.showJobBoard())" data-term="jobBoard" data-i18n="nav_job_board" class="py-2 px-3 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-800 text-cyan-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(6,182,212,0.15)]">
                   📋 Job Board
                 </button>
-                <button onclick="import('./systems/ui.js').then((m) => m.showSkillsUI())" data-term="skillsTalents" class="py-2 px-3 bg-blue-950/60 hover:bg-blue-900/80 border border-blue-800 text-blue-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(59,130,246,0.15)]">
+                <button onclick="import('./systems/ui.js').then((m) => m.showSkillsUI())" data-term="skillsTalents" data-i18n="nav_skills" class="py-2 px-3 bg-blue-950/60 hover:bg-blue-900/80 border border-blue-800 text-blue-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(59,130,246,0.15)]">
                   ✨ Skills & Talents
                 </button>
-                <button id="attributesBtn" onclick="import('./systems/ui.js').then((m) => m.showStatsAllocationUI())" data-term="attributes" class="py-2 px-3 bg-teal-950/60 hover:bg-teal-900/80 border border-teal-800 text-teal-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono">
+                <button id="attributesBtn" onclick="import('./systems/ui.js').then((m) => m.showStatsAllocationUI())" data-term="attributes" data-i18n="nav_attributes" class="py-2 px-3 bg-teal-950/60 hover:bg-teal-900/80 border border-teal-800 text-teal-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono">
                   📊 Attributes
                 </button>
-                <button onclick="import('./systems/ui.js').then((m) => m.showShipUI())" data-term="shipHub" class="py-2 px-3 bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-800 text-indigo-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(99,102,241,0.15)]">
+                <button onclick="import('./systems/ui.js').then((m) => m.showShipUI())" data-term="shipHub" data-i18n="nav_ship" class="py-2 px-3 bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-800 text-indigo-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(99,102,241,0.15)]">
                   🚀 Ship Hub
                 </button>
-                <button onclick="import('./systems/events.js').then((m) => m.scanForSignals())" data-term="scanSignals" class="py-2 px-3 bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-800 text-emerald-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(16,185,129,0.15)]">
+                <button onclick="import('./systems/events.js').then((m) => m.scanForSignals())" data-term="scanSignals" data-i18n="nav_scan" class="py-2 px-3 bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-800 text-emerald-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(16,185,129,0.15)]">
                   📡 Scan Signals
                 </button>
-                <button id="achievementsBtn" onclick="import('./systems/ui.js').then((m) => m.showAchievementsUI())" data-term="achievements" class="py-2 px-3 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-800 text-amber-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(245,158,11,0.15)]">
+                <button id="achievementsBtn" onclick="import('./systems/ui.js').then((m) => m.showAchievementsUI())" data-term="achievements" data-i18n="nav_achievements" class="py-2 px-3 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-800 text-amber-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(245,158,11,0.15)]">
                   🏆 Achievements
                 </button>
-                <button id="codexBtn" onclick="import('./systems/ui.js').then((m) => m.showCodexUI())" data-term="codex" class="py-2 px-3 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-800 text-cyan-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(6,182,212,0.15)]">
+                <button id="codexBtn" onclick="import('./systems/ui.js').then((m) => m.showCodexUI())" data-term="codex" data-i18n="nav_codex" class="py-2 px-3 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-800 text-cyan-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(6,182,212,0.15)]">
                   📖 Codex
                 </button>
-                <button id="districtsBtn" onclick="import('./systems/ui.js').then((m) => m.showDistricts())" class="py-2 px-3 bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-800 text-indigo-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(99,102,241,0.15)]">
+                <button id="districtsBtn" onclick="import('./systems/ui.js').then((m) => m.showDistricts())" data-i18n="nav_districts" class="py-2 px-3 bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-800 text-indigo-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(99,102,241,0.15)]">
                   🏢 Local Districts
                 </button>
               </div>
@@ -697,20 +703,20 @@
                   onclick="playerAttack()"
                   class="py-3 px-4 bg-red-600 hover:bg-red-700 rounded font-bold transition-colors flex items-center justify-center gap-2 text-sm text-center"
                 >
-                  <span>⚔️</span> Attack (2 AP)
+                  <span>⚔️</span> <span data-i18n="combat_attack">Attack</span> (2 AP)
                 </button>
                 <button
                   onclick="playerBlock()"
                   class="py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded font-bold transition-colors flex items-center justify-center gap-2 text-sm text-center"
                 >
-                  <span>🛡️</span> Block (1 AP)
+                  <span>🛡️</span> <span data-i18n="combat_block">Block</span> (1 AP)
                 </button>
                 <button
                   id="combatCompanionBtn"
                   onclick="triggerCompanionAbility()"
                   class="py-3 px-4 bg-teal-600 hover:bg-teal-700 rounded font-bold transition-colors flex items-center justify-center gap-2 text-sm text-center"
                 >
-                  <span>👥</span> Crew (1 AP)
+                  <span>👥</span> <span data-i18n="combat_crew">Crew</span> (1 AP)
                 </button>
               </div>
               <div class="grid grid-cols-3 gap-4 mb-2">
@@ -718,20 +724,20 @@
                   onclick="playerDodge()"
                   class="py-3 px-4 bg-green-600 hover:bg-green-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
                 >
-                  <span>💨</span> Dodge (1 AP)
+                  <span>💨</span> <span data-i18n="combat_dodge">Dodge</span> (1 AP)
                 </button>
                 <button
                   id="specialAbilityButton"
                   onclick="useSpecialAbility()"
                   class="py-3 px-4 bg-purple-600 hover:bg-purple-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
                 >
-                  <span>⭐</span> Special (3 AP)
+                  <span>⭐</span> <span data-i18n="combat_special">Special</span> (3 AP)
                 </button>
                 <button
                   onclick="openCombatItemMenu()"
                   class="py-3 px-4 bg-yellow-600 hover:bg-yellow-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
                 >
-                  <span>🎒</span> Item (1 AP)
+                  <span>🎒</span> <span data-i18n="combat_item">Item</span> (1 AP)
                 </button>
               </div>
               <!-- Combat Active Skills Menu -->
@@ -1012,12 +1018,14 @@
           <div class="flex justify-end gap-3 border-t border-cyan-900/50 pt-3">
             <button
               id="cutsceneSkipBtn"
+              data-i18n="cutscene_skip"
               class="py-2 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 rounded text-xs font-bold uppercase tracking-wider"
             >
               Skip (Esc)
             </button>
             <button
               id="cutsceneNextBtn"
+              data-i18n="cutscene_continue"
               class="py-2 px-4 bg-cyan-700 hover:bg-cyan-600 border border-cyan-400 text-white rounded text-xs font-bold uppercase tracking-wider"
             >
               Continue (Space)

@@ -95,6 +95,86 @@ export const codexEntries = [
         body: 'Crio-Prime is encased in miles of perpetual glacial ice under crushing gravitational forces that tax starship sub-light thrusters and robotic servos. Deep beneath the permafrost lie the Cryo-Genetic Vaults—sealed biomes from early interstellar colonization efforts that preserve extinct alien genomes and cryo-stasis specimens. The tundra is prowled by ravenous Frost Parasites and territorial Cryo Drakes.',
         unlockHint: 'Land on the frozen tundra of Crio-Prime.'
     },
+    {
+        id: 'galactic_nexus',
+        category: 'locations',
+        title: 'Galactic Nexus Hub',
+        summary: 'The primary interstellar commerce and social crossroads of the Helios Nexus Sector.',
+        body: 'Positioned at the intersection of major hyperspace lanes, Galactic Nexus Hub is a sprawling orbital megastructure jointly patrolled under Federation charter. Traders, mercenaries, corporate brokers, and off-world colonists converge here to trade rare commodities on the live sector exchange, refit starship hulls, and gather frontier intelligence.',
+        unlockHint: 'Dock at the Galactic Nexus Hub.'
+    },
+    {
+        id: 'galactic_nexus_plaza',
+        category: 'locations',
+        title: 'Nexus Commerce Plaza',
+        summary: 'The neon-lit central concourse of the Galactic Nexus Hub, bustling with interstellar trade.',
+        body: 'Beneath towering holographic market tickers and multi-species trade kiosks, Nexus Commerce Plaza serves as the economic heart of the sector. Merchants hawking exotic tech, salvage brokers auctioning derelict components, and weary starfarers mingle beneath constant orbital security drones.',
+        unlockHint: 'Visit the Nexus Commerce Plaza at Galactic Nexus Hub.'
+    },
+    {
+        id: 'xylo_delta_smugglers_den',
+        category: 'locations',
+        title: "Smuggler's Den",
+        summary: 'A fortified canyon hideout serving as the Void Corsairs\' regional smuggling headquarters.',
+        body: 'Carved deep into the wind-scoured silicate cliffs of Xylo Delta, the Smuggler\'s Den is concealed from Federation orbital sensors by metallic dust storms and signal baffles. From its dimly lit cantina and black-market docking bays, Envoy Nesta coordinates blockade runs, contraband auctions, and Corsair raids across the rim.',
+        unlockHint: "Visit Smuggler's Den in Xylo Delta Districts."
+    },
+    {
+        id: 'xylo_delta_salvage_yard',
+        category: 'locations',
+        title: 'Scavenger Salvage Yard',
+        summary: 'A sprawling graveyard of derelict starship hulls picked apart by desert salvagers.',
+        body: 'Littered with the scorched skeletons of decommissioned frigates and crashed freighters, the Scavenger Salvage Yard echoes with plasma cutters and heavy arc welders. Engineer Jax \'Sparky\' Mercer operates his jury-rigged workshop amid the wreckage, stripping intact thrusters, hull plates, and power cores from the sand.',
+        unlockHint: 'Visit the Scavenger Salvage Yard in Xylo Delta Districts.'
+    },
+    {
+        id: 'nebula_outpost_summit_hall',
+        category: 'locations',
+        title: 'Crucible Summit Hall',
+        summary: 'The grand diplomatic chamber inside Nebula Outpost hosting the Galactic Peace Summit.',
+        body: 'Constructed within the reinforced central ring of Nebula Outpost, Crucible Summit Hall features tiered observation galleries, encrypted translation arrays, and neutralized weapon dampening fields. Delegates from the Federation, Void Corsairs, and Photon Prime Syndicate convene here to decide the fate of sector sovereignty.',
+        unlockHint: 'Enter Crucible Summit Hall at Nebula Outpost.'
+    },
+    {
+        id: 'nebula_outpost_hangars',
+        category: 'locations',
+        title: 'Docking Hangars',
+        summary: 'Expansive orbital bays housing diplomatic shuttles, escort gunships, and frontier vessels.',
+        body: 'Pressurized behind flickering ion containment fields, the Docking Hangars of Nebula Outpost handle constant arrivals from rival factions. Armed security detachments monitor every airlock umbilical while maintenance crews service diplomatic transports between volatile summit sessions.',
+        unlockHint: 'Explore the Docking Hangars at Nebula Outpost.'
+    },
+    {
+        id: 'norkon_outpost_lab',
+        category: 'locations',
+        title: 'Syndicate Singularity Lab',
+        summary: 'A high-security Photon Prime Syndicate laboratory conducting quantum singularity research.',
+        body: 'Housed behind triple-shielded bulkheads aboard Norkon Outpost, the Syndicate Singularity Lab is Dr. Elyse Thorne\'s primary research facility. Banks of quantum processors and gravimetric sensors monitor micro-singularity containment chambers as Syndicate scientists push the boundaries of energy extraction and neural ascension.',
+        unlockHint: 'Visit the Syndicate Singularity Lab at Norkon Outpost.'
+    },
+    {
+        id: 'norkon_outpost_reactor',
+        category: 'locations',
+        title: 'Singularity Core Reactor',
+        summary: 'The volatile experimental power core driving Norkon Outpost\'s singularity lattice.',
+        body: 'Suspended inside magnetic containment rings beneath Norkon Outpost, the Singularity Core Reactor harvests zero-point energy from a harnessed spatial rift. Even minor fluctuations in its quantum calibration threaten catastrophic radiation leaks or localized spacetime distortion.',
+        unlockHint: 'Inspect the Singularity Core Reactor at Norkon Outpost.'
+    },
+    {
+        id: 'inferno_ix_refinery',
+        category: 'locations',
+        title: 'Magma Extraction Refinery',
+        summary: 'An armored volcanic processing plant harvesting superheated metals from Inferno-IX\'s lava flows.',
+        body: 'Anchored over churning rivers of molten rock by heat-dissipating pylons, the Magma Extraction Refinery pumps raw planetary ore directly from tectonic vents. Automated smelters refine Titanium Ingots and contain volatile Plasma Cores under constant threat of solar flares and territorial Magma Elementals.',
+        unlockHint: 'Explore the Magma Extraction Refinery on Inferno-IX.'
+    },
+    {
+        id: 'crio_prime_vault',
+        category: 'locations',
+        title: 'Cryo-Genetic Vault',
+        summary: 'An ancient subterranean archive buried beneath Crio-Prime\'s glaciers.',
+        body: 'Sealed beneath kilometers of solid permafrost, the Cryo-Genetic Vault preserves frozen tissue samples, extinct alien DNA sequences, and early colonization bioweapon prototypes. Sub-zero failsafes keep its chambers locked in eternal stasis, though Frost Parasites and Cryo Drakes prowl the breached outer tunnels.',
+        unlockHint: 'Explore the Cryo-Genetic Vault on Crio-Prime.'
+    },
 
     // Factions
     {
@@ -171,6 +251,110 @@ export const codexEntries = [
         body: 'The pinnacle of automated Precursor defense engineering, the Sentinel Alpha stands guard over derelict reactor cores. Encased in self-repairing quantum alloys, it deploys gravitational collapse pulses that compress matter and disrupt temporal stability. Only explorers equipped with high-tier shielding and tactical weaponry have survived an engagement with one.',
         unlockHint: 'Confront the Sentinel Alpha at the heart of a derelict ship.'
     },
+    {
+        id: 'nano_swarm',
+        category: 'enemies',
+        title: 'Nano Swarm',
+        summary: 'A relentless cloud of self-replicating micro-drones that corrode armor and circuitry.',
+        body: 'Originally deployed for hull repair aboard orbital depots, rogue Nano Swarms suffer from corrupted replication directives. Moving as a shimmering, buzzing haze through station corridors, they strip starship plating and overwhelm personal shields through thousands of simultaneous micro-discharges.',
+        unlockHint: 'Defeat a Nano Swarm in combat at Nebula Outpost.'
+    },
+    {
+        id: 'derelict_security_drone',
+        category: 'enemies',
+        title: 'Derelict Security Drone',
+        summary: 'Battle-scarred automated patrol units still enforcing lockdown protocols on ghost ships.',
+        body: 'Built to outlast their organic creators, Derelict Security Drones patrol dark, depressurized corridors with cracked optics and jury-rigged plasma emitters. Though centuries of micrometeorite impacts have scarred their chassis, their heavy armor plating and target-lock subroutines remain lethal to careless boarders.',
+        unlockHint: 'Destroy a Derelict Security Drone aboard a derelict ship.'
+    },
+    {
+        id: 'infestation_swarm',
+        category: 'enemies',
+        title: 'Infestation Swarm',
+        summary: 'A chittering mass of bio-parasitic organisms thriving inside abandoned ship hulls.',
+        body: 'Infestation Swarms incubate inside dormant life-support ducts and ruptured bio-containment bays aboard drifting wrecks. Sensitive to body heat and suit illumination, dozens of razor-mandibled parasites surge from vents in unison to tear through vacuum suits.',
+        unlockHint: 'Eliminate an Infestation Swarm aboard a derelict ship.'
+    },
+    {
+        id: 'mutated_crewmate',
+        category: 'enemies',
+        title: 'Mutated Crewmate',
+        summary: 'Former starfarers warped by prolonged radiation, spores, and void exposure.',
+        body: 'Trapped aboard disabled vessels for years without rescue, these unfortunate sailors were twisted by alien bio-contaminants and unshielded reactor leaks. Retaining fragments of muscle memory, Mutated Crewmates lurch through shadowed bulkheads wielding improvised pipes and industrial tools with unnatural strength.',
+        unlockHint: 'Defeat a Mutated Crewmate aboard a derelict ship.'
+    },
+    {
+        id: 'void_corsair_raider',
+        category: 'enemies',
+        title: 'Void Corsair Raider',
+        summary: 'Cutthroat pirate boarders outfitted in vacuum-sealed assault armor.',
+        body: 'Hardened veterans of rim-world ambushes, Void Corsair Raiders specialize in high-risk derelict salvage and hostile ship-to-ship boarding actions. Equipped with reinforced mag-boots, thermal cutters, and high-output energy carbines, they shoot first and loot whatever remains.',
+        unlockHint: 'Defeat a Void Corsair Raider aboard a derelict ship.'
+    },
+    {
+        id: 'magma_elemental',
+        category: 'enemies',
+        title: 'Magma Elemental',
+        summary: 'Volatile living constructs of molten stone and superheated plasma native to Inferno-IX.',
+        body: 'Born within the tectonic crucibles of Inferno-IX, Magma Elementals bind glowing basalt shards together with unstable thermal cores. When fatally destabilized in combat, their superheated shells detonate in a violent blast that showers the battlefield in burning slag.',
+        unlockHint: 'Defeat a Magma Elemental on Inferno-IX.'
+    },
+    {
+        id: 'ashen_hulk',
+        category: 'enemies',
+        title: 'Ashen Hulk',
+        summary: 'Towering obsidian-armored behemoths fueled by volcanic fury.',
+        body: 'Encased in thick plates of cooled volcanic glass, Ashen Hulks shrug off casual small-arms fire while advancing inexorably across slag fields. When severely wounded, the molten fissures beneath their armor flare violently, driving them into an enraged state capable of shattering defensive stances.',
+        unlockHint: 'Defeat an Ashen Hulk on Inferno-IX.'
+    },
+    {
+        id: 'frost_parasite',
+        category: 'enemies',
+        title: 'Frost Parasite',
+        summary: 'Crystalline cold-adapted scavengers that siphon thermal energy from prey and equipment.',
+        body: 'Translucent and razor-edged, Frost Parasites burrow through Crio-Prime\'s snowdrifts toward any detectable heat signature. Latching onto insulated suits and robotic joints, they rapidly drain thermal reserves to sustain their crystalline carapaces.',
+        unlockHint: 'Defeat a Frost Parasite on Crio-Prime.'
+    },
+    {
+        id: 'cryo_drake',
+        category: 'enemies',
+        title: 'Cryo Drake',
+        summary: 'Apex glacial predators whose sub-zero breath freezes armor before a shattering strike.',
+        body: 'Winged reptilian predators native to Crio-Prime\'s jagged ice ridges, Cryo Drakes condense supercooled atmospheric gases within specialized throat sacs. They immobilize prey in encasing ice blasts before diving in with devastating shatter strikes.',
+        unlockHint: 'Defeat a Cryo Drake on Crio-Prime.'
+    },
+    {
+        id: 'eldritch_shade',
+        category: 'enemies',
+        title: 'Eldritch Shade',
+        summary: 'Formless void apparitions that phase through solid bulkheads aboard ancient wrecks.',
+        body: 'Born from prolonged exposure to unshielded Precursor warp cores, Eldritch Shades flicker between physical space and subspace static. Their ghostly tendrils bypass heavy armor with ease, leaving frost-rimed hull scars and scrambled sensor logs in their wake.',
+        unlockHint: 'Banish an Eldritch Shade aboard a derelict ship.'
+    },
+    {
+        id: 'security_sentinel',
+        category: 'enemies',
+        title: 'Security Sentinel',
+        summary: 'Heavy Precursor defense units engineered to drain energy shields and disable intruders.',
+        body: 'More advanced than standard patrol drones, Security Sentinels hover silently through high-clearance derelict vaults on gravitic repulsors. Their energy tendrils siphon power directly from enemy shields and weapon capacitors before delivering precision counter-strikes.',
+        unlockHint: 'Defeat a Security Sentinel aboard a derelict ship.'
+    },
+    {
+        id: 'great_sandworm',
+        category: 'enemies',
+        title: 'The Great Sandworm',
+        summary: 'An ancient apex leviathan dominating the deepest dunes of Xylo Delta.',
+        body: 'Towering above ordinary desert annelids, The Great Sandworm is a centuries-old terror revered in Corsair cautionary tales. Its armored carapace turns aside orbital bombardment, and when wounded it burrows beneath the silicate crust to reinforce its defenses before lunging upward to devour entire landing craft.',
+        unlockHint: 'Defeat The Great Sandworm boss on Xylo Delta.'
+    },
+    {
+        id: 'void_stalker_alpha',
+        category: 'enemies',
+        title: 'Void Stalker Alpha',
+        summary: 'An apex extra-dimensional predator that tears open shadow rifts inside Nebula Outpost.',
+        body: 'Far larger and more cunning than common pack Stalkers, Void Stalker Alpha commands the outer ion clouds surrounding Nebula Outpost. Capable of cloaking itself completely in distorted void light, it ambushes intruders with lethal Shadow Rifts that shred shields and hull integrity alike.',
+        unlockHint: 'Defeat Void Stalker Alpha in boss combat at Nebula Outpost.'
+    },
 
     // Technology
     {
@@ -238,5 +422,37 @@ export const codexEntries = [
         summary: 'The brilliant and uncompromising chief scientist directing the Syndicate\'s Singularity Project.',
         body: 'Dr. Elyse Thorne is the intellectual powerhouse behind the Photon Prime Syndicate\'s frontier operations. Stationed inside the fortified Norkon Singularity Lab, she directs dangerous experiments probing event horizon dynamics and quantum consciousness. While her methods are viewed by the Federation as reckless and destabilizing, Thorne believes that unlocking singularity energy is the sole path to saving civilization from entropy.',
         unlockHint: 'Speak with Dr. Thorne at the Norkon Outpost Singularity Lab.'
+    },
+    {
+        id: 'nesta',
+        category: 'characters',
+        title: 'Envoy Nesta',
+        summary: 'The shrewd and charismatic smuggling boss leading the Void Corsairs on Xylo Delta.',
+        body: 'Operating out of the hidden Smuggler\'s Den on Xylo Delta, Envoy Nesta commands the loyalty of rim-world freebooters through sharp negotiation and fearless defiance of Federation blockades. Whether orchestrating daring customs vault heists or championing Corsair independence at the Galactic Peace Summit, Nesta always keeps an escape vector open.',
+        unlockHint: "Speak with Envoy Nesta at the Smuggler's Den on Xylo Delta."
+    },
+    {
+        id: 'mercer',
+        category: 'characters',
+        title: "Jax 'Sparky' Mercer",
+        summary: 'An eccentric salvage engineer turning Xylo Delta\'s wrecked hulls into working tech.',
+        body: 'With grease-stained coveralls and arc-welding goggles permanently perched on his brow, Jax \'Sparky\' Mercer knows the wiring schematic of every freighter ever built. Operating from the Scavenger Salvage Yard, he trades top credits for high-grade Plasma Cores and spare components to keep his heavy cutting rigs running.',
+        unlockHint: "Speak with Jax 'Sparky' Mercer at the Scavenger Salvage Yard on Xylo Delta."
+    },
+    {
+        id: 'delegates',
+        category: 'characters',
+        title: 'Summit Delegates',
+        summary: 'High-ranking representatives of the Federation, Void Corsairs, and Syndicate.',
+        body: 'Convened inside Nebula Outpost\'s Crucible Summit Hall, the Summit Delegates embody the fragile diplomatic balance of the Helios Nexus Sector. Locked in bitter debate over Precursor weapons caches and territorial sovereignty, their final decree depends heavily on the telemetry and testimony delivered by independent captains.',
+        unlockHint: 'Address the Summit Delegates at Crucible Summit Hall on Nebula Outpost.'
+    },
+    {
+        id: 'ai',
+        category: 'characters',
+        title: 'Ship AI S.A.M.',
+        summary: 'The shipboard Systems Analysis Matrix managing navigation, sensors, and tactical alerts.',
+        body: 'Integrated into every deck of your vessel, S.A.M. monitors hyperspace jump vectors, life-support reserves, and gravimetric threat telemetry in real time. Though bound by crisp diagnostic protocols, S.A.M.\'s dry tactical commentary and unwavering situational awareness make the AI an indispensable co-pilot across uncharted space.',
+        unlockHint: 'Consult Ship AI S.A.M. during ship operations or dialogue.'
     }
 ];

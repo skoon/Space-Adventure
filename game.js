@@ -18,7 +18,7 @@ import { setScene, clearScene, preloadScenes } from './systems/ui/viewscreen.js'
 import { initShop, buyItem, sellItem, getItemPrice, getItemSellPrice, orderItem, claimAllOrders } from './systems/shop.js';
 import { initMarket } from './systems/market.js';
 import { initCrafting, craftItem, discoverRecipe, getKnownRecipes, canCraft } from './systems/crafting.js';
-import { initSettings, getDifficulty, setDifficulty, getShowImages, setShowImages } from './systems/settings.js';
+import { initSettings, getDifficulty, setDifficulty, getShowImages, setShowImages, getLocale, setLocale, getVolume, setVolume, getMuted, setMuted } from './systems/settings.js';
 import { initShip, upgradeModule } from './systems/ship.js';
 import { initDerelict, startDerelictRun, exploreRoom, escapeShip, failRun, turnLeft, turnRight, uTurn } from './systems/derelict.js';
 import { initSkills } from './systems/skills.js';
@@ -186,7 +186,7 @@ function initializeGame() {
     data: { enemies, bosses, quests, items, locations, recipes },
     dom: { screens, elements, inventoryElement, missionLogElement, combatElements },
     locations: { getUnlockedLocations, travelTo },
-    settings: { getDifficulty, setDifficulty, getShowImages, setShowImages }
+    settings: { getDifficulty, setDifficulty, getShowImages, setShowImages, getLocale, setLocale, getVolume, setVolume, getMuted, setMuted }
   };
 
   // Initialize UI first (needed by other modules)
@@ -357,7 +357,9 @@ function initializeGame() {
   initSettings();
 
   // Initialize Audio
-  initAudio();
+  const audio = initAudio();
+  audio.setVolume(getVolume());
+  audio.mute(getMuted());
 
   // Initialize Codex & Cutscenes
   initCodex({

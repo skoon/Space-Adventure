@@ -15,6 +15,16 @@ import {
     selectCodexEntry
 } from '../../systems/ui/codex-ui.js';
 import { codexEntries, CODEX_CATEGORIES } from '../../data/codex.js';
+import { locations } from '../../data/locations.js';
+import { enemies, bosses } from '../../data/enemies.js';
+import {
+    locationImages,
+    districtImages,
+    enemyImages,
+    bossImages,
+    npcImages
+} from '../../data/imagery.js';
+import { initCombat, winCombat } from '../../systems/combat.js';
 import { eventEmitter } from '../../systems/eventEmitter.js';
 import { showDialogue, initDialogueUI } from '../../systems/ui/dialogue-ui.js';
 
@@ -346,6 +356,185 @@ describe('Codex System', () => {
             const img = document.getElementById('codexEntryImage');
             expect(img).not.toBeNull();
             expect(img.getAttribute('src')).toContain('assets/images/districts/terra_prime_fed_hq.jpg');
+        });
+    });
+
+    describe('Codex Completeness & Coverage', () => {
+        beforeEach(() => {
+            document.body.innerHTML = '';
+            initCodexUI({ state: mockState });
+        });
+
+        test('no duplicate ids exist in codexEntries and all entries are well-formed', () => {
+            const ids = codexEntries.map(e => e.id);
+            const uniqueIds = new Set(ids);
+            expect(uniqueIds.size).toBe(ids.length);
+
+            codexEntries.forEach((entry) => {
+                expect(typeof entry.id).toBe('string');
+                expect(entry.id.length).toBeGreaterThan(0);
+                expect(CODEX_CATEGORIES).toContain(entry.category);
+                expect(typeof entry.title).toBe('string');
+                expect(entry.title.length).toBeGreaterThan(0);
+                expect(typeof entry.summary).toBe('string');
+                expect(entry.summary.length).toBeGreaterThan(0);
+                expect(typeof entry.body).toBe('string');
+                expect(entry.body.length).toBeGreaterThan(0);
+                expect(typeof entry.unlockHint).toBe('string');
+                expect(entry.unlockHint.length).toBeGreaterThan(0);
+            });
+        });
+
+        test('every location and district in data/locations.js has a matching codex entry and resolves an image when unlocked', () => {
+            showCodexUI();
+
+            Object.values(locations).forEach((loc) => {
+                const locEntry = codexEntries.find(e => e.id === loc.id && e.category === 'locations');
+                expect(locEntry).toBeDefined();
+
+                unlockCodexEntry(loc.id);
+                selectCodexEntry(loc.id);
+                const locImg = document.getElementById('codexEntryImage');
+                expect(locImg).not.toBeNull();
+                expect(locImg.getAttribute('src')).toContain(`assets/images/${locationImages[loc.id].path}.jpg`);
+
+                (loc.districts || []).forEach((dist) => {
+                    const distEntry = codexEntries.find(e => e.id === dist.id && e.category === 'locations');
+                    expect(distEntry).toBeDefined();
+
+                    expect(unlockCodexEntry(dist.id)).toBe(true);
+                    selectCodexEntry(dist.id);
+                    const distImg = document.getElementById('codexEntryImage');
+                    expect(distImg).not.toBeNull();
+                    expect(distImg.getAttribute('src')).toContain(`assets/images/${districtImages[dist.id].path}.jpg`);
+                });
+            });
+        });
+
+        test('every enemy and boss in data/enemies.js has a matching codex entry, unlocks on winCombat, and resolves an image', () => {
+            const combatState = {
+                ...mockState,
+                character: {
+                    ...mockState.character,
+                    hp: 100,
+                    maxHp: 100,
+                    energy: 50,
+                    maxEnergy: 50,
+                    attack: 10,
+                    defense: 5,
+                    level: 5
+                },
+                playerStatusEffects: [],
+                enemyStatusEffects: [],
+                inventory: [],
+                stats: {},
+                gameState: 'combat',
+                currentLocation: 'terra_prime'
+            };
+
+            initCodex({ state: combatState, ui: { addLog: mockAddLog, showNotification: mockShowNotification } });
+            initCodexUI({ state: combatState });
+            initCombat({
+                state: combatState,
+                data: { enemies, bosses, locations },
+                dom: { combatElements: {} },
+                ui: {
+                    addLog: jest.fn(),
+                    updateCombatLog: jest.fn(),
+                    showScreen: jest.fn(),
+                    updateUI: jest.fn(),
+                    getStatusEffectIcon: jest.fn(() => ''),
+                    showVictoryMessage: jest.fn(),
+                    setScene: jest.fn()
+                },
+                equipment: { getEffectiveStats: jest.fn(() => ({ attack: 10, defense: 5 })) },
+                character: { getCharacterAvatar: jest.fn(() => '🧑'), gainXp: jest.fn() },
+                quests: { checkQuestProgress: jest.fn() },
+                exploration: { simulateExploration: jest.fn() }
+            });
+
+            const expectedEnemyIds = {
+                'Xenobot': 'xenobot',
+                'Plasmavore': 'plasmavore',
+                'Nano Swarm': 'nano_swarm',
+                'Sand Worm': 'sand_worm',
+                'Void Stalker': 'void_stalker',
+                'Derelict Security Drone': 'derelict_security_drone',
+                'Infestation Swarm': 'infestation_swarm',
+                'Mutated Crewmate': 'mutated_crewmate',
+                'Void Corsair Raider': 'void_corsair_raider',
+                'Magma Elemental': 'magma_elemental',
+                'Ashen Hulk': 'ashen_hulk',
+                'Frost parasite': 'frost_parasite',
+                'Cryo Drake': 'cryo_drake',
+                'Eldritch Shade': 'eldritch_shade',
+                'Security Sentinel': 'security_sentinel',
+                'Overlord Xylar': 'overlord_xylar',
+                'The Great Sandworm': 'great_sandworm',
+                'Void Stalker Alpha': 'void_stalker_alpha',
+                'Void Sentinel Alpha': 'void_sentinel_alpha'
+            };
+
+            showCodexUI();
+
+            enemies.forEach((enemy) => {
+                const codexId = expectedEnemyIds[enemy.name];
+                expect(codexId).toBeDefined();
+                const entry = codexEntries.find(e => e.id === codexId && e.category === 'enemies');
+                expect(entry).toBeDefined();
+
+                combatState.character.hp = 100;
+                combatState.playerStatusEffects = [];
+                combatState.enemy = { ...enemy, isBoss: false };
+                winCombat();
+
+                expect(isCodexUnlocked(codexId)).toBe(true);
+                selectCodexEntry(codexId);
+                const img = document.getElementById('codexEntryImage');
+                expect(img).not.toBeNull();
+                expect(img.getAttribute('src')).toContain(`assets/images/${enemyImages[enemy.name].path}.jpg`);
+            });
+
+            bosses.forEach((boss) => {
+                const codexId = expectedEnemyIds[boss.name];
+                expect(codexId).toBeDefined();
+                const entry = codexEntries.find(e => e.id === codexId && e.category === 'enemies');
+                expect(entry).toBeDefined();
+
+                combatState.character.hp = 100;
+                combatState.playerStatusEffects = [];
+                combatState.enemy = { ...boss, isBoss: true };
+                winCombat();
+
+                expect(isCodexUnlocked(codexId)).toBe(true);
+                selectCodexEntry(codexId);
+                const img = document.getElementById('codexEntryImage');
+                expect(img).not.toBeNull();
+                expect(img.getAttribute('src')).toContain(`assets/images/${bossImages[boss.id].path}.jpg`);
+            });
+        });
+
+        test('newly added character, location, and enemy codex entries unlock and resolve imagery', () => {
+            const spotChecks = [
+                { id: 'cryo_drake', expectedSrc: `assets/images/${enemyImages['Cryo Drake'].path}.jpg` },
+                { id: 'frost_parasite', expectedSrc: `assets/images/${enemyImages['Frost parasite'].path}.jpg` },
+                { id: 'great_sandworm', expectedSrc: `assets/images/${bossImages.boss_xylo.path}.jpg` },
+                { id: 'void_stalker_alpha', expectedSrc: `assets/images/${bossImages.boss_nebula.path}.jpg` },
+                { id: 'galactic_nexus_plaza', expectedSrc: `assets/images/${districtImages.galactic_nexus_plaza.path}.jpg` },
+                { id: 'nesta', expectedSrc: `assets/images/${npcImages.nesta.path}.jpg` },
+                { id: 'mercer', expectedSrc: `assets/images/${npcImages.mercer.path}.jpg` },
+                { id: 'delegates', expectedSrc: `assets/images/${npcImages.delegates.path}.jpg` },
+                { id: 'ai', expectedSrc: `assets/images/${npcImages.ai.path}.jpg` }
+            ];
+
+            showCodexUI();
+            spotChecks.forEach(({ id, expectedSrc }) => {
+                expect(unlockCodexEntry(id)).toBe(true);
+                selectCodexEntry(id);
+                const img = document.getElementById('codexEntryImage');
+                expect(img).not.toBeNull();
+                expect(img.getAttribute('src')).toContain(expectedSrc);
+            });
         });
     });
 });

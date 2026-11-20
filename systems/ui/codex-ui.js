@@ -277,9 +277,22 @@ function renderEntriesList() {
 const CODEX_ENEMY_IMAGE_KEYS = {
     xenobot: ['enemy', 'Xenobot'],
     plasmavore: ['enemy', 'Plasmavore'],
+    nano_swarm: ['enemy', 'Nano Swarm'],
     sand_worm: ['enemy', 'Sand Worm'],
     void_stalker: ['enemy', 'Void Stalker'],
+    derelict_security_drone: ['enemy', 'Derelict Security Drone'],
+    infestation_swarm: ['enemy', 'Infestation Swarm'],
+    mutated_crewmate: ['enemy', 'Mutated Crewmate'],
+    void_corsair_raider: ['enemy', 'Void Corsair Raider'],
+    magma_elemental: ['enemy', 'Magma Elemental'],
+    ashen_hulk: ['enemy', 'Ashen Hulk'],
+    frost_parasite: ['enemy', 'Frost parasite'],
+    cryo_drake: ['enemy', 'Cryo Drake'],
+    eldritch_shade: ['enemy', 'Eldritch Shade'],
+    security_sentinel: ['enemy', 'Security Sentinel'],
     overlord_xylar: ['boss', 'boss_terra'],
+    great_sandworm: ['boss', 'boss_xylo'],
+    void_stalker_alpha: ['boss', 'boss_nebula'],
     void_sentinel_alpha: ['boss', 'boss_derelict']
 };
 

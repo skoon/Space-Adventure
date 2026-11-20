@@ -7,6 +7,7 @@ import { eventEmitter } from "./eventEmitter.js";
 import { unlockCodexEntry } from './codex.js';
 import { playCutscene } from './cutscene.js';
 import { buildTreeFromDescriptor, evaluateBehaviorTree, NODE_STATUS, DEFAULT_AI_PROFILES } from './ai/behaviorTree.js';
+import { localize } from './theme-engine.js';
 
 // State object that holds getters/setters
 let state;
@@ -525,7 +526,7 @@ export function updateCombatUI() {
     const itemBtn = document.querySelector('button[onclick="openCombatItemMenu()"]');
     if (attackBtn) {
         attackBtn.disabled = state.character.ap < attackApCost;
-        attackBtn.innerHTML = `<span>⚔️</span> Attack (${attackApCost} AP)`;
+        attackBtn.innerHTML = `<span>⚔️</span> <span data-i18n="combat_attack">${localize('combat_attack')}</span> (${attackApCost} AP)`;
         attackBtn.className = `py-3 px-4 bg-red-600 hover:bg-red-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < attackApCost ? "opacity-50 cursor-not-allowed" : ""}`;
     }
     if (blockBtn) {
@@ -543,7 +544,7 @@ export function updateCombatUI() {
             dodgeBtn.className = "py-3 px-4 bg-gray-750 text-gray-500 rounded font-bold flex items-center justify-center gap-2 opacity-50 cursor-not-allowed border border-gray-700";
         } else {
             dodgeBtn.disabled = state.character.ap < dodgeApCost;
-            dodgeBtn.innerHTML = `<span>💨</span> Dodge (${dodgeApCost} AP)`;
+            dodgeBtn.innerHTML = `<span>💨</span> <span data-i18n="combat_dodge">${localize('combat_dodge')}</span> (${dodgeApCost} AP)`;
             dodgeBtn.className = `py-3 px-4 bg-green-600 hover:bg-green-700 rounded font-bold transition-colors flex items-center justify-center gap-2 ${state.character.ap < dodgeApCost ? "opacity-50 cursor-not-allowed" : ""}`;
         }
     }
@@ -1687,9 +1688,22 @@ export function winCombat() {
     const codexEnemyMap = {
         "Xenobot": "xenobot",
         "Plasmavore": "plasmavore",
+        "Nano Swarm": "nano_swarm",
         "Sand Worm": "sand_worm",
         "Void Stalker": "void_stalker",
+        "Derelict Security Drone": "derelict_security_drone",
+        "Infestation Swarm": "infestation_swarm",
+        "Mutated Crewmate": "mutated_crewmate",
+        "Void Corsair Raider": "void_corsair_raider",
+        "Magma Elemental": "magma_elemental",
+        "Ashen Hulk": "ashen_hulk",
+        "Frost parasite": "frost_parasite",
+        "Cryo Drake": "cryo_drake",
+        "Eldritch Shade": "eldritch_shade",
+        "Security Sentinel": "security_sentinel",
         "Overlord Xylar": "overlord_xylar",
+        "The Great Sandworm": "great_sandworm",
+        "Void Stalker Alpha": "void_stalker_alpha",
         "Void Sentinel Alpha": "void_sentinel_alpha"
     };
     if (codexEnemyMap[enemyName]) {

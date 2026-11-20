@@ -1,10 +1,14 @@
+import fs from 'fs';
+import path from 'path';
 import {
     getLocale,
     setLocale,
     localize,
-    applyLocaleToDOM
+    applyLocaleToDOM,
+    applyThemeToDOM
 } from '../../systems/theme-engine.js';
 import { locales, SUPPORTED_LOCALES } from '../../data/locales.js';
+import { theme } from '../../data/theme.js';
 import {
     initSettings,
     getLocale as getSettingsLocale,
@@ -120,6 +124,104 @@ describe('Voice-Over & Localization (EN/ES)', () => {
 
             expect(document.getElementById('btn1').textContent).toBe('Explore');
             expect(document.getElementById('btn2').textContent).toBe('Attack');
+        });
+
+        test('applyLocaleToDOM preserves leading emojis including variation selectors and indented markup', () => {
+            document.body.innerHTML = `
+                <button id="atk" data-i18n="combat_attack">⚔️ Attack</button>
+                <button id="blk" data-i18n="combat_block">🛡️ Block</button>
+                <button id="dist" data-i18n="nav_districts">🏢 Local Districts</button>
+                <button id="ach" data-i18n="nav_achievements">
+                    🏆 Achievements
+                </button>
+            `;
+
+            setLocale('es');
+            applyLocaleToDOM();
+
+            expect(document.getElementById('atk').textContent).toBe('⚔️ Atacar');
+            expect(document.getElementById('blk').textContent).toBe('🛡️ Bloquear');
+            expect(document.getElementById('dist').textContent).toBe('🏢 Distritos locales');
+            expect(document.getElementById('ach').textContent).toBe('🏆 Logros');
+
+            setLocale('en');
+            applyLocaleToDOM();
+
+            expect(document.getElementById('atk').textContent).toBe('⚔️ Attack');
+            expect(document.getElementById('blk').textContent).toBe('🛡️ Block');
+            expect(document.getElementById('dist').textContent).toBe('🏢 Local Districts');
+            expect(document.getElementById('ach').textContent).toBe('🏆 Achievements');
+        });
+
+        test('data-term and data-i18n coexist through applyThemeToDOM and en -> es -> en switching', () => {
+            const originalThemeAchievements = theme.achievements;
+            const originalThemeHull = theme.hudHull;
+
+            try {
+                theme.achievements = 'Feats';
+                theme.hudHull = 'Armor';
+
+                document.body.innerHTML = `
+                    <span id="hullLabel" data-term="hudHull" data-i18n="hud_hull">Hull</span>
+                    <button id="achBtn" data-term="achievements" data-i18n="nav_achievements">
+                        🏆 Achievements
+                    </button>
+                `;
+
+                setLocale('en');
+                applyThemeToDOM();
+                expect(document.getElementById('hullLabel').textContent).toBe('Armor');
+                expect(document.getElementById('achBtn').textContent).toBe('🏆 Feats');
+
+                setLocale('es');
+                applyThemeToDOM();
+                expect(document.getElementById('hullLabel').textContent).toBe('Casco');
+                expect(document.getElementById('achBtn').textContent).toBe('🏆 Logros');
+
+                setLocale('en');
+                applyLocaleToDOM();
+                expect(document.getElementById('hullLabel').textContent).toBe('Armor');
+                expect(document.getElementById('achBtn').textContent).toBe('🏆 Feats');
+            } finally {
+                theme.achievements = originalThemeAchievements;
+                theme.hudHull = originalThemeHull;
+            }
+        });
+
+        test('real index.html has >20 valid [data-i18n] elements and translates cleanly in jsdom', () => {
+            const indexPath = path.join(__dirname, '..', '..', 'index.html');
+            const html = fs.readFileSync(indexPath, 'utf8');
+            document.documentElement.innerHTML = html.slice(html.indexOf('<body'), html.indexOf('</body>') + 7);
+
+            const i18nElements = document.querySelectorAll('[data-i18n]');
+            expect(i18nElements.length).toBeGreaterThan(20);
+
+            i18nElements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                expect(locales.en).toHaveProperty(key);
+                expect(locales.es).toHaveProperty(key);
+            });
+
+            setLocale('es');
+            applyLocaleToDOM();
+
+            const hullEl = document.querySelector('[data-i18n="hud_hull"]');
+            const energyEl = document.querySelector('[data-i18n="hud_energy"]');
+            const xpEl = document.querySelector('[data-i18n="hud_xp"]');
+            expect(hullEl.textContent).toBe('Casco');
+            expect(energyEl.textContent).toBe('Energía');
+            expect(xpEl.textContent).toBe('XP');
+
+            const achBtn = document.getElementById('achievementsBtn');
+            const codexBtn = document.getElementById('codexBtn');
+            const districtsBtn = document.getElementById('districtsBtn');
+            expect(achBtn.textContent).toBe('🏆 Logros');
+            expect(codexBtn.textContent).toBe('📖 Códice');
+            expect(districtsBtn.textContent).toBe('🏢 Distritos locales');
+
+            const attackLabel = document.querySelector('[data-i18n="combat_attack"]');
+            expect(attackLabel.textContent).toBe('Atacar');
+            expect(attackLabel.parentElement.textContent.replace(/\s+/g, ' ').trim()).toBe('⚔️ Atacar (2 AP)');
         });
     });
 
