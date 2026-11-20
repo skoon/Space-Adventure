@@ -6,6 +6,7 @@
     <title>Galactic Odyssey - Sci-Fi Adventure Game</title>
     <link rel="stylesheet" href="style.css" type="text/css" />
     <link rel="stylesheet" href="assets/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="assets/css/responsive.css" type="text/css" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +14,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="theme-scifi">
-    <header class="bg-gray-800 p-4 border-b border-gray-700">
+    <header class="app-header bg-gray-800 p-4 border-b border-gray-700">
       <div class="flex items-center justify-between">
         <h1
           class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent"
@@ -73,8 +74,8 @@
       </div>
     </header>
 
-    <main>
-      <div class="container">
+    <main class="app-main">
+      <div class="container app-container">
         <!-- Start Screen -->
         <div id="startScreen" class="screen active-screen start-screen">
           <div
@@ -203,8 +204,8 @@
         </div>
 
         <!-- Exploring Screen -->
-        <div id="exploringScreen" class="screen game-ui">
-          <div class="flex flex-col h-full bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
+        <div id="exploringScreen" class="screen game-ui" data-mobile-tab="bridge">
+          <div class="exploring-shell bg-slate-950/80 backdrop-blur-sm">
             
             <!-- Cinematic HUD -->
             <div id="hud-container" class="hud-container">
@@ -245,10 +246,10 @@
             </div>
 
             <!-- Row 1: Command HUD (3 Columns) -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 items-stretch">
+            <div class="exploring-row-command">
               
               <!-- Column 1: Personnel Vitals -->
-              <div class="bg-gray-900/60 border border-cyan-800/60 rounded-lg p-3 flex items-center gap-4 dashboard-card-glow-cyan">
+              <div class="exploring-card mobile-panel-status bg-gray-900/60 border border-cyan-800/60 rounded-lg p-3 flex items-center gap-4 dashboard-card-glow-cyan">
                 <div id="playerAvatar" class="text-4xl p-2 bg-gray-800 rounded border border-gray-700 flex-shrink-0"></div>
                 <div class="flex-grow min-w-0">
                   <div class="flex justify-between items-center mb-1">
@@ -258,7 +259,7 @@
                   <div id="characterRaceRole" class="text-[10px] text-gray-400 mb-2 font-mono"></div>
                   
                   <!-- HP & XP meters -->
-                  <div class="space-y-1.5 text-[11px]">
+                  <div class="space-y-1.5 text-[11px] command-duplicate-meters">
                     <div class="flex justify-between font-mono text-gray-300">
                       <span>HP: <span id="playerHp"></span>/<span id="playerMaxHp"></span></span>
                     </div>
@@ -276,7 +277,7 @@
               </div>
               
               <!-- Column 2: Location HUD -->
-              <div class="bg-gray-900/60 border border-blue-800/60 rounded-lg p-3 flex flex-col justify-between dashboard-card-glow-blue relative overflow-hidden">
+              <div class="exploring-card mobile-panel-bridge bg-gray-900/60 border border-blue-800/60 rounded-lg p-3 flex flex-col justify-between dashboard-card-glow-blue relative overflow-hidden">
                 <div class="absolute inset-0 bg-blue-500/5 pointer-events-none animate-pulse"></div>
                 <div class="relative z-10 flex justify-between items-start">
                   <div>
@@ -297,7 +298,7 @@
               </div>
               
               <!-- Column 3: Combat / Status Stats -->
-              <div class="bg-gray-900/60 border border-amber-800/60 rounded-lg p-3 dashboard-card-glow-amber flex flex-col justify-between">
+              <div class="exploring-card mobile-panel-status bg-gray-900/60 border border-amber-800/60 rounded-lg p-3 dashboard-card-glow-amber flex flex-col justify-between">
                 <div>
                   <div class="text-[10px] text-amber-500 font-bold uppercase tracking-widest font-mono mb-2">Systems Status</div>
                   <div class="grid grid-cols-2 gap-2 text-[11px] font-mono text-gray-300">
@@ -328,10 +329,10 @@
             </div>
             
             <!-- Row 2: Operations Console (3 Columns) -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 items-stretch">
+            <div class="exploring-row-ops grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
               
               <!-- Column 1: Operations Console (Tabs) -->
-              <div class="cyber-panel p-4 rounded-lg border border-cyan-800 bg-gray-900/40 backdrop-blur-md flex flex-col min-h-[340px]">
+              <div class="exploring-ops-col mobile-panel-cargo cyber-panel p-4 rounded-lg border border-cyan-800 bg-gray-900/40 backdrop-blur-md flex flex-col">
                 
                 <!-- Tab Headers -->
                 <div class="flex gap-2 border-b border-cyan-900/60 pb-2 mb-3 text-xs font-mono">
@@ -369,9 +370,9 @@
                     </div>
                   </div>
                   <!-- Inventory Grid (Right) -->
-                  <div class="md:w-2/3 flex flex-col">
+                  <div class="md:w-2/3 flex flex-col min-h-0">
                     <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-mono mb-2" data-term="cargoHold" data-i18n="ui_cargo_hold">Cargo Hold</div>
-                    <div id="inventory" class="flex flex-wrap gap-2 overflow-y-auto flex-grow max-h-[220px] content-start custom-scrollbar-cyan"></div>
+                    <div id="inventory" class="exploring-scroll-area flex flex-wrap gap-2 overflow-y-auto flex-grow content-start custom-scrollbar-cyan"></div>
                   </div>
                 </div>
                 
@@ -389,9 +390,9 @@
                     </div>
                   </div>
                   <!-- Skills Summary -->
-                  <div class="flex-grow flex flex-col mt-2">
+                  <div class="flex-grow flex flex-col mt-2 min-h-0">
                     <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-mono mb-2">Unlocked Passive Subroutines</div>
-                    <div id="quickSkillsList" class="grid grid-cols-2 gap-2 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar-cyan text-gray-400">
+                    <div id="quickSkillsList" class="exploring-scroll-area grid grid-cols-2 gap-2 overflow-y-auto pr-1 custom-scrollbar-cyan text-gray-400">
                       <!-- Rendered skill list -->
                     </div>
                   </div>
@@ -400,13 +401,13 @@
               </div>
               
               <!-- Column 2: Mission Log Screen -->
-              <div class="lg:col-span-1 bg-gray-900/60 border border-cyan-800/50 rounded-lg p-4 shadow-[0_0_15px_rgba(6,182,212,0.1)] flex flex-col min-h-[340px]">
+              <div class="exploring-ops-col mobile-panel-bridge lg:col-span-1 bg-gray-900/60 border border-cyan-800/50 rounded-lg p-4 shadow-[0_0_15px_rgba(6,182,212,0.1)] flex flex-col">
                 <h2 class="text-xs font-bold text-cyan-400 mb-2 tracking-widest uppercase font-mono" data-term="operationsLog" data-i18n="ui_operations_log">>> Operations Log <<</h2>
-                <div id="missionLog" class="max-h-[240px] overflow-y-auto pr-2 custom-scrollbar-cyan text-xs font-mono text-cyan-300/90 space-y-1 flex-grow"></div>
+                <div id="missionLog" class="exploring-scroll-area overflow-y-auto pr-2 custom-scrollbar-cyan text-xs font-mono text-cyan-300/90 space-y-1 flex-grow"></div>
               </div>
 
               <!-- Column 3: Viewscreen -->
-              <div id="viewscreenPanel" class="viewscreen-panel viewscreen-glass-container lg:col-span-1 flex flex-col min-h-[340px]">
+              <div id="viewscreenPanel" class="exploring-ops-col mobile-panel-bridge viewscreen-panel viewscreen-glass-container lg:col-span-1 flex flex-col">
                 <div class="viewscreen-frame">
                   <picture id="viewscreenPicture" class="hidden">
                     <source id="viewscreenWebp" type="image/webp" srcset="">
@@ -424,8 +425,8 @@
             </div>
             
             <!-- Row 3: Action Console (Bottom Panel) -->
-            <div class="bg-gray-900/50 border border-gray-800 rounded-lg p-3 shadow-inner">
-              <div class="grid grid-cols-5 gap-3">
+            <div class="exploring-row-actions mobile-panel-actions bg-gray-900/50 border border-gray-800 rounded-lg p-3 shadow-inner">
+              <div class="action-console-grid">
                 <button onclick="travelDeeper()" data-term="travelDeeper" data-i18n="nav_travel_deeper" class="py-2 px-3 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-800 text-purple-200 rounded font-bold transition-all text-xs uppercase tracking-wider font-mono shadow-[0_0_8px_rgba(168,85,247,0.15)]">
                   Travel Deeper
                 </button>
@@ -464,13 +465,33 @@
                 </button>
               </div>
             </div>
+
+            <!-- Mobile Cockpit Navigation Bar -->
+            <nav id="mobileNavBar" class="mobile-nav-bar" role="tablist" aria-label="Cockpit Navigation">
+              <button type="button" role="tab" data-mobile-tab-btn="bridge" aria-selected="true" class="mobile-nav-btn active" onclick="switchMobileTab('bridge')">
+                <span class="mobile-nav-icon" aria-hidden="true">🛰️</span>
+                <span class="mobile-nav-label" data-i18n="mobile_tab_bridge">Bridge</span>
+              </button>
+              <button type="button" role="tab" data-mobile-tab-btn="actions" aria-selected="false" class="mobile-nav-btn" onclick="switchMobileTab('actions')">
+                <span class="mobile-nav-icon" aria-hidden="true">⚡</span>
+                <span class="mobile-nav-label" data-i18n="mobile_tab_actions">Actions</span>
+              </button>
+              <button type="button" role="tab" data-mobile-tab-btn="cargo" aria-selected="false" class="mobile-nav-btn" onclick="switchMobileTab('cargo')">
+                <span class="mobile-nav-icon" aria-hidden="true">🎒</span>
+                <span class="mobile-nav-label" data-i18n="mobile_tab_cargo">Cargo</span>
+              </button>
+              <button type="button" role="tab" data-mobile-tab-btn="status" aria-selected="false" class="mobile-nav-btn" onclick="switchMobileTab('status')">
+                <span class="mobile-nav-icon" aria-hidden="true">📊</span>
+                <span class="mobile-nav-label" data-i18n="mobile_tab_status">Status</span>
+              </button>
+            </nav>
             
           </div>
         </div>
 
         <!-- Derelict Screen -->
         <div id="derelictScreen" class="screen game-ui">
-          <div class="flex flex-col h-full derelict-glass-container p-4 relative overflow-hidden">
+          <div class="derelict-shell flex flex-col h-full derelict-glass-container p-4 relative overflow-hidden">
             <!-- Pulsing red danger background -->
             <div class="absolute inset-0 bg-red-900 opacity-10 animate-pulse pointer-events-none"></div>
             
@@ -496,9 +517,9 @@
             </div>
 
             <!-- Vessel 3D Feed & Minimap Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 relative z-10">
+            <div class="derelict-feed-grid grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 relative z-10">
               <!-- Left/Center Column: 3D Viewport -->
-              <div class="md:col-span-2 flex flex-col items-center justify-center bg-black/80 border border-red-950/80 rounded p-3 relative min-h-[260px]">
+              <div class="derelict-viewport-card md:col-span-2 flex flex-col items-center justify-center bg-black/80 border border-red-950/80 rounded p-3 relative">
                 <h3 class="text-cyan-400 font-mono text-xs uppercase tracking-wider mb-2 self-start flex items-center gap-1">
                   <span class="inline-block w-2 h-2 rounded-full bg-cyan-500 animate-ping"></span>
                   3D VISUAL FEED - CORRIDOR PERSPECTIVE
@@ -532,7 +553,7 @@
               </div>
             </div>
 
-            <div class="flex-grow bg-black/80 border border-gray-700 rounded p-3 mb-4 overflow-y-auto custom-scrollbar-cyan relative z-10">
+            <div class="derelict-cargo-box bg-black/80 border border-gray-700 rounded p-3 mb-4 overflow-y-auto custom-scrollbar-cyan relative z-10">
               <h3 class="text-yellow-500 font-bold mb-2 border-b border-gray-700 pb-1">SECURED CARGO</h3>
               <div id="derelictLootList" class="flex flex-wrap gap-2 text-sm">
                 <!-- Loot items will go here -->
@@ -562,13 +583,13 @@
 
         <!-- Combat Screen -->
         <div id="combatScreen" class="screen game-ui">
-          <div class="flex flex-col h-full">
-            <div class="flex-grow overflow-y-auto p-4 space-y-4">
+          <div class="combat-shell flex flex-col h-full">
+            <div class="combat-top-area">
               <!-- Environmental Hazard Banner -->
               <div id="combatEnvironmentBanner" class="hidden bg-orange-955/80 border border-orange-500 rounded-lg p-2 text-center text-xs font-bold text-orange-300 flex items-center justify-center gap-2 mb-2">
                 <span class="animate-pulse">⚠️</span> <span id="combatEnvironmentText">ACTIVE HAZARD</span>
               </div>
-              <div class="grid grid-cols-2 gap-4">
+              <div class="combat-combatants-grid grid grid-cols-2 gap-4">
                 <div
                   class="combat-glass-container p-4 rounded-lg shadow-md"
                 >
@@ -678,17 +699,17 @@
               </div>
 
               <div
-                class="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700"
+                class="combat-log-card bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700"
               >
                 <h2 class="text-xl font-bold text-blue-400 mb-2">Combat Log</h2>
                 <div
                   id="combatLog"
-                  class="max-h-40 overflow-y-auto space-y-1 text-sm text-gray-300"
+                  class="combat-log-scroll overflow-y-auto space-y-1 text-sm text-gray-300"
                 ></div>
               </div>
             </div>
 
-            <div class="bg-gray-900 p-4 border-t border-gray-700">
+            <div class="combat-controls-bar bg-gray-900 p-4 border-t border-gray-700">
               <!-- Stance Selector Panel -->
               <div id="combatStancePanel" class="bg-gray-850 p-2 rounded-lg mb-3 border border-gray-700 flex justify-between items-center gap-2">
                 <div class="text-xs text-gray-400 font-bold uppercase tracking-wider pl-1">Stance</div>
@@ -698,7 +719,7 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-3 gap-4 mb-2">
+              <div class="combat-action-row grid grid-cols-3 gap-4 mb-2">
                 <button
                   onclick="playerAttack()"
                   class="py-3 px-4 bg-red-600 hover:bg-red-700 rounded font-bold transition-colors flex items-center justify-center gap-2 text-sm text-center"
@@ -719,7 +740,7 @@
                   <span>👥</span> <span data-i18n="combat_crew">Crew</span> (1 AP)
                 </button>
               </div>
-              <div class="grid grid-cols-3 gap-4 mb-2">
+              <div class="combat-action-row grid grid-cols-3 gap-4 mb-2">
                 <button
                   onclick="playerDodge()"
                   class="py-3 px-4 bg-green-600 hover:bg-green-700 rounded font-bold transition-colors flex items-center justify-center gap-2"
@@ -1046,7 +1067,7 @@
     <div id="saveMessage" class="save-message" style="display: none"></div>
 
     <footer
-      class="bg-gray-800 p-3 text-center text-sm text-gray-400 border-t border-gray-700"
+      class="app-footer bg-gray-800 p-3 text-center text-sm text-gray-400 border-t border-gray-700"
     >
       &copy; <span id="currentYear"></span> Sci-Fi Adventure Game. All rights
       reserved.

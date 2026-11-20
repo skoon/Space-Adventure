@@ -47,7 +47,11 @@ export const locales = {
         combat_crew: 'Crew',
         combat_item: 'Item',
         cutscene_skip: 'Skip (Esc)',
-        cutscene_continue: 'Continue (Space)'
+        cutscene_continue: 'Continue (Space)',
+        mobile_tab_bridge: 'Bridge',
+        mobile_tab_actions: 'Actions',
+        mobile_tab_cargo: 'Cargo',
+        mobile_tab_status: 'Status'
     },
     es: {
         nav_explore: 'Explorar',
@@ -90,6 +94,10 @@ export const locales = {
         combat_crew: 'Tripulación',
         combat_item: 'Objeto',
         cutscene_skip: 'Omitir (Esc)',
-        cutscene_continue: 'Continuar (Espacio)'
+        cutscene_continue: 'Continuar (Espacio)',
+        mobile_tab_bridge: 'Puente',
+        mobile_tab_actions: 'Acciones',
+        mobile_tab_cargo: 'Carga',
+        mobile_tab_status: 'Estado'
     }
 };

@@ -11,7 +11,7 @@ import { initCharacter, createCharacter, gainXp, getCharacterAvatar, useHealItem
 import { initExploration, simulateExploration, travelDeeper } from './systems/exploration.js';
 import { initEvents, generateRandomEvent, handleEvent } from './systems/events.js';
 import { initSaveLoad, saveGame, loadGame, exportGame, importGame, autoSave, initializeSaveSystem } from './systems/saveload.js';
-import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog, showTravelScreen, showSettingsModal, showStatsAllocationUI, closeStatsAllocationUI, allocateStat, showAchievementsUI, closeAchievementsUI, switchShipTab, switchOperationsTab, updateQuickCrewPanel, showDerelictScreen, showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl } from './systems/ui.js';
+import { initUI, showScreen, addLog, updateMissionLog, updateCombatLog, updateUI, getStatusEffectIcon, showLevelUpNotification, hideLevelUpNotification, showVictoryMessage, showSaveMessage, toggleQuestLog, switchQuestTab, startGame, showDialog, hideDialog, showTravelScreen, showSettingsModal, showStatsAllocationUI, closeStatsAllocationUI, allocateStat, showAchievementsUI, closeAchievementsUI, switchShipTab, switchOperationsTab, switchMobileTab, updateQuickCrewPanel, showDerelictScreen, showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl } from './systems/ui.js';
 import { initInventory, openCombatItemMenu, closeCombatItemMenu, useCombatItem } from './systems/inventory.js';
 import { initLocations, travelTo, getLocationDetails, getUnlockedLocations } from './systems/locations.js';
 import { setScene, clearScene, preloadScenes } from './systems/ui/viewscreen.js';
@@ -454,6 +454,7 @@ window.closeCodexUI = closeCodexUI;
 window.triggerCompanionAbility = triggerCompanionAbility;
 window.switchShipTab = switchShipTab;
 window.switchOperationsTab = switchOperationsTab;
+window.switchMobileTab = switchMobileTab;
 window.updateQuickCrewPanel = updateQuickCrewPanel;
 
 // Cybernetics functions

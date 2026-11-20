@@ -86,6 +86,7 @@ import { getActiveCompanion } from './companions.js';
 import { renderDungeon } from './ui/dungeon-renderer.js';
 import { SKILL_TREES, hasSkill, unlockSkill, SPECIALIZATION_TREES, hasSpecialization, unlockSpecialization } from './skills.js';
 import { applyThemeToDOM, t } from './theme-engine.js';
+import { initMobileUI, switchMobileTab } from './ui/mobile-ui.js';
 
 // Re-export for external use
 export { 
@@ -104,7 +105,8 @@ export {
     showCodexUI, closeCodexUI,
     showJobBoard,
     showDialogue, hideDialogue, showDialogueRoll, showEpilogueCrawl,
-    showDistricts
+    showDistricts,
+    switchMobileTab
 };
 
 import { items } from '../data/items.js';
@@ -172,6 +174,7 @@ export function initUI(dependencies) {
     initDialogueUI(deps);
     initDistrictsUI(deps);
     initViewscreen(deps);
+    initMobileUI();
 
     // Initialize Difficulty Selector (Start Screen)
     const difficultySelect = document.getElementById("difficultySelect");
